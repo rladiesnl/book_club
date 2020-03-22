@@ -1,0 +1,72 @@
+---
+output: html_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, size = 3)
+library(tidyverse)
+library(kableExtra)
+library(googlesheets4)
+library(lubridate)
+
+mytable <- function(df){
+  kable(df) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed", "responsive"),
+                full_width = F,
+                font_size = 12)}
+```
+
+## Welcome to R-Ladies Netherlands Book Club &#x1F4DA; &#x1f1f3;&#x1f1f1;!!
+
+R-Ladies chapters from the Netherlands are gathering forces to host online book clubs!
+
+We are very excited to start with the book [**Advanced R**](https://adv-r.hadley.nz/) by Hadley Wickham.
+
+### What to expect?:
+
+  - Highlight the key points on each topic of the book with a presentation.
+  
+  - Go together through the exercises.
+  
+  - Discuss and clarify doubts.
+  
+   
+### When?
+
+The events will be hosted every two weeks by different R-Ladies chapters, on Tuesdays at 6pm, via zoom.
+
+### Current agenda:
+
+```{r, include = FALSE}
+
+url <- ("https://docs.google.com/spreadsheets/d/1oAzHwL8OMo3AE3994MkYVSPyR9RawZWiwvYDB-nSg-8/edit#gid=0") 
+
+## Use own email before knitting
+# sheets_auth(email = "palolili@gmail.com")
+
+data <- read_sheet(url) %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as_date(date)) %>% 
+  select(chapter, title, description, speaker, date, hosted_by, link)
+```
+
+```{r, echo=FALSE}
+data %>% 
+filter(!is.na(hosted_by)) %>% 
+  mytable() %>% 
+  row_spec(0, bold = T, color = " white", background = "#562457")
+```
+
+Sign-up to present a topic [**here**](https://bit.ly/2QBYGEG)
+
+To join the event, click at the link on our **_Current agenda_**!
+
+<br><br>
+
+**Looking forward to see you soon!**
+
+`r icon:: fa("github", colour = "#011A5E")` <a href="https://github.com/rladiesnl/book_club"> </i>&nbsp; @rladiesnl</a><br>
+
+<img src="R-LadiesGlobal_RBG_online_LogoWithText_Horizontal.png" width="300" height="100" />
+
+

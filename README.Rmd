@@ -59,13 +59,15 @@ filter(!is.na(hosted_by)) %>%
   row_spec(0, bold = T, color = " white", background = "#562457")
 ```
 
-If you want to sign-up to present a topic in one of our events, [**click here**](https://bit.ly/2QBYGEG)
+Sign-up to present a topic [**here**](https://bit.ly/2QBYGEG)
 
-If you want to join the event, click at the link on our **_Current agenda_**!
+To join the event, click at the link on our **_Current agenda_**!
+
+<br><br>
 
 **Looking forward to see you soon!**
 
+`r icon:: fa("github", colour = "#011A5E")` <a href="https://github.com/rladiesnl/book_club"> </i>&nbsp; @rladiesnl</a><br>
 
 <img src="R-LadiesGlobal_RBG_online_LogoWithText_Horizontal.png" width="300" height="100" />
-
 
