@@ -277,12 +277,18 @@ NA
 
 </table>
 
-If you want to sign-up to present a topic in one of our events, [**click
-here**](https://bit.ly/2QBYGEG)
+Sign-up to present a topic [**here**](https://bit.ly/2QBYGEG)
 
-If you want to join the event, click at the link on our ***Current
-agenda***\!
+To join the event, click at the link on our ***Current agenda***\!
+
+<br><br>
 
 **Looking forward to see you soon\!**
+
+<!--html_preserve-->
+
+<i class="fab  fa-github " style="color:#011A5E;"></i><!--/html_preserve-->
+<a href="https://github.com/rladiesnl/book_club"> </i> 
+@rladiesnl</a><br>
 
 <img src="R-LadiesGlobal_RBG_online_LogoWithText_Horizontal.png" width="300" height="100" />
