@@ -42,7 +42,7 @@ The events will be hosted every two weeks by different R-Ladies chapters, on Tue
 url <- ("https://docs.google.com/spreadsheets/d/1oAzHwL8OMo3AE3994MkYVSPyR9RawZWiwvYDB-nSg-8/edit#gid=0") 
 
 ## Use own email before knitting
-# sheets_auth(email = "palolili@gmail.com")
+# sheets_auth(email = "email@xxxxx")
 
 data <- read_sheet(url) %>% 
   janitor::clean_names() %>% 
@@ -52,7 +52,7 @@ data <- read_sheet(url) %>%
 
 ```{r, echo=FALSE}
 data %>% 
-filter(!is.na(hosted_by)) %>% 
+filter(!is.na(speaker)) %>% 
   mytable() %>% 
   row_spec(0, bold = T, color = " white", background = "#562457")
 ```

@@ -121,7 +121,7 @@ Nijmengen
 
 <td style="text-align:left;">
 
-NA
+[click here](https://bit.ly/2wyOFkP)
 
 </td>
 
@@ -249,7 +249,7 @@ tools like switch() and while.
 
 <td style="text-align:left;">
 
-NA
+Margaux Sleckman
 
 </td>
 
@@ -273,6 +273,107 @@ NA
 
 </tr>
 
+<tr>
+
+<td style="text-align:right;">
+
+6
+
+</td>
+
+<td style="text-align:left;">
+
+Functions
+
+</td>
+
+<td style="text-align:left;">
+
+Deals with functions, the most important building blocks of R code.
+Youâ€™ll learn exactly how they work, including the scoping rules,
+which govern how R looks up values from names. Youâ€™ll also learn more
+of the details behind lazy evaluation, and how you can control what
+happens when you exit a function.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+7
+
+</td>
+
+<td style="text-align:left;">
+
+Environments
+
+</td>
+
+<td style="text-align:left;">
+
+Describes a data structure that is crucial for understanding how R
+works, but quite unimportant for data analysis: the environment.
+Environments are the data structure that binds names to values, and they
+power important tools like package namespaces. Unlike most programming
+languages, environments in R are â€œfirst classâ€ which means that you
+can manipulate them just like other objects.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
 </tbody>
 
 </table>
@@ -284,11 +385,5 @@ To join the event, click at the link on our ***Current agenda***\!
 <br><br>
 
 **Looking forward to see you soon\!**
-
-<!--html_preserve-->
-
-<i class="fab  fa-github " style="color:#011A5E;"></i><!--/html_preserve-->
-<a href="https://github.com/rladiesnl/book_club"> </i> 
-@rladiesnl</a><br>
 
 <img src="R-LadiesGlobal_RBG_online_LogoWithText_Horizontal.png" width="300" height="100" />
