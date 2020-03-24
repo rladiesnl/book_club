@@ -44,7 +44,7 @@ The events will be hosted every two weeks by different R-Ladies chapters, on Tue
 url <- ("https://docs.google.com/spreadsheets/d/1oAzHwL8OMo3AE3994MkYVSPyR9RawZWiwvYDB-nSg-8/edit#gid=0") 
 
 ## Use own email before knitting
-# sheets_auth(email = "palolili@gmail.com")
+# sheets_auth(email = "email@xxxxx")
 
 data <- read_sheet(url) %>% 
   janitor::clean_names() %>% 
@@ -54,7 +54,7 @@ data <- read_sheet(url) %>%
 
 ```{r, echo=FALSE}
 data %>% 
-filter(!is.na(hosted_by)) %>% 
+filter(!is.na(speaker)) %>% 
   mytable() %>% 
   row_spec(0, bold = T, color = " white", background = "#562457")
 ```
@@ -67,7 +67,6 @@ To join the event, click at the link on our **_Current agenda_**!
 
 **Looking forward to see you soon!**
 
-`r icon:: fa("github", colour = "#011A5E")` <a href="https://github.com/rladiesnl/book_club"> </i>&nbsp; @rladiesnl</a><br>
 
 <img src="R-LadiesGlobal_RBG_online_LogoWithText_Horizontal.png" width="300" height="100" />
 
