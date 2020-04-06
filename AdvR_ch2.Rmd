@@ -1,0 +1,449 @@
+---
+title: 'Advanced R Book Club: Chapter 2'
+author: "Laurel Brehm - R Ladies NL"
+date: "7/4/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Welcome!
+
+This is part 1 of the R Ladies Netherlands bookclub. 
+
+We're reading Advanced R by Hadley Wickham.
+
+https://adv-r.hadley.nz/
+
+## The Organizers
+
+Your organizers are:
+
+*Paloma Rojas* (R Ladies Rotterdam)
+
+Janine Khuc (R Ladies Amsterdam)
+
+Margaux Sleckman (R Ladies Amsterdam)
+
+Martine Jansen (R Ladies Den Bosch)
+
+Laurel Brehm (R Ladies Nijmegen)
+
+Eirini Zormpa (R Ladies Nijmegen)
+
+Sara Iacozza (R Ladies Nijmegen)
+
+
+## The Plan
+We will work through all of Advanced R together!
+
+You can find all materials on Github:
+https://github.com/rladiesnl/book_club
+
+We are going to rotate through every 2 weeks, with an event hosted by each of the NL RLadies chapters involved.
+
+We will be recruiting a presenter for each chapter, so we want YOU to sign up.
+
+You can do this here: https://tinyurl.com/SignUpAdvR
+
+## Today: Names and Values
+
+Names and values: 
+https://adv-r.hadley.nz/names-values.html
+
+
+The way that R assigns names to objects and values isn't quite what you think!  
+
+This chapter explores name/value assignment and what this means for memory use and the speed of your code.
+
+We'll walk through the chapter and then solve some exercises together!
+
+## Setup
+
+You need lobstr-- install as necessary:
+run: install.packages('lobstr')
+
+
+```{r}
+library(lobstr)
+```
+
+## Quiz questions...
+-1. Given the following data frame, how do I create a new column called “3” that contains the sum of 1 and 2? You may only use $, not [[. What makes 1, 2, and 3 challenging as variable names?
+
+```{r}
+df <- data.frame(runif(3), runif(3))
+names(df) <- c(1, 2)
+```
+
+## Quiz questions...
+-2. In the following code, how much memory does y occupy?
+
+```{r}
+x <- runif(1e6)
+y <- list(x, x, x)
+```
+
+## Quiz questions...
+-3. On which line does a get copied in the following example?
+
+```{r}
+a <- c(1, 5, 3, 2)
+b <- a
+b[[1]] <- 10
+```
+
+
+## 2.2: What does assigning variables *mean*?
+
+The code below doesn't do what you might naively think:
+```{r}
+x <- c(1, 2, 3)
+```
+
+A vector is created-- and then bound to a name. 
+
+So as Wickham says "it's actually the name that has a value"
+
+
+## 2.2: What does assigning variables *mean*?
+
+This means that the assign arrow makes a new binding between name and value-- not a copy of the object! 
+
+```{r}
+y <- x
+```
+
+## 2.2: What does assigning variables *mean*?
+
+You can query the actual object address-- x and y are mapped to the same part of my computer memory-- they're the same ID. 
+
+(If you run this code on your own computer, the address will be different, but x and y will match)
+
+```{r}
+obj_addr(x)
+obj_addr(y)
+
+```
+
+## 2.2: Bad names
+
+Because of this binding between names and values, R has a hard time with certain types of names-- they should be alphanumeric and start with a letter.
+
+They should also not duplicate function names-- like 'if' or 'null'.
+
+You can get around these if you need to (because someone else needs you to use a specific variable name, because you want to pass to panel plots, etc...)
+
+Just use back ticks-- NOT quotes (that will do something funny.)
+
+```{r}
+`_abc` <- 1
+`_abc`
+```
+
+
+## 2.3: Objects in memory
+
+Why does R run an assignment arrow operation like this so fast?
+
+```{r}
+x <- c(1, 2, 3)
+y <- x
+
+y[[3]] <- 4
+```
+
+
+## 2.3: Objects in memory
+
+A copy of the object wasn't made until it needed to be-- otherwise both are bindings to the same value.
+
+You can use tracemem() to see when an object is *actually* copied.  (untracemem() to turn off..)
+
+```{r}
+x <- c(1, 2, 3)
+tracemem(x)
+
+y <- x
+y[[3]] <- 4
+untracemem(x)
+```
+
+## 2.3: Objects in memory
+
+If you've written functions in R, you'll notice that the stuff you use inside the function doesn't appear outside of it.  
+
+This is because of this same sort of compartmentalization: Copies are only made at the *end* of the function loop if you need them.
+
+This is good because it's fast and efficient in memory.
+
+## 2.3: Objects in memory
+
+Lists are a set of references to values, whereas vectors are a set of values. (That's why the syntax is different, among other things).
+
+This makes lists efficient for some types of programming: values go into a global pool, making them easy on memory.
+
+You can see how a list is stored by using lobstr.
+
+## 2.3: Objects in memory
+
+Note the difference after we change element 3 of l2.
+
+```{r}
+l1 <- list(1,2,3)
+l2 <- l1
+
+ref(l1,l2)
+```
+
+
+## 2.3: Objects in memory
+Note the difference after we change element 3 of l2.
+
+```{r}
+l2[[3]] <- 4
+
+ref(l1,l2)
+```
+
+## 2.3: Objects in memory
+
+A data frame is a list of vectors.
+
+This means that columns are privileged:  column-wise operations will be faster and more efficient in memory than row-wise operations.
+
+(To better manipulate rows: consider something like tidyverse where it's been made as efficient as possible) 
+
+## 2.4: Object size
+
+Because of how R stores objects, sometimes things are suprisingly small. You can query this with obj_size()
+
+Here, y is not 3x: it's x + a 3-element empty list.
+
+This representation is more compact becaue of the names-bound-to-values property of R.
+
+```{r}
+x <- runif(1e6)
+obj_size(x)
+
+y <- list(x, x, x)
+obj_size(y)
+
+```
+
+
+## 2.5: Modify-in-place
+
+There are exceptions to the copy-on-modify which make perfect sense from an efficiency standpoint.
+
+The first is: if an object just has one name, it gets modified right away.
+
+This has a caveat: R doesn't always *know* accurately when an object only has one name, so sometimes it makes extra copies.
+
+This is more likely with data frames (=more likely to be copied), and it's why they are very slow in things like for loops (=more likely to make copies).  
+
+Instead, try using lists instead inside big for loops-- those are more efficiently indexed.
+
+
+## 2.5: Modify-in-place
+
+The second exception is for *environments* which are always modified in place. 
+
+More about what an environment is specifically in a few chapters-- but it's this behavior that makes them really, really nice for some types of programming.
+
+
+## 2.6: Unbinding
+
+When you bind objects to different names, sometimes there are things floating in memory that aren't accessed.
+
+R takes care of this for you with the garbage collector (GC).
+
+It will run on its own when you're trying to allocate memory space to a new object.
+
+
+## Quiz answers!
+
+-1. Given the following data frame, how do I create a new column called “3” that contains the sum of 1 and 2? You may only use $, not [[. What makes 1, 2, and 3 challenging as variable names?
+
+```{r}
+df <- data.frame(runif(3), runif(3))
+names(df) <- c(1, 2)
+```
+
+## Quiz answers!
+
+-1. Given the following data frame, how do I create a new column called “3” that contains the sum of 1 and 2? You may only use $, not [[. What makes 1, 2, and 3 challenging as variable names?
+```{r}
+df <- data.frame(runif(3), runif(3))
+names(df) <- c(1, 2)
+
+df$`3` <- df$`1` + df$`2`
+```
+
+## Quiz answers!
+
+-2. In the following code, how much memory does y occupy?
+
+```{r}
+x <- runif(1e6)
+y <- list(x, x, x)
+```
+
+
+## Quiz answers!
+
+-2. In the following code, how much memory does y occupy?
+
+```{r}
+x <- runif(1e6)
+y <- list(x, x, x)
+
+lobstr::obj_size(x)
+lobstr::obj_size(y)
+
+lobstr::obj_size(list(NULL, NULL, NULL))
+
+```
+
+## Quiz answers!
+
+-3. On which line does a get copied in the following example?
+
+```{r}
+a <- c(1, 5, 3, 2)
+b <- a
+b[[1]] <- 10
+```
+
+
+## Quiz answers!
+
+-3. On which line does a get copied in the following example?
+
+```{r}
+a <- c(1, 5, 3, 2)
+b <- a
+tracemem(a)
+tracemem(b)
+
+b[[1]] <- 10
+
+```
+
+## More exercises: 2.2
+
+-1. Explain the relationship between a, b, c and d in the following code:
+
+```{r}
+a <- 1:10
+b <- a
+c <- b
+d <- 1:10
+```
+
+## More exercises: 2.2
+-2. The following code accesses the mean function in multiple ways. Do they all point to the same underlying function object? Verify this with lobstr::obj_addr().
+
+```{r eval=FALSE}
+mean
+base::mean
+get("mean")
+evalq(mean)
+match.fun("mean")
+```
+
+## More exercises: 2.2
+-3. By default, base R data import functions, like read.csv(), will automatically convert non-syntactic names to syntactic ones. Why might this be problematic? What option allows you to suppress this behaviour?
+
+-4. What rules does make.names() use to convert non-syntactic names into syntactic ones?
+
+-5. I slightly simplified the rules that govern syntactic names. Why is .123e1 not a syntactic name? Read ?make.names for the full details.
+
+
+## More exercises: 2.3
+
+-1. Why is tracemem(1:10) not useful?
+
+-2. Explain why tracemem() shows two copies when you run this code. Hint: carefully look at the difference between this code and the code shown earlier in the section.
+
+```{r}
+x <- c(1L, 2L, 3L)
+tracemem(x)
+
+x[[3]] <- 4
+```
+
+## More exercises: 2.3
+-3. Sketch out the relationship between the following objects:
+
+```{r}
+a <- 1:10
+b <- list(a, a)
+c <- list(b, a, 1:10)
+```
+
+-4. What happens when you run this code? Draw a picture.
+```{r}
+x <- list(1:10)
+x[[2]] <- x
+
+```
+
+## More exercises: 2.4
+
+-1. In the following example, why are object.size(y) and obj_size(y) so radically different? Consult the documentation of object.size().
+
+```{r}
+y <- rep(list(runif(1e4)), 100)
+
+object.size(y)
+obj_size(y)
+```
+
+## More exercises: 2.4
+
+-2.  Take the following list. Why is its size somewhat misleading?
+
+```{r}
+funs <- list(mean, sd, var)
+obj_size(funs)
+```
+
+## More exercises: 2.4
+
+-3. Predict the output of the following code:
+```{r eval=FALSE}
+a <- runif(1e6)
+obj_size(a)
+
+b <- list(a, a)
+obj_size(b)
+obj_size(a, b)
+
+b[[1]][[1]] <- 10
+obj_size(b)
+obj_size(a, b)
+
+b[[2]][[1]] <- 10
+obj_size(b)
+obj_size(a, b)
+```
+
+## More exercises: 2.5
+
+-1. Explain why the following code doesn’t create a circular list.
+
+```{r}
+x <- list()
+x[[1]] <- x
+```
+
+
+## More exercises: 2.5
+
+-2.  Wrap the two methods for subtracting medians into two functions, then use the ‘bench’ package (Hester 2018) to carefully compare their speeds. How does performance change as the number of columns increase?
+
+-3. What happens if you attempt to use tracemem() on an environment?
+
