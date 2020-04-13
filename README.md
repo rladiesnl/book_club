@@ -121,7 +121,7 @@ Nijmengen
 
 <td style="text-align:left;">
 
-[click here](https://bit.ly/2wyOFkP)
+[slides](https://rladiesnl.github.io/book_club/AdvR_ch2#1)
 
 </td>
 
@@ -170,7 +170,7 @@ Rotterdam
 
 <td style="text-align:left;">
 
-NA
+[meetup link](https://bit.ly/3b5Fszp)
 
 </td>
 
@@ -255,7 +255,7 @@ Margaux Sleckman
 
 <td style="text-align:left;">
 
-2021-05-26
+2020-05-26
 
 </td>
 
@@ -299,19 +299,19 @@ happens when you exit a function.
 
 <td style="text-align:left;">
 
-Sign up\!
+Josephine Daub
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+2020-06-09
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+Nijmengen
 
 </td>
 
@@ -356,13 +356,114 @@ Sign up\!
 
 <td style="text-align:left;">
 
-NA
+2020-06-23
+
+</td>
+
+<td style="text-align:left;">
+
+Rotterdam
 
 </td>
 
 <td style="text-align:left;">
 
 NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+8
+
+</td>
+
+<td style="text-align:left;">
+
+Conditions
+
+</td>
+
+<td style="text-align:left;">
+
+Concludes the foundations of R with an exploration of â€œconditionsâ€,
+the umbrella term used to describe errors, warnings, and messages.
+Youâ€™ve certainly encountered these before, so in this chapter you
+learn how to signal them appropriately in your own functions, and how to
+handle them when signalled elsewhere.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+2020-06-23
+
+</td>
+
+<td style="text-align:left;">
+
+Den Bosch
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+9
+
+</td>
+
+<td style="text-align:left;">
+
+Functionals
+
+</td>
+
+<td style="text-align:left;">
+
+Shows you how to replace many for loops with functionals which are
+functions (like lapply()) that take another function as an argument.
+Functionals allow you to take a function that solves the problem for a
+single input and generalise it to handle any number of inputs.
+Functionals are by far and away the most important technique and
+youâ€™ll use them all the time in data analysis.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+2020-07-07
+
+</td>
+
+<td style="text-align:left;">
+
+Amsterdam
 
 </td>
 
