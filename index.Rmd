@@ -33,7 +33,7 @@ We are very excited to start with the book [**Advanced R**](https://adv-r.hadley
    
 ### When?
 
-The events will be hosted every two weeks by different R-Ladies chapters, on Tuesdays at 6pm, via zoom.
+The events will be hosted every two weeks by different R-Ladies chapters, on Tuesdays at 6pm, via jitsi.
 
 ### Current agenda:
 

@@ -19,7 +19,7 @@ R**](https://adv-r.hadley.nz/) by Hadley Wickham.
 ### When?
 
 The events will be hosted every two weeks by different R-Ladies
-chapters, on Tuesdays at 6pm, via zoom.
+chapters, on Tuesdays at 6pm, via jitsi.
 
 ### Current agenda:
 
