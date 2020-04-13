@@ -121,7 +121,7 @@ Nijmengen
 
 <td style="text-align:left;">
 
-[slides](https://rladiesnl.github.io/book_club/AdvR_ch2#1)
+[slides](https://rladiesnl.github.io/book_club/slides/AdvR_ch2#1)
 
 </td>
 
