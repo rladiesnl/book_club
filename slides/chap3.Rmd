@@ -748,4 +748,283 @@ attr(x, "y") <- 1
 
 ]
 
+---
+name: title
+class: center, middle
+
+## Exercises
+#### And Solutions from https://advanced-r-solutions.rbind.io/
+
+---
+
+### Atomic vectors
+
+Q1. How do you create scalars of type raw and complex? (See ?raw and ?complex)
+
+```{r, results='hold'}
+raw(1)
+
+as.raw(2)
+
+charToRaw("A")
+
+```
+
+```{r, results='hold'}
+complex(1)
+
+complex(length.out = 1, real = 1, imaginary = 1)
+
+```
+
+---
+
+Q2. Test your knowledge of vector coercion rules by predicting the output of the following uses of c():
+
+```{r, eval = FALSE}
+c(1, FALSE)  
+
+c("a", 1) 
+
+c(TRUE, 1L)  
+```
+
+Q3. Why is 1 == "1" true? Why is -1 < FALSE true? Why is "one" < 2 false?
+
+---
+
+Q4. Why is the default missing value, NA, a logical vector? What’s special about logical vectors?
+
+Q5. Precisely what do is.atomic(), is.numeric(), and is.vector() test for?
+
+`is.atomic()` tests if is an atomic vector or is NULL (!).
+
+`is.numeric()` tests if an object has type integer or double and is not of "factor", "Date", "POSIXt" or "difftime" class.
+
+`is.vector()` tests if an object is vector and has no attributes, apart from names.
+
+---
+
+## Attributes
+
+Q1. How is setNames() implemented? How is unname() implemented? Read the source code.
+
+.pull-left[
+```{r, eval = FALSE}
+setNames <- function (object = nm, nm){
+  names(object) <- nm
+  object
+}
+```
+]
+
+.pull-right[
+```{r, eval = FALSE}
+unname <- function (obj, force = FALSE) {
+  if (!is.null(names(obj)))
+    names(obj) <- NULL
+  if (!is.null(dimnames(obj)) &&
+      (force || !is.data.frame(obj)))
+    dimnames(obj) <- NULL
+  obj
+}
+```
+]
+
+---
+
+Q2. What does dim() return when applied to a 1d vector? When might you use NROW() or NCOL()?
+
+```{r, error = TRUE, results='hold'}
+x <- 1:5
+
+dim(x)
+nrow(x)
+ncol(x)
+
+NROW(x)
+NCOL(x)
+```
+
+---
+
+Q3. How would you describe the following three objects? What makes them different to 1:5?
+
+Row - column - third dimention
+```{r}
+x1 <- array(1:5, c(1, 1, 5))
+x2 <- array(1:5, c(1, 5, 1))
+x3 <- array(1:5, c(5, 1, 1))
+```
+
+---
+ 
+Q4.An early draft used this code to illustrate structure():
+```{r}
+structure(1:5, comment = "my attribute")
+```
+
+But when you print that object you don’t see the comment attribute. Why? Is the attribute missing, or is there something else special about it? (Hint: try using help.)
+
+```{r, results= 'hold'}
+foo <- structure(1:5, comment = "my attribute")
+
+attributes(foo)
+
+attr(foo, which = "comment")
+
+```
+
+---
+
+## S3 atomic vectors
+
+Q1. What sort of object does table() return? What is its type? What attributes does it have? How does the dimensionality change as you tabulate more variables?
+
+```{r, results= 'hold'}
+x <- table(mtcars[c("vs", "cyl", "am")])
+
+typeof(x)
+
+attributes(x)
+
+```
+
+---
+
+Q2. What happens to a factor when you modify its levels? Q3: How do f2 and f3 differ from f1?
+
+.pull-left[
+```{r, results= 'hold'}
+f1 <- factor(letters[1:5])
+f1
+levels(f1) <- rev(levels(f1))
+f1
+attributes(f1)
+as.integer(f1)
+
+```
+]
+
+.pull-right[
+
+```{r, results='hold'}
+f2 <- rev(factor(letters[1:5]))
+f2
+attributes(f2)
+
+f3 <- factor(letters[1:5],
+             levels = rev(letters[1:5]))
+f3
+attributes(f3)
+```
+
+]
+
+---
+
+## Lists
+
+Q1. List all the ways that a list differs from an atomic vector.
+
+<img decoding="async" amp-img-id="coverimage" src="https://www.houseofbots.com/images/news/3623/cover.png" class="i-amphtml-fill-content i-amphtml-replaced-content">
+
+.footnote[https://www.houseofbots.com/news-detail/3623-4-50-data-structure-algorithms-and-programming-languages-interview-questions-for-programmers]
+
+---
+
+Q2. Why do you need to use unlist() to convert a list to an atomic vector? Why doesn’t as.vector() work?
+
+```{r,results='hold'}
+is.vector(as.vector(mtcars))
+
+dim(mtcars)
+a<- unlist(mtcars)
+dim(a)
+str(a)
+```
+
+---
+
+Q3. Compare and contrast `c()` and `unlist()` when combining a date and date-time into a single vector
+
+```{r}
+date <- as.Date("1970-01-02")
+
+dttm_ct <- as.POSIXct("1970-01-01 01:00", tz = "UTC")
+
+c(date, dttm_ct)
+
+c(dttm_ct, date)
+
+unlist(list(date, dttm_ct))  
+
+```
+
+---
+
+
+## Data frames and tibbles
+
+Q1. Can you have a data frame with zero rows? What about zero columns?
+
+```{r}
+iris[0, ]
+
+iris[ ,0]
+
+iris[0, 0]
+
+data.frame()
+```
+
+---
+
+Q2: What happens if you attempt to set rownames that are not unique?
+
+```{r, error=TRUE}
+df <- data.frame(x = 1:3)
+
+row.names(df) <- c("x", "y", "y")
+
+row.names(df) <- c("x", "y", "z")
+
+df[c(1, 1, 1), , drop = FALSE]
+```
+
+---
+
+Q3. If `df` is a data frame, what can you say about `t(df)`, and `t(t(df))`? Perform some experiments, making sure to try different column types.
+
+.pull-left[
+```{r}
+df <- data.frame(x = 1:5, y = 5:1)
+
+df
+```
+]
+
+.pull-right[
+
+```{r}
+t(df)
+
+is.matrix(df)
+
+t(t(df))
+```
+]
+
+---
+
+Q4. What does `as.matrix()` do when applied to a data frame with columns of different types? How does it differ from `data.matrix()`?
+
+```{r}
+str(iris)
+
+str(as.matrix(iris))
+
+str(data.matrix(iris))
+
+```
 
