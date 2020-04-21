@@ -1,0 +1,751 @@
+---
+title: "R-Ladies NL Book-Club"
+subtitle: "Advanced R: Vectors (Chapter 3)"  
+author: "Paloma"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    css: ["default", "rladies", "rladies-fonts"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+```{r xaringan-themer, include=FALSE}
+library(xaringanthemer)
+mono_accent(
+  header_font_google = google_font("Lora", "500"),
+  text_font_google   = google_font("Lato", "400", "400i")
+)
+```
+
+## Welcome!
+
+- This is collaborative effort between RLadies Nijmengen, Rotterdam, Den Bosch and Amsterdam.
+
+--
+
+- We meet every 2 weeks to go through a chapter
+
+--
+
+- Use the HackMD to present yourself, ask questions and see your breakout room
+
+--
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after 30 min.
+
+--
+
+- Sign up to present a chapter at https://rladiesnl.github.io/book_club/
+
+--
+
+- https://advanced-r-solutions.rbind.io/ has some anwers and we could PR the ones missing.
+
+- The R4DS book club repo has a Q&A section.https://github.com/r4ds/bookclub-Advanced_R
+
+---
+name: title
+class: center, middle
+
+## Vectors ##
+
+---
+
+## Outline
+
+- Atomic vectors
+
+- Attributes: names, dimensions, class
+
+- Atomic vectors with special attributes (S3 atomic vectors)
+
+- Lists
+
+- Data frames and tibbles
+
+
+---
+
+## Atomic vectors 
+
+.pull-left[
+
+- Vectors can be atomic and lists.
+
+- **Atomic** vectors: all elements must have the same type.
+
+- **Lists** can have different types.
+
+- `NULL` serves as a generic zero 
+
+]
+
+
+.pull-right[<img src="https://d33wubrfki0l68.cloudfront.net/2ff3a6cebf1bb80abb2a814ae1cfc67b12817713/ae848/diagrams/vectors/summary-tree.png" width="400" >]
+
+---
+
+### Atomic vectors: Scalars
+
+.pull-left[
+
+- Each type has a special sintax to create an individual value, AKA **scalar** 
+
+- Logicals: `TRUE`, `FALSE`
+
+- Doubles: Can be decimals (`0.1234`), scientific (`1.23e4`) or hexadecimal (`0xcafe`), plus special values as `Inf`, `-Inf`, and `NaN` (Not a number.)
+
+- Integers: are followed by `L`
+
+- Strings are surrounded by `""` or `''`
+
+]
+
+.pull-right[
+<img src="https://d33wubrfki0l68.cloudfront.net/eb6730b841e32292d9ff36b33a590e24b6221f43/57192/diagrams/vectors/summary-tree-atomic.png" width="400">
+]
+
+---
+
+### Atomic vectors: longer vectors
+
+**Combine** = c()
+
+```{r}
+lgl_var <- c(TRUE, FALSE)
+int_var <- c(1L, 6L, 10L)
+dbl_var <- c(1, 2.5, 4.5)
+chr_var <- c("these are", "some strings")
+```
+
+If input are atomic vectors, `c()` creates another atomic vector
+
+```{r}
+c(c(1, 2), c(3, 4))
+
+```
+
+---
+<br><br><br>
+
+
+.pull-left[
+
+`typeof()` 
+
+```{r}
+typeof(lgl_var)
+```
+
+`length()`
+
+```{r}
+length(int_var)
+```
+
+]
+<br>
+
+.pull-right[<img src="https://d33wubrfki0l68.cloudfront.net/8a3d360c80da1186b1373a0ff0ddf7803b96e20d/254c6/diagrams/vectors/atomic.png" width="400">]
+
+---
+
+### Atomic vectors: Missing values
+
+- R represents missing values as `NA`: **Not applicable**
+
+.pull-left[
+Operations with NA tend to return NAs
+
+```{r, results='hold'}
+NA > 5
+
+10 * NA
+
+!NA
+```
+]
+
+--
+
+.pull-right[
+
+A few exceptions
+
+```{r, results='hold'}
+NA ^0
+
+NA | TRUE
+
+NA & FALSE
+```
+
+]
+
+---
+
+### Atomic vectors: Missing values
+
+.pull-left[
+
+Propagation of missingness leads to a common mistake
+
+```{r}
+x <- c(NA, 5, NA, 10)
+
+x == NA
+```
+]
+
+--
+
+.pull-right[
+Use `is.na()` to test for missingness
+
+```{r}
+is.na(x)
+```
+
+]
+
+There are four types of missing values:
+
+`NA` (logical), `NA_integer_`, `NA_real` (double), `NA_character`
+
+---
+
+### Atomic vectors: Testing and coercion
+
+- `is*()` functions to test if a vector is of that type.
+```{r, results='hold'}
+is.integer(x)
+is.double(x)
+```
+
+- Avoid `is.vector()`, `is.atomic()`, `is.numeric()`.
+
+---
+
+Since **atomic vector** needs **elements** of the same **type**, when we combine different types they are coerced in a fixed order:
+
+.center[character -> double -> integer -> logical]
+
+```{r}
+str(c("a", 1))
+```
+
+--
+
+Use `as.*()` to deliberately coerce. Failing to coerce creates `NA`
+
+```{r}
+as.numeric(c(FALSE, FALSE, TRUE))
+```
+
+.pull-left[
+```{r}
+as.integer(c("1", "1.5", "a"))
+```
+]
+
+.pull-right[
+```{r}
+readr::parse_double(c("1", "1.5", "a"))
+```
+]
+
+---
+
+## Attributes
+
+Matrices, arrays, factors or date-times are types of vectors that have attributes built on top of atomic vectors.
+
+Name-value pairs of metadata to an object.
+
+```{r}
+x <- 'a'
+attr(x, 'what') <- 'apple'
+attr(x, "what")
+
+```
+
+---
+<br><br>
+
+.pull-left[
+
+Get and set multiple attributes with `attributes()` and `structure()`
+
+```{r}
+x <- 
+  structure('a',
+      what = 'apple',
+      type = 'fruit')
+attributes(x)
+```
+
+With the exception of `names()` and `dim()`, most attributes are lost with calculations
+]
+
+
+.pull-right[
+<br><br><br>
+
+.center[<img src="https://d33wubrfki0l68.cloudfront.net/b4d4a33fddf808901c156bb7596b07823fda3da2/9825b/diagrams/vectors/attr.png" width="194"> ]]
+
+---
+
+### Attributes: `names`
+
+Names, a character vector giving each element a name
+
+.pull-left[
+
+```{r eval=T, results='hold'}
+x <- c(apple = 'a', banana = 'b') # 1
+x
+
+y <- c('a', 'b')
+names(y) <- c('apple', 'banana') # 2
+y
+
+setNames(y, c('apple', 'banana')) # 3
+```
+
+]
+
+.pull-right[
+
+<img src="https://d33wubrfki0l68.cloudfront.net/4bf745126ec2e29d138bce87337060b69f9c3ac1/34a00/diagrams/vectors/attr-names-1.png" width="246">
+
+]
+
+---
+
+### Attributes: `dim`
+
+`Dim` attribute to a vector allows it to behave like a 2-dimensional matrix or a multi-dimensional array.
+
+.pull-left[
+```{r eval=T}
+a <- matrix(1:6, nrow = 2, ncol = 3)
+a
+b <- array(1:6, dim = c(1, 3, 2))
+b
+```
+]
+
+.pull-right[
++ 1-d vector without a `dim` attribute has `NULL` dimension 
+
++ Matrices and arrays can be a single column or row vector
+]
+
+---
+
+## S3 atomic vectors
+
+.pull-left[
+
+An object with a **class** attribute **S3 object** 
+
+It behaves different from a regular vecture when passed through **generic** functions
+
+Usually store additional information
+
+Now we will see:
+
+- `factor` (categorical)
+
+- `Date` (Date)
+
+- `POSIXct` (date-time)
+
+- `duration` (difftime).
+
+]
+
+.pull-right[
+<img src="https://d33wubrfki0l68.cloudfront.net/baa19d0ebf9b97949a7ad259b29a1c4ae031c8e2/8e9b8/diagrams/vectors/summary-tree-s3-1.png" width="298" style="display: block; margin: auto;">
+]
+
+---
+
+### S3 atomic vectors: Factors
+
+- Vector that can only contain pre-defined value, used to store categorical data.
+
+<img src="https://d33wubrfki0l68.cloudfront.net/1c19eabc59d445cab78fc605053c7393ec630e15/5843b/diagrams/vectors/factor.png" width="246" style="display: block; margin: auto;">
+
+- Built on top of integers, not characters, has two attributes: `class` and `levels`
+
+```{r}
+fruits <- factor(c('banana', 'apple', 'orange', 'apple'))
+```
+
+
+.pull-left[
+```{r results='hold'}
+fruits
+typeof(fruits)
+```
+]
+
+.pull-right[
+```{r}
+attributes(fruits)
+```
+]
+
+---
+### S3 atomic vectors: Factors
+
+.pull-left[
+Factors give counts of all categories, even unobserved ones
+
+```{r, results = 'hold'}
+sex_char <- c("m", "m", "m")
+
+sex_factor <- factor(
+  sex_char, 
+  levels = c("m", "f"))
+
+table(sex_char)
+table(sex_factor)
+
+```
+]
+
+--
+
+.pull-right[
+**Ordered** factors: the order of the levels is meaningful.
+```{r}
+x <- ordered(
+  c('two', 'three', 'one'), 
+  levels = c('one', 'two', 'three'))
+x
+```
+]
+
+---
+### S3 atomic vectors: Factors
+
+- In base R, `read.csv` and `data.frame` automatically converted character vectors to factors.
+
+- This is suboptimal: use `stringsAsFactors = FALSE`.
+
+- Since they are built in integers, be carefull to treat them as strings.
+
+- `gsub()` and `grepl` coerce factors to strings.
+
+- [Interesting story about `stringsAsFactors`](https://simplystatistics.org/2015/07/24/stringsasfactors-an-unauthorized-biography/)
+
+---
+
+### S3 atomic vectors: Date
+
+All built on top of doubles
+
+Dates have `class = "Date"`
+
+```{r, results = 'hold'}
+today <- Sys.Date()
+
+typeof(today)
+
+attributes(today)
+```
+
+Represents: days since Jan. 1, 1970
+
+```{r}
+date <- as.Date("1970-02-01")
+unclass(date)
+```
+
+---
+
+### S3 atomic vectors: POSIXct, duration
+
+POSI: Portable Operating System Interface
+
+ct: calendar time / it: local time
+
+POSIXct: Seconds since Jan. 1, 1970
+
+```{r, results = 'hold'}
+now_ct <- as.POSIXct("2018-08-01 22:00", tz = "UTC")
+now_ct
+
+typeof(now_ct)
+
+attributes(now_ct)
+```
+
+`tzone` only changes format, not the instant time represented by a vector.
+
+---
+
+### S3 atomic vectors: duration
+
+Represent the amount of time between paris of dates or date-times
+
+Are built on top of doubles, have a `units` attribute that determines how the integer should be interpreted.
+
+```{r}
+week <- as.difftime(8, units = "weeks")
+week
+
+typeof(week)
+
+attributes(week)
+
+```
+
+---
+
+## Lists
+
+.pull-left[
+Elements can be of any type.
+
+But each element of a list has the same type, because each element is a _reference_ to another object.
+
+That means that creating a list does not copy the components into the list (smaller size)
+
+
+<img src="https://d33wubrfki0l68.cloudfront.net/9628eed602df6fd55d9bced4fba0a5a85d93db8a/36c16/diagrams/vectors/list.png" width="350">
+
+]
+
+--
+
+.pull-right[
+`list()`
+
+```{r}
+l1 <- list(
+  1:3, 
+  "a", 
+  c(TRUE, FALSE, TRUE), 
+  c(2.3, 5.9)
+)
+
+typeof(l1)
+
+
+str(l1)
+```
+]
+
+---
+
+.pull-left[
+Lists are sometimes called recursive vectors because a list can contain other lists.
+
+```{r}
+l3 <- list(list(list(1)))
+str(l3)
+```
+]
+
+--
+
+.pull-right[
+
+c() combines several lists into one.
+
+```{r, results = 'hold'}
+l4 <- list(list(1, 2), c(3, 4))
+str(l4)
+
+l5 <- c(list(1, 2), c(3, 4))
+str(l5)
+```
+
+<img src="https://d33wubrfki0l68.cloudfront.net/eb81c70723664f0920d0fd414e3f326b9ad1fa6e/c06ae/diagrams/vectors/list-c.png" width="241">
+]
+
+---
+
+### Lists: Testing and coercion
+
+Test with `is.list()` and coerce with `as.list`()
+
+```{r}
+list(1:3)
+
+as.list(1:3)
+
+```
+
+
+`unlist()` turns a list into an atomic vector
+
+---
+
+### Lists: Matrices and arrays
+
+With atomic vectors, dimension is used to create matrices. With lists, the dimension attribute is used to create list-matrices or list-arrays.
+
+Useful for spatio-temporal grids.
+
+```{r}
+l <- list(1:3, "a", TRUE, 1.0)
+
+dim(l) <- c(2, 2)
+
+l
+
+l[[1, 1]]
+
+```
+
+---
+
+## Data frames and tibbles
+
+A data frame is a named list of vectors with attributes for (column) `names`, `row.names` and its class is `data.frame`
+
+.pull-left[
+S3 vectors built on top of lists
+
+<img src="https://d33wubrfki0l68.cloudfront.net/9ec5e1f8982238a413847eb5c9bbc5dcf44c9893/bc590/diagrams/vectors/summary-tree-s3-2.png" width="160">
+]
+
+.pull-right[
+
+The length of each of its vectors must be the same (rectangular)
+
+Has `rownames()` and `colnames()`, the `names()` are the column names
+
+Has `nrow()` and `ncol()`, `length()` gives number of columns
+
+]
+
+---
+
+Some features of data frames create frustrations, which lead to the creation of **tibbles**, which _do less and complain more_.
+
+
+```{r, result = 'hold'}
+df <- data.frame(col1 = 1:2, col2 = c('a', 'b'))
+df
+
+class(df$col2)
+```
+
+```{r}
+tbl <- tibble::tibble(col1 = 1:2, col2 = c('a', 'b'))
+tbl
+class(tbl$col2)
+```
+
+---
+
+### Data frame vs tibble behavior
+
+
++ Tibble don't coerce strings to factors by default
+
+--
+
++ Tibbles discourage rownames, which are generally "bad"
+
+Rownames are "bad" because: (1) storing metadata in a different way than the rest of the data is generally not a good idea; (2) only work if a row can be identified by a single string; (3) must be unique.
+
+--
+
++ Tibbles have a "prettier" print method
+
+--
+
++ Tibbles have stricter subsetting rules
+
+--
+
++ Tibbles always return a tibble and don't allow partial matching with `$`
+
+---
+
+### Data frames and tibbles, testing and coercing
+
+```{r}
+is.data.frame(df)
+
+is.data.frame(tbl)
+
+tibble::is_tibble(df)
+
+tibble::is_tibble(tbl)
+```
+
+You can coerce with `as.data.frame()` or with `as_tibble()`
+
+---
+
+### List columns
+
+We can put any object in a data frame
+
+We need to either add the list-column after creation or wrapping the list in `I()`
+
+.pull-left[
+```{r}
+df <- data.frame(x = 1:3)
+
+df$y <- list(1:2, 1:3, 1:4)
+
+data.frame(
+  x = 1:3, 
+  y = I(list(1:2, 1:3, 1:4)))
+```
+
+<img src="https://d33wubrfki0l68.cloudfront.net/468ff533e993123c164eb090aa365e33962403bf/28ba7/diagrams/vectors/data-frame-list.png" width="189">
+]
+
+.pull-right[
+
+```{r}
+tibble::tibble(
+  x = 1:3, 
+  y = list(1:2, 1:3, 1:4)
+)
+```
+
+]
+
+We can also have a matrix or array as a column in a data frame
+
+---
+
+## `NULL`
+
+NULL is special because it has a unique type, is always length zero, and can’t have any attributes
+
+.pull-left[
+```{r, result = 'hold', error = TRUE}
+typeof(NULL)
+
+length(NULL)
+
+x <- NULL
+attr(x, "y") <- 1
+```
+]
+
+.pull-right[
+
+- Test for NULLs with is.null()
+
+- Use it to represent an empty vector of arbitrary type
+
+- To represent an absent vector. `NULL` is often as a default function argument.
+
+]
+
+
