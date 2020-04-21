@@ -1102,6 +1102,503 @@ attr(x, "y") &lt;- 1
 - To represent an absent vector. `NULL` is often as a default function argument.
 
 ]
+
+---
+name: title
+class: center, middle
+
+## Exercises
+#### And Solutions from https://advanced-r-solutions.rbind.io/
+
+---
+
+### Atomic vectors
+
+Q1. How do you create scalars of type raw and complex? (See ?raw and ?complex)
+
+
+```r
+raw(1)
+
+as.raw(2)
+
+charToRaw("A")
+```
+
+```
+## [1] 00
+## [1] 02
+## [1] 41
+```
+
+
+```r
+complex(1)
+
+complex(length.out = 1, real = 1, imaginary = 1)
+```
+
+```
+## [1] 0+0i
+## [1] 1+1i
+```
+
+---
+
+Q2. Test your knowledge of vector coercion rules by predicting the output of the following uses of c():
+
+
+```r
+c(1, FALSE)  
+
+c("a", 1) 
+
+c(TRUE, 1L)  
+```
+
+Q3. Why is 1 == "1" true? Why is -1 &lt; FALSE true? Why is "one" &lt; 2 false?
+
+---
+
+Q4. Why is the default missing value, NA, a logical vector? What’s special about logical vectors?
+
+Q5. Precisely what do is.atomic(), is.numeric(), and is.vector() test for?
+
+`is.atomic()` tests if is an atomic vector or is NULL (!).
+
+`is.numeric()` tests if an object has type integer or double and is not of "factor", "Date", "POSIXt" or "difftime" class.
+
+`is.vector()` tests if an object is vector and has no attributes, apart from names.
+
+---
+
+## Attributes
+
+Q1. How is setNames() implemented? How is unname() implemented? Read the source code.
+
+.pull-left[
+
+```r
+setNames &lt;- function (object = nm, nm){
+  names(object) &lt;- nm
+  object
+}
+```
+]
+
+.pull-right[
+
+```r
+unname &lt;- function (obj, force = FALSE) {
+  if (!is.null(names(obj)))
+    names(obj) &lt;- NULL
+  if (!is.null(dimnames(obj)) &amp;&amp;
+      (force || !is.data.frame(obj)))
+    dimnames(obj) &lt;- NULL
+  obj
+}
+```
+]
+
+---
+
+Q2. What does dim() return when applied to a 1d vector? When might you use NROW() or NCOL()?
+
+
+```r
+x &lt;- 1:5
+
+dim(x)
+nrow(x)
+ncol(x)
+
+NROW(x)
+NCOL(x)
+```
+
+```
+## NULL
+## NULL
+## NULL
+## [1] 5
+## [1] 1
+```
+
+---
+
+Q3. How would you describe the following three objects? What makes them different to 1:5?
+
+Row - column - third dimention
+
+```r
+x1 &lt;- array(1:5, c(1, 1, 5))
+x2 &lt;- array(1:5, c(1, 5, 1))
+x3 &lt;- array(1:5, c(5, 1, 1))
+```
+
+---
+ 
+Q4.An early draft used this code to illustrate structure():
+
+```r
+structure(1:5, comment = "my attribute")
+```
+
+```
+## [1] 1 2 3 4 5
+```
+
+But when you print that object you don’t see the comment attribute. Why? Is the attribute missing, or is there something else special about it? (Hint: try using help.)
+
+
+```r
+foo &lt;- structure(1:5, comment = "my attribute")
+
+attributes(foo)
+
+attr(foo, which = "comment")
+```
+
+```
+## $comment
+## [1] "my attribute"
+## 
+## [1] "my attribute"
+```
+
+---
+
+## S3 atomic vectors
+
+Q1. What sort of object does table() return? What is its type? What attributes does it have? How does the dimensionality change as you tabulate more variables?
+
+
+```r
+x &lt;- table(mtcars[c("vs", "cyl", "am")])
+
+typeof(x)
+
+attributes(x)
+```
+
+```
+## [1] "integer"
+## $dim
+## [1] 2 3 2
+## 
+## $dimnames
+## $dimnames$vs
+## [1] "0" "1"
+## 
+## $dimnames$cyl
+## [1] "4" "6" "8"
+## 
+## $dimnames$am
+## [1] "0" "1"
+## 
+## 
+## $class
+## [1] "table"
+```
+
+---
+
+Q2. What happens to a factor when you modify its levels? Q3: How do f2 and f3 differ from f1?
+
+.pull-left[
+
+```r
+f1 &lt;- factor(letters[1:5])
+f1
+levels(f1) &lt;- rev(levels(f1))
+f1
+attributes(f1)
+as.integer(f1)
+```
+
+```
+## [1] a b c d e
+## Levels: a b c d e
+## [1] e d c b a
+## Levels: e d c b a
+## $levels
+## [1] "e" "d" "c" "b" "a"
+## 
+## $class
+## [1] "factor"
+## 
+## [1] 1 2 3 4 5
+```
+]
+
+.pull-right[
+
+
+```r
+f2 &lt;- rev(factor(letters[1:5]))
+f2
+attributes(f2)
+
+f3 &lt;- factor(letters[1:5],
+             levels = rev(letters[1:5]))
+f3
+attributes(f3)
+```
+
+```
+## [1] e d c b a
+## Levels: a b c d e
+## $levels
+## [1] "a" "b" "c" "d" "e"
+## 
+## $class
+## [1] "factor"
+## 
+## [1] a b c d e
+## Levels: e d c b a
+## $levels
+## [1] "e" "d" "c" "b" "a"
+## 
+## $class
+## [1] "factor"
+```
+
+]
+
+---
+
+## Lists
+
+Q1. List all the ways that a list differs from an atomic vector.
+
+&lt;img decoding="async" amp-img-id="coverimage" src="https://www.houseofbots.com/images/news/3623/cover.png" class="i-amphtml-fill-content i-amphtml-replaced-content"&gt;
+
+.footnote[https://www.houseofbots.com/news-detail/3623-4-50-data-structure-algorithms-and-programming-languages-interview-questions-for-programmers]
+
+---
+
+Q2. Why do you need to use unlist() to convert a list to an atomic vector? Why doesn’t as.vector() work?
+
+
+```r
+is.vector(as.vector(mtcars))
+
+dim(mtcars)
+a&lt;- unlist(mtcars)
+dim(a)
+str(a)
+```
+
+```
+## [1] FALSE
+## [1] 32 11
+## NULL
+##  Named num [1:352] 21 21 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 ...
+##  - attr(*, "names")= chr [1:352] "mpg1" "mpg2" "mpg3" "mpg4" ...
+```
+
+---
+
+Q3. Compare and contrast `c()` and `unlist()` when combining a date and date-time into a single vector
+
+
+```r
+date &lt;- as.Date("1970-01-02")
+
+dttm_ct &lt;- as.POSIXct("1970-01-01 01:00", tz = "UTC")
+
+c(date, dttm_ct)
+```
+
+```
+## [1] "1970-01-02" "1979-11-10"
+```
+
+```r
+c(dttm_ct, date)
+```
+
+```
+## [1] "1970-01-01 02:00:00 CET" "1970-01-01 01:00:01 CET"
+```
+
+```r
+unlist(list(date, dttm_ct))  
+```
+
+```
+## [1]    1 3600
+```
+
+---
+
+
+## Data frames and tibbles
+
+Q1. Can you have a data frame with zero rows? What about zero columns?
+
+
+```r
+iris[0, ]
+```
+
+```
+## [1] Sepal.Length Sepal.Width  Petal.Length Petal.Width  Species     
+## &lt;0 rows&gt; (or 0-length row.names)
+```
+
+```r
+iris[ ,0]
+```
+
+```
+## data frame with 0 columns and 150 rows
+```
+
+```r
+iris[0, 0]
+```
+
+```
+## data frame with 0 columns and 0 rows
+```
+
+```r
+data.frame()
+```
+
+```
+## data frame with 0 columns and 0 rows
+```
+
+---
+
+Q2: What happens if you attempt to set rownames that are not unique?
+
+
+```r
+df &lt;- data.frame(x = 1:3)
+
+row.names(df) &lt;- c("x", "y", "y")
+```
+
+```
+## Warning: non-unique value when setting 'row.names': 'y'
+```
+
+```
+## Error in `.rowNamesDF&lt;-`(x, value = value): duplicate 'row.names' are not allowed
+```
+
+```r
+row.names(df) &lt;- c("x", "y", "z")
+
+df[c(1, 1, 1), , drop = FALSE]
+```
+
+```
+##     x
+## x   1
+## x.1 1
+## x.2 1
+```
+
+---
+
+Q3. If `df` is a data frame, what can you say about `t(df)`, and `t(t(df))`? Perform some experiments, making sure to try different column types.
+
+.pull-left[
+
+```r
+df &lt;- data.frame(x = 1:5, y = 5:1)
+
+df
+```
+
+```
+##   x y
+## 1 1 5
+## 2 2 4
+## 3 3 3
+## 4 4 2
+## 5 5 1
+```
+]
+
+.pull-right[
+
+
+```r
+t(df)
+```
+
+```
+##   [,1] [,2] [,3] [,4] [,5]
+## x    1    2    3    4    5
+## y    5    4    3    2    1
+```
+
+```r
+is.matrix(df)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+t(t(df))
+```
+
+```
+##      x y
+## [1,] 1 5
+## [2,] 2 4
+## [3,] 3 3
+## [4,] 4 2
+## [5,] 5 1
+```
+]
+
+---
+
+Q4. What does `as.matrix()` do when applied to a data frame with columns of different types? How does it differ from `data.matrix()`?
+
+
+```r
+str(iris)
+```
+
+```
+## 'data.frame':	150 obs. of  5 variables:
+##  $ Sepal.Length: num  5.1 4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9 ...
+##  $ Sepal.Width : num  3.5 3 3.2 3.1 3.6 3.9 3.4 3.4 2.9 3.1 ...
+##  $ Petal.Length: num  1.4 1.4 1.3 1.5 1.4 1.7 1.4 1.5 1.4 1.5 ...
+##  $ Petal.Width : num  0.2 0.2 0.2 0.2 0.2 0.4 0.3 0.2 0.2 0.1 ...
+##  $ Species     : Factor w/ 3 levels "setosa","versicolor",..: 1 1 1 1 1 1 1 1 1 1 ...
+```
+
+```r
+str(as.matrix(iris))
+```
+
+```
+##  chr [1:150, 1:5] "5.1" "4.9" "4.7" "4.6" "5.0" "5.4" "4.6" "5.0" "4.4" ...
+##  - attr(*, "dimnames")=List of 2
+##   ..$ : NULL
+##   ..$ : chr [1:5] "Sepal.Length" "Sepal.Width" "Petal.Length" "Petal.Width" ...
+```
+
+```r
+str(data.matrix(iris))
+```
+
+```
+##  num [1:150, 1:5] 5.1 4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9 ...
+##  - attr(*, "dimnames")=List of 2
+##   ..$ : NULL
+##   ..$ : chr [1:5] "Sepal.Length" "Sepal.Width" "Petal.Length" "Petal.Width" ...
+```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
