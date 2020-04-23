@@ -170,7 +170,7 @@ Rotterdam
 
 <td style="text-align:left;">
 
-[meetup link](https://bit.ly/3b5Fszp)
+[slides](https://rladiesnl.github.io/book_club/slides/chap3)
 
 </td>
 
@@ -218,7 +218,7 @@ Den Bosch
 
 <td style="text-align:left;">
 
-NA
+[meetup link](https://bit.ly/355r1JG)
 
 </td>
 
