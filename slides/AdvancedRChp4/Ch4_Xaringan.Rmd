@@ -1,0 +1,1723 @@
+---
+title: "Advanced R - Hadley Wickham - Ch 4"
+subtitle: "R Ladies Netherlands Boookclub"
+author: "Martine Jansen, May 12, 2020"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["default", "rladies", "rladies-fonts"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = "", cache = FALSE, echo = FALSE, fig.retina = 3)
+
+options(warnPartialMatchDollar = FALSE)
+
+library(tidyverse)
+library(knitr)
+
+```
+
+
+```{r venndiagram}
+dVennTiles <- tibble(xmin = c(0, 0, 1, 1, 1, 2, 2),
+                     xmax = xmin + 1,
+                     ymin = c(1, 2 , 0, 1, 2, 0, 1),
+                     ymax = ymin + 1,
+                     label = c("leftmid", "leftup", "midlow", "midmid", "midup", "rightlow", "rightmid"),
+                     part = c("2not5", "2not5", "not25","25", "2not5", "not25","not25"),
+                     set = c("2", "2", "5", "25", "2", "5", "5"))
+
+dVennTilesLines <- tibble(xmin = c(0, 1, 1),
+                          xmax = c(2, 3, 2),
+                          ymin = c(1, 0, 1),
+                          ymax = c(3, 2, 2),
+                          label = 1:3)
+
+dVennData <- tibble(x = c(0.2, 0.5, 2.5, 0.6, 1.5, 1.5),
+                    y = c(2, 2.5, 1, 1.5, 2.5, 1.5),
+                    label = c(2, 4, 5, 6, 8, 10))
+
+
+plot_set <- function(color_2b, color_5b, color_25 = NA, color_2not5 = NA, color_5not2 = NA){
+ggplot() +
+  # bottomcolors of 2
+  geom_rect(data = dVennTiles %>% filter(grepl("2", set)),
+            aes(xmin=xmin, xmax = xmax, ymin=ymin, ymax=ymax),
+            fill = color_2b,
+            alpha = 0.3,
+            col = NA) +
+  # bottomcolors of 5
+  geom_rect(data = dVennTiles %>% filter(grepl("5", set)),
+            aes(xmin=xmin, xmax = xmax, ymin=ymin, ymax=ymax),
+            fill = color_5b,
+            alpha = 0.3,
+            col = NA) +
+  # color of intersection
+  geom_rect(data = dVennTiles %>%filter(part == "25"),
+            aes(xmin=xmin, xmax = xmax, ymin=ymin, ymax=ymax),
+            fill = color_25,
+            alpha = ifelse(color_25 == "white", 1, 0.3),
+            col = NA) +
+  # top color of 2 not 5 
+  geom_rect(data = dVennTiles %>% filter(part == "2not5"),
+            aes(xmin=xmin, xmax = xmax, ymin=ymin, ymax=ymax),
+            fill = color_2not5,
+            alpha = ifelse(color_2not5 == "white", 1, 0.3),
+            col = NA) +  
+  # top color of 5 not 2 
+  geom_rect(data = dVennTiles %>% filter(part == "not25"),
+            aes(xmin=xmin, xmax = xmax, ymin=ymin, ymax=ymax),
+            fill = color_5not2,
+            alpha = ifelse(color_5not2 == "white", 1, 0.3),
+            col = NA) +   
+  geom_rect(data = dVennTilesLines,
+            aes(xmin=xmin, xmax = xmax, ymin=ymin, ymax=ymax),
+            fill = NA,
+            col = "black",
+            size = 2) +
+ geom_text(data = dVennData,
+            aes(x = x, y = y, label = label),
+            size = 15) +
+  theme_void() 
+} 
+
+```
+
+
+
+
+
+# Welcome!
+
+- This is joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht 
+--
+
+- We meet every 2 weeks to go through a chapter 
+--
+
+- Use the HackMD to present yourself, ask questions and see your breakout room 
+--
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after xx min  
+--
+
+- There are still possibilities to present a chapter :) Sign up at https://rladiesnl.github.io/book_club/  
+--
+
+- https://advanced-r-solutions.rbind.io/ has some anwers and we could PR the ones missing  
+--
+
+- The R4DS book club repo has a Q&A section.https://github.com/r4ds/bookclub-Advanced_R  
+
+--
+
+
+```{r, out.height= "90%"}
+knitr::include_graphics("tenor.gif")
+```
+
+---
+
+# Contents  
+
+
+- Selecting multiple elements
+--
+
+- Selecting single elements
+--
+
+- Subsetting and assignment
+--
+
+- Applications
+--
+
+- A puzzle  
+
+```{r, out.width="60%"}
+knitr::include_graphics("giphy.gif")
+```
+
+---
+# Selecting multiple elements  [&emsp;]
+
+## From vectors, with indices, positive OR negative
+
+`x[<expression resulting in indices>]`
+
+**Positive indices**  
+
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b")
+# Get item 2 and item 5
+x[c(2,5)] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b")
+# Get item 2 and item 5
+x[c(2,5)] #<<
+```
+--
+
+**Negative indices**  
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b")
+# Get everything EXCEPT item 2 and item 5
+x[-c(2,5)] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b")
+x[-c(2,5)] #<<
+```
+---
+
+You can be creative with indices: 
+
+**Repeat them**  
+
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b")
+# repeat the first 2 items, 5 times
+x[rep(1:2, times = 5)] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b")
+x[rep(1:2, times = 5)] #<<
+```
+--
+
+**Use it to order a vector**  
+
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b")
+# order the vector
+x[order(x)] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b")
+x[order(x)] #<<
+```
+--
+
+**You do not HAVE to use indices**
+
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b")
+# return the whole vector
+x[] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b")
+x[] #<<
+```
+
+---
+
+## From vectors, with logical vectors
+`x[<expression resulting in T/F vector>]`
+
+**Specify a T/F vector**  
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b", "b")
+# Get all the items "a" and "b"
+x[c(F,T,F,F,T,T)] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b", "b")
+# Get all the items "a" and "b"
+x[c(F,T,F,F,T,T)] #<<
+```
+--
+
+**What if T/F vector has different length?**
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b", "g", "a")
+x[c(F,T)] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b", "g", "a")
+x[c(F,T)] #<<
+```
+The F/T vector will be recycled:  
+F T F T F T F  
+*But be very careful with recyling of vectors longer than length 1*
+---
+**Specify an expression RESULTING in a T/F vector**
+
+```{r, echo=TRUE, eval = FALSE}
+x<- c("g", "a", "c", "f", "b", "b")
+# Get all the items "a" and "b"
+x[x %in% c("a", "b")] #<<
+```
+--
+```{r}
+x<- c("g", "a", "c", "f", "b", "b")
+# Get all the items "a" and "b"
+x[x %in% c("a", "b")]
+```
+--
+
+**Another example of that**
+```{r, echo=TRUE, eval = FALSE}
+x<- c("Anna", "Bea", "Corry-Ann", "Annabel", "Ann", "Quinta")
+# Get all the items that have "Ann" in them
+x[grepl("Ann",x)] #<<
+```
+--
+```{r}
+x<- c("Anna", "Bea", "Corry-Ann", "Annabel", "Ann", "Quinta")
+x[grepl("Ann",x)] #<<
+```
+--
+
+
+**And another example of that**
+```{r, echo=TRUE, eval = FALSE}
+x<- c("Anna", "Bea", "Corry-Ann", "Annabel", "Ann", "Quinta")
+x[grepl("Beatrix",x)] #<<
+```
+--
+```{r}
+x<- c("Anna", "Bea", "Corry-Ann", "Annabel", "Ann", "Quinta")
+x[grepl("Beatrix",x)] #<<
+```
+--
+
+In the last example, there were no matches for "Beatrix".  
+This resulted in a T/F vector with every value equal to FALSE.  
+And hence nothing (vector of length 0) in the output. 
+---
+## From lists
+
+```{r,echo = TRUE}
+lucky_list <- list(lucky_numbers = 1:9,
+                   lucky_words = c("cat", "cure"))
+lucky_list
+```
+--
+**subset by indices**
+
+```{r, eval = FALSE, echo=TRUE}
+lucky_list[2]   # keeps being a list #<< 
+```
+--
+```{r}
+lucky_list[2]    # keeps being a list
+```
+--
+
+**Or subset by using the name(s)**
+
+```{r, eval = FALSE, echo=TRUE}
+lucky_list["lucky_words"]
+```
+--
+
+```{r}
+lucky_list["lucky_words"] #<<
+```
+
+
+
+---
+## From matrices and arrays, with indices  
+
+Subsetting matrix A : `A[<row indices>, <column indices>]`
+--
+```{r, echo=TRUE}
+A <- matrix(1:9, nrow = 3)
+colnames(A) <- c(LETTERS[4:6])  # :) vector subsetting
+A
+```
+--
+```{r, echo=TRUE, eval = FALSE}
+ A[1:2, c("E", "F")]#<<
+```
+--
+```{r}
+ A[1:2, c("E", "F")]#<<
+```
+--
+
+```{r, echo=TRUE, eval = FALSE}
+ A[1:2,]#<<
+```
+--
+```{r}
+ A[1:2,]#<<
+```
+--
+Consistant with vector: no indices, return all  
+
+---
+
+** Subsetting with matrix**
+
+Again matrix A:
+```{r}
+A
+```
+--
+From matrix A we want:  
+- first row third value
+- third row, second value  
+
+
+--
+
+Specify this in matrix B:
+```{r}
+B <- matrix(c(1,3,3,2), nrow = 2)
+B
+```
+--
+```{r, eval = FALSE, echo = TRUE}
+A[B] #<<
+```
+--
+```{r}
+A[B]
+```
+--
+
+Be ware: this result is a **vector**, not a matrix.  
+[ ] simplifies to the lowest possible dimensionality.  
+*Lists stay lists*
+---
+## From dataframes and tibbles
+
+data.frame df
+```{r}
+df <- data.frame(x = 1:3, y = 1:3, z = c("a", "b", "c"))
+df
+```
+--
+**Subsetting like a list**
+
+```{r, eval = FALSE, echo = TRUE}
+df["z"] #<<
+```
+--
+```{r}
+df["z"]
+```
+--
+
+**Subsetting like a matrix**
+
+```{r, eval = FALSE, echo = TRUE}
+df[,"z"] #<<
+```
+--
+```{r}
+df[,"z"]
+```
+--
+
+Again, loss of dimensions! 
+
+---
+
+## Preserving the dimensions:  tibbles :)
+
+
+.pull-left[
+
+**data.frame**
+```{r, echo = TRUE}
+dframe <-
+  data.frame(x = 1:3,
+             y = 1:3,
+             z = c("a", "b", "c"))
+dframe
+```
+
+```{r, echo = TRUE}
+dframe[,"z"] #<<
+```
+
+]
+
+--
+
+.pull-right[
+
+**tibble**
+```{r, echo = TRUE}
+dtibble <- 
+  tibble(x = 1:3,
+         y = 1:3,
+         z = c("a", "b", "c"))
+dtibble
+```
+
+```{r, echo = TRUE}
+dtibble[,"z"] #<<
+```
+]  
+
+---
+## Preserving the dimensions: drop = FALSE  
+
+.pull-left[
+**data.frame**
+```{r, echo = TRUE}
+dframe <-
+  data.frame(x = 1:3,
+             y = 1:3,
+             z = c("a", "b", "c"))
+dframe
+```
+
+```{r, echo = TRUE}
+dframe[,"z"] #<<
+```
+
+
+```{r, echo = TRUE}
+dframe[,"z", drop = FALSE] #<<
+```
+
+]
+--
+.pull-right[
+**matrix**
+```{r, echo = TRUE}
+A
+```
+
+```{r, echo = TRUE}
+A[2,] #<<
+```
+
+
+```{r, echo = TRUE}
+A[2, ,drop = FALSE] #<<
+```
+
+]
+
+---
+
+```{r, out.width="150%"}
+knitr::include_graphics("relax.gif")
+```
+
+---
+
+# Selecting single elements [ [ &emsp;&emsp; ]]
+
+`x[[<single positive value or a string>]]`
+
+
+```{r,echo = TRUE}
+lucky_list <- list(lucky_numbers = 1:9,
+                   lucky_words = c("cat", "cure"))
+```
+--
+**subset by index with SINGLE [ ]**
+
+```{r, eval = FALSE, echo=TRUE}
+lucky_list[2]  #<<
+```
+--
+```{r}
+lucky_list[2]    # keeps being a list
+```
+--
+keeps being  a list  
+--
+  
+  
+**subset by index with DOUBLE [[ ]]**  
+
+```{r, eval = FALSE, echo=TRUE}
+lucky_list[[2]]    #<<
+```
+--
+```{r}
+lucky_list[[2]]    
+```
+--
+no longer a list, outer layer removed, like an unwrapped present
+---
+
+## Subsubsetting  
+
+```{r,echo = TRUE}
+lucky_list
+```
+
+How to extract the word "cure"?    
+--
+
+It is the second item from the item in the second part of the list.  
+--
+
+First extract the item in the second part of the list:  
+--
+
+
+```{r, echo = TRUE}
+lucky_list[[2]] #<<
+```
+--
+
+Then extract the second item:
+--
+
+```{r, echo = TRUE}
+lucky_list[[2]][2] #<<
+```
+
+---
+
+## Selecting a single variable from dataframe  
+
+.pull-left[
+```{r, echo = TRUE}
+dframe <-
+  data.frame(x1 = 1:3,
+             y2 = 4:6,
+             z3 = c("a", "b", "c"))
+```
+
+
+```{r, echo=TRUE}
+dframe["z3"] #<<
+```
+]
+--
+
+.pull-right[
+
+```{r, echo=TRUE}
+dframe[,"z3"] #<<
+```
+
+
+```{r, echo = TRUE}
+dframe[["z3"]] #<<
+```
+
+
+```{r, echo = TRUE}
+dframe[[3]] #<<
+```
+
+
+```{r, echo = TRUE}
+dframe$z3 #<<
+```
+
+
+```{r, echo = TRUE}
+dframe$z #<<
+```
+(partial matching)
+]
+
+
+---
+## Some advice from the author  
+
+
+* Also use [[ ]] for vectors when extracting a single element, so [[ ]] grows to be synonym to extracting a single element
+--
+
+* Be careful with partial matching. Either use:  
+    *  tibbles instead of data.frames :)
+    *  options(warnPartialMatchDollar = TRUE)  
+ 
+```{r, echo = FALSE}
+options(warnPartialMatchDollar = FALSE)
+```
+ 
+    
+```{r, echo = TRUE}
+dframe$z
+```
+--
+    
+```{r, echo = TRUE, warning = TRUE, eval = FALSE}
+options(warnPartialMatchDollar = TRUE) #<<
+dframe$z
+```
+--
+
+    
+```{r, echo = FALSE, warning = TRUE}
+options(warnPartialMatchDollar = TRUE) #<<
+dframe$z
+```
+
+
+---
+
+## Missing and OOB indices  
+
+```{r, echo = TRUE}
+X <- c(1, 2, 3)
+L <- list(1,2,3)
+```
+
+
+
+.pull-left[
+
+```{r, echo = TRUE, error = TRUE}
+X[[4]]
+```
+
+```{r, echo = TRUE, error = TRUE}
+L[[4]]
+```
+
+```{r, echo = TRUE, error = TRUE}
+NULL[[4]]
+```
+]
+
+
+
+
+.pull-right[
+
+```{r, echo = TRUE, error = TRUE}
+X[["a"]]
+```
+
+```{r, echo = TRUE, error = TRUE}
+L[["a"]]
+```
+
+```{r, echo = TRUE, error = TRUE}
+NULL[["a"]]
+```
+]
+
+--
+
+Inconsistent behaviour.  
+Solution: `purr:pluck()` and `purr::chuck()`
+---
+
+## `purr::pluck( )`  and  `purrr::chuck( )`
+
+.pull-left[
+```{r, out.width="50%"}
+knitr::include_graphics("purrr.png")
+```
+
+Element is missing? 
+
+`Pluck()` --> `NULL` ALWAYS (or the default)  
+`Chuck()` -->  `r kableExtra::text_spec("error", color = "red")` ALWAYS
+
+]
+
+--
+
+.pull-right[
+
+```{r, echo = TRUE, error = TRUE}
+X[["a"]]
+```
+
+```{r, echo = TRUE, error = TRUE}
+L[["a"]]
+```
+
+```{r, echo=TRUE, error = TRUE}
+purrr::pluck(X, "a")
+purrr::pluck(L,"a")
+purrr::chuck(L,"a")
+```
+]
+
+---
+
+```{r, out.width="150%"}
+knitr::include_graphics("relax.gif")
+```
+---
+
+
+# Subsetting and assignment: subassignment  
+
+--
+
+**Vector**
+--
+```{r, echo=  TRUE}
+x <- c(1:5)
+```
+--
+
+```{r}
+x
+```
+--
+
+
+```{r, echo = TRUE}
+x[3:5] <- c(30, 40, 50)
+```
+
+--
+
+```{r}
+x
+```
+--
+
+```{r, echo = TRUE}
+x[7] <- 7
+```
+
+--
+
+```{r}
+x
+```
+--
+
+
+```{r, echo = TRUE}
+x[2] <- NA
+
+```
+
+--
+
+```{r}
+x
+```
+--
+
+
+```{r, echo = TRUE, error = TRUE}
+x[1] <- NULL
+
+```
+---
+**List**
+
+```{r, echo = TRUE}
+L <- list(a = 1:2, b = letters[13:17])
+```
+--
+
+```{r}
+L
+```
+--
+
+```{r, echo = TRUE}
+L[["c"]] <- c(10:12)
+```
+--
+
+```{r}
+L
+```
+--
+
+.pull-left[
+
+```{r, echo = TRUE}
+L[[1]] <- NA
+```
+
+
+```{r}
+L
+```
+]
+
+--
+
+.pull-right[
+
+```{r, echo = TRUE}
+L[[1]] <- NULL # removes
+```
+
+
+```{r}
+L
+```
+]
+
+---
+# Applications  
+
+**Lookup tables**
+
+```{r, echo = TRUE}
+x <- c("a", "p", "a", "p", "p")
+lookup <- c(a = "absent", p = "present")
+```
+--
+
+```{r, echo=TRUE}
+lookup
+```
+--
+
+```{r, echo = TRUE, eval = FALSE}
+# "subset" lookup with a lot of indices
+lookup[x]  #<<
+```
+--
+
+```{r}
+# "subset" lookup with a lot of indices
+lookup[x]  #<<
+```
+--
+
+
+```{r, echo = TRUE, eval = FALSE}
+# and now without the names
+unname(lookup[x])  #<<
+```
+--
+
+```{r}
+# and now without the names
+unname(lookup[x])  #<<  
+```
+
+
+---
+**Matching and merging**
+
+```{r}
+info <- data.frame(
+  grade = c("A", "B", "C"),
+  desc = c("Excellent", "Good", "Poor"),
+  fail = c(F, F, T)
+)
+```
+
+
+```{r, echo=TRUE}
+info
+```
+--
+
+```{r, echo=TRUE}
+# For each of these grades, get the info from dataframe info
+grades <- c("A", "B", "B", "C", "A")
+```
+--
+  
+
+```{r, echo = TRUE, eval = FALSE}
+# First, find where in the dataframe these grades are:
+id <- match(grades, info$grade)
+id
+```
+--
+
+```{r}
+# First, find where in the dataframe these grades are:
+id <- match(grades, info$grade)
+id
+```
+--
+
+```{r, echo = TRUE, eval=FALSE}
+# Second, subset dataframe `info` with these indices: 
+# (get only the found rows, but all the columns)
+info[id, ] #<<
+```
+--
+
+```{r}
+# Second, subset dataframe `info` with these indices: 
+# (get only the found rows, but all the columns)
+info[id, ] #<<
+```
+
+---
+**Random sampling and bootstraps** 
+
+```{r, echo = TRUE}
+x <- 1:5
+x
+```
+--
+Reorder randomly
+```{r,echo = TRUE, eval = FALSE}
+x[sample(length(x))] #<<
+```
+--
+
+```{r}
+x[sample(length(x))]
+```
+--
+
+Sample
+```{r,echo = TRUE, eval = FALSE}
+x[sample(length(x), 2)] #<<
+```
+--
+
+```{r}
+x[sample(length(x), 2)]
+```
+--
+
+Sample with replacement
+```{r,echo = TRUE, eval = FALSE}
+x[sample(length(x), replace = TRUE)] #<<
+```
+--
+
+```{r}
+x[sample(length(x), replace = TRUE)]
+```
+---
+
+**Ordering (with indices)**
+
+```{r, echo = TRUE}
+x <- c("m", "a", NA, "z")
+x
+```
+--
+
+```{r, echo=TRUE, eval = FALSE}
+# the order the elements are in
+order(x)
+```
+--
+
+```{r}
+# the order the elements are in
+order(x)
+```
+--
+
+```{r, echo=TRUE, eval = FALSE}
+# order x in the right order
+x[order(x)] #<<
+```
+--
+
+```{r}
+# order the elements are in
+x[order(x)]
+```
+--
+
+
+```{r, echo=TRUE, eval = FALSE}
+# the order the elements are in, reverse order
+order(x, decreasing = TRUE)
+```
+--
+
+```{r}
+order(x, decreasing = TRUE)
+```
+--
+
+
+```{r, echo=TRUE, eval = FALSE}
+# order x in the right order
+x[order(x, decreasing = TRUE)] #<<
+```
+--
+
+```{r}
+# order the elements are in
+x[order(x, decreasing = TRUE)]
+```
+---
+
+**Expanding aggregated counts**
+
+```{r, echo = TRUE}
+df <- data.frame(item = c("coffee", "tea"),
+                 amount = c(2,3))
+```
+--
+```{r, echo = TRUE}
+df
+```
+
+--
+```{r, eval = FALSE, echo = TRUE}
+df[rep(1:nrow(df), times = df$amount),] #<<
+```
+
+--
+```{r}
+df[rep(1:nrow(df), times = df$amount),]
+```
+
+---
+
+**Alternative expanding dplyr::uncount( ) (not in book)**  
+
+```{r, echo = TRUE}
+df
+```
+--
+
+```{r, eval = FALSE, echo = TRUE}
+library(tidyverse)
+df %>% uncount(amount, .remove = FALSE) #<<
+```
+--
+
+```{r}
+df %>% uncount(amount, .remove = FALSE)
+```
+--
+
+
+```{r, eval = FALSE, echo = TRUE}
+library(tidyverse) # or, like it should, to avoid confusion
+df %>% uncount(amount) #<<
+```
+--
+
+```{r}
+df %>% uncount(amount) #<<
+```
+
+---
+
+**Removing columns from df (character subsetting)**  
+
+```{r, echo = TRUE}
+df
+```
+--
+
+```{r, eval = FALSE, echo = TRUE}
+# set unwanted ones to NULL
+df$amount <- NULL #<<
+df
+```
+--
+
+```{r}
+df$amount <- NULL
+df
+```
+--
+
+
+```{r, eval = FALSE, echo = TRUE}
+# only keep want you want
+df <- df[c("item")] #<<
+```
+--
+
+```{r}
+df <- data.frame(item = c("coffee", "tea"),
+                 amount = c(2,3))
+# only keep want you want
+df <- df[c("item")]
+df
+
+```
+---
+
+```{r, eval = FALSE, echo = TRUE}
+# exclude from colnames those you do not want
+setdiff(names(df), "amount")
+df <- df[setdiff(names(df), "amount")]  #<<
+df
+```
+--
+
+```{r}
+df <- data.frame(item = c("coffee", "tea"),
+                 amount = c(2,3))
+# exclude from colnames those you do not want
+setdiff(names(df), "amount")
+df <- df[setdiff(names(df), "amount")]
+df
+```
+--
+
+**Tidyverse alternative selecting columns (not in book)**
+
+
+```{r, eval = FALSE, echo = TRUE}
+# select the columns you want
+df <- df %>%   #<<
+  select(item)  #<<
+df
+```
+--
+
+```{r}
+df <- data.frame(item = c("coffee", "tea"),
+                 amount = c(2,3))
+# select the columns you want
+df <- df %>%
+  select(item)
+df
+```
+--
+
+```{r, eval = FALSE, echo = TRUE}
+# unselect the columns you do not want
+df <- df %>%  #<<
+  select(-amount)  #<<
+df
+```
+--
+
+```{r}
+df <- data.frame(item = c("coffee", "tea"),
+                 amount = c(2,3))
+# unselect the columns you do not want
+df <- df %>%
+  select(-amount)
+df
+```
+
+---
+
+**Selecting rows based on a condition(logical subsetting)** 
+
+
+```{r, echo = TRUE}
+df <- data.frame(item = c("coffee", "tea", "water"),
+                 amount = c(2,3, 2))
+df 
+```
+--
+
+```{r, echo = TRUE, eval = FALSE}
+# select all rows with amount == 2
+df[df$amount == 2,] #<<
+```
+--
+
+```{r}
+# select all rows with amount == 2
+df[df$amount == 2,]
+```
+--
+
+```{r, echo = TRUE, eval = FALSE}
+# select all rows with amount == 2 and item == "water"
+df[df$amount == 2 & df$item == "water",] #<<
+```
+--
+
+```{r}
+# select all rows with amount == 2 and item == "water"
+df[df$amount == 2 & df$item == "water",] #<<
+```
+
+--
+
+```{r, echo = TRUE, eval = FALSE}
+# same with tidyverse - not in book
+df %>% filter(amount == 2, item == "water") #<<
+```
+--
+
+```{r}
+# same with tidyverse - not in book
+df %>% filter(amount == 2, item == "water") #<<
+```
+---
+
+**Boolean algebra versus sets**
+
+```{r, echo = TRUE}
+x <- c(3, 5, 2, 6, 2, 7)
+```
+--
+
+```{r, echo = TRUE}
+# gives T/F
+x < 4
+```
+--
+
+```{r, echo = TRUE}
+# gives indices
+which(x < 4)
+```
+
+--
+
+```{r, echo = TRUE}
+# subsetting with T/F, same result as with indices
+x[x<4]
+```
+--
+
+
+```{r, echo = TRUE}
+# subsettubg with indices, same result as with T/F vector
+x[which(x < 4)]
+```
+---
+
+**Major code block on page 93 - 1/5**
+
+which: gives the TRUE indices of a logical object  
+
+```{r, eval = FALSE, echo=TRUE}
+which(c(TRUE, FALSE, FALSE, TRUE))
+```
+--
+
+```{r}
+which(c(TRUE, FALSE, FALSE, TRUE))
+```
+--
+
+```{r, echo = TRUE}
+# code between ( ) automatically prints result
+(x1 <- 1:10 %% 2 == 0)  # F/T depending on being a 2 fold
+(x2 <- which(x1))
+(y1 <- 1:10 %% 5 ==0)   # F/T depending on being a 5 fold
+(y2 <- which(y1))
+```
+---
+
+**Major code block on page 93 - 2/5**  
+
+*intersect of X and Y*
+
+$X \& Y$, $X\cap Y$, $x \land y$  
+
+.pull-left[
+
+```{r, echo = TRUE}
+x2
+y2
+```
+]
+--
+
+.pull-right[
+
+```{r, fig.height= 3}
+plot_set("blue", "red", NA, "white", "white")
+```
+]
+
+--
+```{r, echo=TRUE, eval = FALSE}
+x1 & y1 #<<
+```
+
+--
+```{r}
+x1 & y1 #<<
+```
+
+--
+```{r, echo=TRUE, eval = FALSE}
+intersect(x2,y2) #<<
+```
+
+--
+```{r}
+intersect(x2,y2) #<<
+```
+
+---
+**Major code block on page 93 - 3/5**  
+
+*union of X and Y*
+
+$X | Y$, $X\cup Y$, $X \lor Y$  
+
+.pull-left[
+
+```{r, echo = TRUE}
+x2
+y2
+```
+]
+--
+
+.pull-right[
+
+```{r, fig.height= 3}
+plot_set("blue", "red")
+```
+]
+
+--
+```{r, echo=TRUE, eval = FALSE}
+x1 | y1 #<<
+```
+
+--
+```{r}
+x1 | y1 #<<
+```
+
+--
+```{r, echo=TRUE, eval = FALSE}
+union(x2,y2) #<<
+```
+
+--
+```{r}
+union(x2,y2) #<<
+```
+
+---
+**Major code block on page 93 - 4/5**  
+
+*setdiff of X and Y*
+
+$X \& !Y$, $X \land  \neg Y$  
+
+.pull-left[
+
+```{r, echo = TRUE}
+x2
+y2
+```
+]
+--
+
+.pull-right[
+
+```{r, fig.height= 3}
+plot_set("blue", NA, "white")
+```
+]
+
+--
+```{r, echo=TRUE, eval = FALSE}
+x1 & !y1 #<<
+```
+
+--
+```{r}
+x1 & !y1 #<<
+```
+
+--
+```{r, echo=TRUE, eval = FALSE}
+setdiff(x2,y2) #<<
+```
+
+--
+```{r}
+setdiff(x2,y2) #<<
+```
+
+---
+**Major code block on page 93 - 5/5**  
+
+*Exclusive OR of X and Y*
+
+xor(X,Y), $(X\land \neg Y) \cup (\neg X \land Y)$ 
+
+.pull-left[
+
+```{r, echo = TRUE}
+x2
+y2
+```
+]
+--
+
+.pull-right[
+
+```{r, fig.height= 3}
+plot_set("blue", "red", "white")
+```
+]
+
+--
+```{r, echo=TRUE, eval = FALSE}
+xor(x1, y1) #<<
+```
+
+--
+```{r}
+xor(x1, y1) #<<
+```
+
+--
+```{r, echo=TRUE, eval = FALSE}
+setdiff(union(x2, y2), intersect(x2, y2)) #<<
+```
+
+--
+```{r}
+setdiff(union(x2, y2), intersect(x2, y2)) #<<
+```
+
+
+
+---
+
+# The puzzle!  
+
+Answer the 18 questions.  
+Transfer the letters found to the corresponding numbers below:
+
+```{r, fig.height=1, fig.width=18}
+dPuzzle <- tibble( xmin = c(1,2,3,4,  6,7,8,9,  11,12,13,  15,16,17,18,19,20,21),
+                   xmax = xmin+1,
+                   ymin = 0,
+                   ymax = 1,
+                   content = c(8,17,4,18,11, 10, 1, 2,7,3,6, 5, 12, 14, 13, 16, 15, 9))
+dPuzzle %>%
+  ggplot() +
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            fill = NA,
+            color = "#562457",
+            size = 1) +
+  geom_text(aes(x = xmin + 0.2, y = ymax - 0.2, label = content),
+            size = 6,
+            color = "#562457") +
+  theme_void()
+```
+
+
+![parkiet](parkiet.png)
+---
+
+## Question 1  
+
+`x <- c(3, 1, 4, 1, 5, 9, 2)`  
+
+What is the result of   `x[c(3,5)]` ?
+
+R &emsp;&emsp;`c(1,4,1,9,2)`  
+P &emsp;&emsp;`c(3,1,1,9,2)`  
+V &emsp;&emsp;`c(3,5)`  
+N &emsp;&emsp;`c(4,5)`
+
+## Question 2
+
+`x <- c(3, 1, 4, 1, 5, 9, 2)`  
+
+Which expression will result in `c(3, 1, 1, 5, 9)`?
+
+E &emsp;&emsp;`x[x%%2 == 1]`  
+H &emsp;&emsp;`x[c(T,T,F,T,T,T,F)]`  
+G &emsp;&emsp; both expressions above will do that  
+D &emsp;&emsp; none of the expressions above will do that
+---
+
+## Question 3  
+
+We want to create matrix $A = \begin{pmatrix} 3 & 1 & 4 & 1 \\ 5 & 9 & 2 & 6 \\ 5 & 3 & 8 & 9\end{pmatrix}$  
+with this r code: &emsp; `A <- matrix(c(3,1,4,1,5,9,2,6,5,3,8,9), nrow = 3)` .  
+
+Is this correct?  
+
+N &emsp;&emsp; No!  
+Y &emsp;&emsp; Yes!
+
+## Question 4
+
+What are the dimensions of `A[,1]`?  
+
+A &emsp;&emsp; 1 &emsp; 3  
+R &emsp;&emsp; 3 &emsp; 1  
+V &emsp;&emsp; There are no dimensions
+---
+
+## Question 5  
+
+What is the length of `A[,1]`?  
+
+N &emsp;&emsp; 1  
+P &emsp;&emsp; 3  
+R &emsp;&emsp; There is no length 
+
+## Question 6 
+
+What are the dimensions of `A[1:2,-c(1,2)]`  
+
+D &emsp;&emsp; 2 &emsp; 2  
+E &emsp;&emsp; 4 &emsp; 1 &emsp;2 &emsp; 6  
+F &emsp;&emsp; There are no dimensions  
+---
+
+## Question 7
+
+`x <- c("a", "b", "c")`.  
+What is the result of `x[4]`?  
+
+O &emsp;&emsp; character(0)  
+A &emsp;&emsp; NA  
+E &emsp;&emsp; 1  
+
+## Question 8  
+
+What is the result of `x[[-1]]`?  
+
+L &emsp;&emsp; Error in x[[-1]] : invalid negative subscript in get1index <real>  
+M &emsp;&emsp; Error in x[[-1]] : subscript out of bounds  
+N &emsp;&emsp; "a"  
+O &emsp;&emsp; "b" "c"
+---
+
+## Question 9  
+
+```{r,echo = TRUE}
+L <- list(lucky_numbers = 1:9,
+       lucky_words = c("cat", "cure"),
+       happy_times = data.frame(
+         location = c("Online", "Friesland", "Pub"),
+         activity = c("R-Ladies Boookclub", "sailing", "talking to friends")))
+L
+```
+
+Which code would extract "R-Ladies Boookclub"? 
+
+R &emsp;&emsp; `L[[3]][1,2]`  
+S &emsp;&emsp; `L[1,2][[3]]`  
+R &emsp;&emsp; `L[[3]][[2]][[1]]`  
+S &emsp;&emsp; `L[[1]][[2]][[3]]`   
+---
+
+## Question 10  (exercise 4.3.5)
+
+`mod` is a linear regression model, which explains `mpg` from `wt`:  
+
+```{r, echo = TRUE}
+mod <- lm(mpg ~ wt, data = mtcars)
+```
+
+What kind of R object is `mod` ?  
+
+M &emsp;&emsp; data.frame  
+N &emsp;&emsp; vector  
+O &emsp;&emsp; list
+
+## Question 11  
+
+What code will extract from `mod` the residual degrees of freedom as an integer ?  
+
+I &emsp;&emsp; `mod$df.residual`  
+J &emsp;&emsp; `mod[["df.residual"]]`  
+K &emsp;&emsp; `mod["df.residual"]`  
+L &emsp;&emsp; first two answers are correct  
+M &emsp;&emsp; first three answers are correct  
+N &emsp;&emsp; none of the answers is correct
+---
+
+## Question 12  
+
+```{r, echo = TRUE}
+mod <- lm(mpg ~ wt, data = mtcars)
+summ_mod <- summary(mod)
+```
+
+What code with "$" will extract the $R^2$ from the model summary?  
+
+Take of this code the 16th letter from the start.
+That is the letter for slot 12.  
+
+
+## Question 13  
+
+How would you remove the residuals from the summary? (Not that this is a useful skill to have :) )
+
+S &emsp;&emsp; `summ_mod[["residuals"]] <- NULL`  
+T &emsp;&emsp; `summ_mod[["residuals"]] <- NA`  
+U &emsp;&emsp; `summ_mod[[residuals]] <- NULL`  
+V &emsp;&emsp; `summ_mod[[residuals]] <- NA`  
+S &emsp;&emsp; `summ_mod$residuals <- NULL`  
+T &emsp;&emsp; `summ_mod$residuals <- NA`
+---
+
+## Question 14  (exercise 4.5.9)
+
+
+```{r, echo = TRUE}
+df <- data.frame(item = c(1,2), color = c("red", "blue"), amount = c(3,6))
+df
+```
+
+What code would order df so that the columns are alphabetically?  
+
+O &emsp;&emsp; `df[order(names(df))]`  
+P &emsp;&emsp; `df[order(names(df)),]`  
+O &emsp;&emsp; `df[,order(names(df))]`  
+
+## Question 15  (exercise 4.5.9)
+
+What code samples 2 random columns from df?  
+
+A &emsp;&emsp; `df[sample(names(df),2),]`  
+E &emsp;&emsp; `df[sample(names(df),2)]`  
+I &emsp;&emsp;&ensp; `df[sample(names(df,2))]`  
+
+---
+
+## Question 16  
+
+
+```{r, echo = TRUE}
+df <- data.frame(item = c(1,2, 3),
+                 color = c("red", "green", "green"),
+                 amount = c(3,6,2))
+df
+```
+
+What code would select the rows with green items with a minimal amount of 4?
+
+M &emsp;&emsp; `df[df$color = "green" & df$amount > 4]`  
+N &emsp;&emsp; `df[df$color = "green" & df$amount > 4,]`  
+O &emsp;&emsp; `df[df$color != "red" & df$color != "blue" & df$amount > 4]`  
+P &emsp;&emsp; `df[df$color != "red" & df$color != "blue" & df$amount > 4,]`   
+---
+
+## Question 17  
+
+`setdiff(setdiff(LETTERS[1:13],LETTERS[1:8]), LETTERS[10:13])`
+
+
+## Question 18  
+
+`x <- 1:10`  
+`y <- x %% 5 == 0`  
+`z <- x %% 2 != 0`  
+`intersect(  
+  intersect(LETTERS[x], LETTERS[y]),  
+  LETTERS[z])`
+
+---
+
+
+ 
+```{r, out.width="150%"}
+knitr::include_graphics("done.gif")
+```

@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R - Hadley Wickham - Ch 4</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Martine Jansen, May 12, 2020" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R - Hadley Wickham - Ch 4
+## R Ladies Netherlands Boookclub
+### Martine Jansen, May 12, 2020
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Welcome!
+
+- This is joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht 
+--
+
+- We meet every 2 weeks to go through a chapter 
+--
+
+- Use the HackMD to present yourself, ask questions and see your breakout room 
+--
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after xx min  
+--
+
+- There are still possibilities to present a chapter :) Sign up at https://rladiesnl.github.io/book_club/  
+--
+
+- https://advanced-r-solutions.rbind.io/ has some anwers and we could PR the ones missing  
+--
+
+- The R4DS book club repo has a Q&amp;A section.https://github.com/r4ds/bookclub-Advanced_R  
+
+--
+
+
+&lt;img src="tenor.gif" height="90%" /&gt;
+
+---
+
+# Contents  
+
+
+- Selecting multiple elements
+--
+
+- Selecting single elements
+--
+
+- Subsetting and assignment
+--
+
+- Applications
+--
+
+- A puzzle  
+
+&lt;img src="giphy.gif" width="60%" /&gt;
+
+---
+# Selecting multiple elements  [&amp;emsp;]
+
+## From vectors, with indices, positive OR negative
+
+`x[&lt;expression resulting in indices&gt;]`
+
+**Positive indices**  
+
+
+```r
+x&lt;- c("g", "a", "c", "f", "b")
+# Get item 2 and item 5
+*x[c(2,5)]
+```
+--
+
+```
+[1] "a" "b"
+```
+--
+
+**Negative indices**  
+
+```r
+x&lt;- c("g", "a", "c", "f", "b")
+# Get everything EXCEPT item 2 and item 5
+*x[-c(2,5)]
+```
+--
+
+```
+[1] "g" "c" "f"
+```
+---
+
+You can be creative with indices: 
+
+**Repeat them**  
+
+
+```r
+x&lt;- c("g", "a", "c", "f", "b")
+# repeat the first 2 items, 5 times
+*x[rep(1:2, times = 5)]
+```
+--
+
+```
+ [1] "g" "a" "g" "a" "g" "a" "g" "a" "g" "a"
+```
+--
+
+**Use it to order a vector**  
+
+
+```r
+x&lt;- c("g", "a", "c", "f", "b")
+# order the vector
+*x[order(x)]
+```
+--
+
+```
+[1] "a" "b" "c" "f" "g"
+```
+--
+
+**You do not HAVE to use indices**
+
+
+```r
+x&lt;- c("g", "a", "c", "f", "b")
+# return the whole vector
+*x[]
+```
+--
+
+```
+[1] "g" "a" "c" "f" "b"
+```
+
+---
+
+## From vectors, with logical vectors
+`x[&lt;expression resulting in T/F vector&gt;]`
+
+**Specify a T/F vector**  
+
+```r
+x&lt;- c("g", "a", "c", "f", "b", "b")
+# Get all the items "a" and "b"
+*x[c(F,T,F,F,T,T)]
+```
+--
+
+```
+[1] "a" "b" "b"
+```
+--
+
+**What if T/F vector has different length?**
+
+```r
+x&lt;- c("g", "a", "c", "f", "b", "g", "a")
+*x[c(F,T)]
+```
+--
+
+```
+[1] "a" "f" "g"
+```
+The F/T vector will be recycled:  
+F T F T F T F  
+*But be very careful with recyling of vectors longer than length 1*
+---
+**Specify an expression RESULTING in a T/F vector**
+
+
+```r
+x&lt;- c("g", "a", "c", "f", "b", "b")
+# Get all the items "a" and "b"
+*x[x %in% c("a", "b")]
+```
+--
+
+```
+[1] "a" "b" "b"
+```
+--
+
+**Another example of that**
+
+```r
+x&lt;- c("Anna", "Bea", "Corry-Ann", "Annabel", "Ann", "Quinta")
+# Get all the items that have "Ann" in them
+*x[grepl("Ann",x)]
+```
+--
+
+```
+[1] "Anna"      "Corry-Ann" "Annabel"   "Ann"      
+```
+--
+
+
+**And another example of that**
+
+```r
+x&lt;- c("Anna", "Bea", "Corry-Ann", "Annabel", "Ann", "Quinta")
+*x[grepl("Beatrix",x)]
+```
+--
+
+```
+character(0)
+```
+--
+
+In the last example, there were no matches for "Beatrix".  
+This resulted in a T/F vector with every value equal to FALSE.  
+And hence nothing (vector of length 0) in the output. 
+---
+## From lists
+
+
+```r
+lucky_list &lt;- list(lucky_numbers = 1:9,
+                   lucky_words = c("cat", "cure"))
+lucky_list
+```
+
+```
+$lucky_numbers
+[1] 1 2 3 4 5 6 7 8 9
+
+$lucky_words
+[1] "cat"  "cure"
+```
+--
+**subset by indices**
+
+
+```r
+*lucky_list[2]   # keeps being a list
+```
+--
+
+```
+$lucky_words
+[1] "cat"  "cure"
+```
+--
+
+**Or subset by using the name(s)**
+
+
+```r
+lucky_list["lucky_words"]
+```
+--
+
+
+```
+$lucky_words
+[1] "cat"  "cure"
+```
+
+
+
+---
+## From matrices and arrays, with indices  
+
+Subsetting matrix A : `A[&lt;row indices&gt;, &lt;column indices&gt;]`
+--
+
+```r
+A &lt;- matrix(1:9, nrow = 3)
+colnames(A) &lt;- c(LETTERS[4:6])  # :) vector subsetting
+A
+```
+
+```
+     D E F
+[1,] 1 4 7
+[2,] 2 5 8
+[3,] 3 6 9
+```
+--
+
+```r
+*A[1:2, c("E", "F")]
+```
+--
+
+```
+     E F
+[1,] 4 7
+[2,] 5 8
+```
+--
+
+
+```r
+*A[1:2,]
+```
+--
+
+```
+     D E F
+[1,] 1 4 7
+[2,] 2 5 8
+```
+--
+Consistant with vector: no indices, return all  
+
+---
+
+** Subsetting with matrix**
+
+Again matrix A:
+
+```
+     D E F
+[1,] 1 4 7
+[2,] 2 5 8
+[3,] 3 6 9
+```
+--
+From matrix A we want:  
+- first row third value
+- third row, second value  
+
+
+--
+
+Specify this in matrix B:
+
+```
+     [,1] [,2]
+[1,]    1    3
+[2,]    3    2
+```
+--
+
+```r
+*A[B]
+```
+--
+
+```
+[1] 7 6
+```
+--
+
+Be ware: this result is a **vector**, not a matrix.  
+[ ] simplifies to the lowest possible dimensionality.  
+*Lists stay lists*
+---
+## From dataframes and tibbles
+
+data.frame df
+
+```
+  x y z
+1 1 1 a
+2 2 2 b
+3 3 3 c
+```
+--
+**Subsetting like a list**
+
+
+```r
+*df["z"]
+```
+--
+
+```
+  z
+1 a
+2 b
+3 c
+```
+--
+
+**Subsetting like a matrix**
+
+
+```r
+*df[,"z"]
+```
+--
+
+```
+[1] "a" "b" "c"
+```
+--
+
+Again, loss of dimensions! 
+
+---
+
+## Preserving the dimensions:  tibbles :)
+
+
+.pull-left[
+
+**data.frame**
+
+```r
+dframe &lt;-
+  data.frame(x = 1:3,
+             y = 1:3,
+             z = c("a", "b", "c"))
+dframe
+```
+
+```
+  x y z
+1 1 1 a
+2 2 2 b
+3 3 3 c
+```
+
+
+```r
+*dframe[,"z"]
+```
+
+```
+[1] "a" "b" "c"
+```
+
+]
+
+--
+
+.pull-right[
+
+**tibble**
+
+```r
+dtibble &lt;- 
+  tibble(x = 1:3,
+         y = 1:3,
+         z = c("a", "b", "c"))
+dtibble
+```
+
+```
+# A tibble: 3 x 3
+      x     y z    
+  &lt;int&gt; &lt;int&gt; &lt;chr&gt;
+1     1     1 a    
+2     2     2 b    
+3     3     3 c    
+```
+
+
+```r
+*dtibble[,"z"]
+```
+
+```
+# A tibble: 3 x 1
+  z    
+  &lt;chr&gt;
+1 a    
+2 b    
+3 c    
+```
+]  
+
+---
+## Preserving the dimensions: drop = FALSE  
+
+.pull-left[
+**data.frame**
+
+```r
+dframe &lt;-
+  data.frame(x = 1:3,
+             y = 1:3,
+             z = c("a", "b", "c"))
+dframe
+```
+
+```
+  x y z
+1 1 1 a
+2 2 2 b
+3 3 3 c
+```
+
+
+```r
+*dframe[,"z"]
+```
+
+```
+[1] "a" "b" "c"
+```
+
+
+
+```r
+*dframe[,"z", drop = FALSE]
+```
+
+```
+  z
+1 a
+2 b
+3 c
+```
+
+]
+--
+.pull-right[
+**matrix**
+
+```r
+A
+```
+
+```
+     D E F
+[1,] 1 4 7
+[2,] 2 5 8
+[3,] 3 6 9
+```
+
+
+```r
+*A[2,]
+```
+
+```
+D E F 
+2 5 8 
+```
+
+
+
+```r
+*A[2, ,drop = FALSE]
+```
+
+```
+     D E F
+[1,] 2 5 8
+```
+
+]
+
+---
+
+&lt;img src="relax.gif" width="150%" /&gt;
+
+---
+
+# Selecting single elements [ [ &amp;emsp;&amp;emsp; ]]
+
+`x[[&lt;single positive value or a string&gt;]]`
+
+
+
+```r
+lucky_list &lt;- list(lucky_numbers = 1:9,
+                   lucky_words = c("cat", "cure"))
+```
+--
+**subset by index with SINGLE [ ]**
+
+
+```r
+*lucky_list[2]
+```
+--
+
+```
+$lucky_words
+[1] "cat"  "cure"
+```
+--
+keeps being  a list  
+--
+  
+  
+**subset by index with DOUBLE [[ ]]**  
+
+
+```r
+*lucky_list[[2]]
+```
+--
+
+```
+[1] "cat"  "cure"
+```
+--
+no longer a list, outer layer removed, like an unwrapped present
+---
+
+## Subsubsetting  
+
+
+```r
+lucky_list
+```
+
+```
+$lucky_numbers
+[1] 1 2 3 4 5 6 7 8 9
+
+$lucky_words
+[1] "cat"  "cure"
+```
+
+How to extract the word "cure"?    
+--
+
+It is the second item from the item in the second part of the list.  
+--
+
+First extract the item in the second part of the list:  
+--
+
+
+
+```r
+*lucky_list[[2]]
+```
+
+```
+[1] "cat"  "cure"
+```
+--
+
+Then extract the second item:
+--
+
+
+```r
+*lucky_list[[2]][2]
+```
+
+```
+[1] "cure"
+```
+
+---
+
+## Selecting a single variable from dataframe  
+
+.pull-left[
+
+```r
+dframe &lt;-
+  data.frame(x1 = 1:3,
+             y2 = 4:6,
+             z3 = c("a", "b", "c"))
+```
+
+
+
+```r
+*dframe["z3"]
+```
+
+```
+  z3
+1  a
+2  b
+3  c
+```
+]
+--
+
+.pull-right[
+
+
+```r
+*dframe[,"z3"]
+```
+
+```
+[1] "a" "b" "c"
+```
+
+
+
+```r
+*dframe[["z3"]]
+```
+
+```
+[1] "a" "b" "c"
+```
+
+
+
+```r
+*dframe[[3]]
+```
+
+```
+[1] "a" "b" "c"
+```
+
+
+
+```r
+*dframe$z3
+```
+
+```
+[1] "a" "b" "c"
+```
+
+
+
+```r
+*dframe$z
+```
+
+```
+[1] "a" "b" "c"
+```
+(partial matching)
+]
+
+
+---
+## Some advice from the author  
+
+
+* Also use [[ ]] for vectors when extracting a single element, so [[ ]] grows to be synonym to extracting a single element
+--
+
+* Be careful with partial matching. Either use:  
+    *  tibbles instead of data.frames :)
+    *  options(warnPartialMatchDollar = TRUE)  
+ 
+
+ 
+    
+
+```r
+dframe$z
+```
+
+```
+[1] "a" "b" "c"
+```
+--
+    
+
+```r
+*options(warnPartialMatchDollar = TRUE)
+dframe$z
+```
+--
+
+    
+
+```
+Warning in dframe$z: partial match of 'z' to 'z3'
+```
+
+```
+[1] "a" "b" "c"
+```
+
+
+---
+
+## Missing and OOB indices  
+
+
+```r
+X &lt;- c(1, 2, 3)
+L &lt;- list(1,2,3)
+```
+
+
+
+.pull-left[
+
+
+```r
+X[[4]]
+```
+
+```
+Error in X[[4]]: subscript out of bounds
+```
+
+
+```r
+L[[4]]
+```
+
+```
+Error in L[[4]]: subscript out of bounds
+```
+
+
+```r
+NULL[[4]]
+```
+
+```
+NULL
+```
+]
+
+
+
+
+.pull-right[
+
+
+```r
+X[["a"]]
+```
+
+```
+Error in X[["a"]]: subscript out of bounds
+```
+
+
+```r
+L[["a"]]
+```
+
+```
+NULL
+```
+
+
+```r
+NULL[["a"]]
+```
+
+```
+NULL
+```
+]
+
+--
+
+Inconsistent behaviour.  
+Solution: `purr:pluck()` and `purr::chuck()`
+---
+
+## `purr::pluck( )`  and  `purrr::chuck( )`
+
+.pull-left[
+&lt;img src="purrr.png" width="50%" /&gt;
+
+Element is missing? 
+
+`Pluck()` --&gt; `NULL` ALWAYS (or the default)  
+`Chuck()` --&gt;  &lt;span style="     color: red !important;" &gt;error&lt;/span&gt; ALWAYS
+
+]
+
+--
+
+.pull-right[
+
+
+```r
+X[["a"]]
+```
+
+```
+Error in X[["a"]]: subscript out of bounds
+```
+
+
+```r
+L[["a"]]
+```
+
+```
+NULL
+```
+
+
+```r
+purrr::pluck(X, "a")
+```
+
+```
+NULL
+```
+
+```r
+purrr::pluck(L,"a")
+```
+
+```
+NULL
+```
+
+```r
+purrr::chuck(L,"a")
+```
+
+```
+Error: Index 1 is attempting to pluck from an unnamed vector using a string name
+```
+]
+
+---
+
+&lt;img src="relax.gif" width="150%" /&gt;
+---
+
+
+# Subsetting and assignment: subassignment  
+
+--
+
+**Vector**
+--
+
+```r
+x &lt;- c(1:5)
+```
+--
+
+
+```
+[1] 1 2 3 4 5
+```
+--
+
+
+
+```r
+x[3:5] &lt;- c(30, 40, 50)
+```
+
+--
+
+
+```
+[1]  1  2 30 40 50
+```
+--
+
+
+```r
+x[7] &lt;- 7
+```
+
+--
+
+
+```
+[1]  1  2 30 40 50 NA  7
+```
+--
+
+
+
+```r
+x[2] &lt;- NA
+```
+
+--
+
+
+```
+[1]  1 NA 30 40 50 NA  7
+```
+--
+
+
+
+```r
+x[1] &lt;- NULL
+```
+
+```
+Error in x[1] &lt;- NULL: replacement has length zero
+```
+---
+**List**
+
+
+```r
+L &lt;- list(a = 1:2, b = letters[13:17])
+```
+--
+
+
+```
+$a
+[1] 1 2
+
+$b
+[1] "m" "n" "o" "p" "q"
+```
+--
+
+
+```r
+L[["c"]] &lt;- c(10:12)
+```
+--
+
+
+```
+$a
+[1] 1 2
+
+$b
+[1] "m" "n" "o" "p" "q"
+
+$c
+[1] 10 11 12
+```
+--
+
+.pull-left[
+
+
+```r
+L[[1]] &lt;- NA
+```
+
+
+
+```
+$a
+[1] NA
+
+$b
+[1] "m" "n" "o" "p" "q"
+
+$c
+[1] 10 11 12
+```
+]
+
+--
+
+.pull-right[
+
+
+```r
+L[[1]] &lt;- NULL # removes
+```
+
+
+
+```
+$b
+[1] "m" "n" "o" "p" "q"
+
+$c
+[1] 10 11 12
+```
+]
+
+---
+# Applications  
+
+**Lookup tables**
+
+
+```r
+x &lt;- c("a", "p", "a", "p", "p")
+lookup &lt;- c(a = "absent", p = "present")
+```
+--
+
+
+```r
+lookup
+```
+
+```
+        a         p 
+ "absent" "present" 
+```
+--
+
+
+```r
+# "subset" lookup with a lot of indices
+*lookup[x]
+```
+--
+
+
+```
+        a         p         a         p         p 
+ "absent" "present"  "absent" "present" "present" 
+```
+--
+
+
+
+```r
+# and now without the names
+*unname(lookup[x])
+```
+--
+
+
+```
+[1] "absent"  "present" "absent"  "present" "present"
+```
+
+
+---
+**Matching and merging**
+
+
+
+
+
+```r
+info
+```
+
+```
+  grade      desc  fail
+1     A Excellent FALSE
+2     B      Good FALSE
+3     C      Poor  TRUE
+```
+--
+
+
+```r
+# For each of these grades, get the info from dataframe info
+grades &lt;- c("A", "B", "B", "C", "A")
+```
+--
+  
+
+
+```r
+# First, find where in the dataframe these grades are:
+id &lt;- match(grades, info$grade)
+id
+```
+--
+
+
+```
+[1] 1 2 2 3 1
+```
+--
+
+
+```r
+# Second, subset dataframe `info` with these indices: 
+# (get only the found rows, but all the columns)
+*info[id, ]
+```
+--
+
+
+```
+    grade      desc  fail
+1       A Excellent FALSE
+2       B      Good FALSE
+2.1     B      Good FALSE
+3       C      Poor  TRUE
+1.1     A Excellent FALSE
+```
+
+---
+**Random sampling and bootstraps** 
+
+
+```r
+x &lt;- 1:5
+x
+```
+
+```
+[1] 1 2 3 4 5
+```
+--
+Reorder randomly
+
+```r
+*x[sample(length(x))]
+```
+--
+
+
+```
+[1] 4 3 2 5 1
+```
+--
+
+Sample
+
+```r
+*x[sample(length(x), 2)]
+```
+--
+
+
+```
+[1] 2 3
+```
+--
+
+Sample with replacement
+
+```r
+*x[sample(length(x), replace = TRUE)]
+```
+--
+
+
+```
+[1] 1 3 5 5 2
+```
+---
+
+**Ordering (with indices)**
+
+
+```r
+x &lt;- c("m", "a", NA, "z")
+x
+```
+
+```
+[1] "m" "a" NA  "z"
+```
+--
+
+
+```r
+# the order the elements are in
+order(x)
+```
+--
+
+
+```
+[1] 2 1 4 3
+```
+--
+
+
+```r
+# order x in the right order
+*x[order(x)]
+```
+--
+
+
+```
+[1] "a" "m" "z" NA 
+```
+--
+
+
+
+```r
+# the order the elements are in, reverse order
+order(x, decreasing = TRUE)
+```
+--
+
+
+```
+[1] 4 1 2 3
+```
+--
+
+
+
+```r
+# order x in the right order
+*x[order(x, decreasing = TRUE)]
+```
+--
+
+
+```
+[1] "z" "m" "a" NA 
+```
+---
+
+**Expanding aggregated counts**
+
+
+```r
+df &lt;- data.frame(item = c("coffee", "tea"),
+                 amount = c(2,3))
+```
+--
+
+```r
+df
+```
+
+```
+    item amount
+1 coffee      2
+2    tea      3
+```
+
+--
+
+```r
+*df[rep(1:nrow(df), times = df$amount),]
+```
+
+--
+
+```
+      item amount
+1   coffee      2
+1.1 coffee      2
+2      tea      3
+2.1    tea      3
+2.2    tea      3
+```
+
+---
+
+**Alternative expanding dplyr::uncount( ) (not in book)**  
+
+
+```r
+df
+```
+
+```
+    item amount
+1 coffee      2
+2    tea      3
+```
+--
+
+
+```r
+library(tidyverse)
+*df %&gt;% uncount(amount, .remove = FALSE)
+```
+--
+
+
+```
+      item amount
+1   coffee      2
+1.1 coffee      2
+2      tea      3
+2.1    tea      3
+2.2    tea      3
+```
+--
+
+
+
+```r
+library(tidyverse) # or, like it should, to avoid confusion
+*df %&gt;% uncount(amount)
+```
+--
+
+
+```
+      item
+1   coffee
+1.1 coffee
+2      tea
+2.1    tea
+2.2    tea
+```
+
+---
+
+**Removing columns from df (character subsetting)**  
+
+
+```r
+df
+```
+
+```
+    item amount
+1 coffee      2
+2    tea      3
+```
+--
+
+
+```r
+# set unwanted ones to NULL
+*df$amount &lt;- NULL
+df
+```
+--
+
+
+```
+    item
+1 coffee
+2    tea
+```
+--
+
+
+
+```r
+# only keep want you want
+*df &lt;- df[c("item")]
+```
+--
+
+
+```
+    item
+1 coffee
+2    tea
+```
+---
+
+
+```r
+# exclude from colnames those you do not want
+setdiff(names(df), "amount")
+*df &lt;- df[setdiff(names(df), "amount")]
+df
+```
+--
+
+
+```
+[1] "item"
+```
+
+```
+    item
+1 coffee
+2    tea
+```
+--
+
+**Tidyverse alternative selecting columns (not in book)**
+
+
+
+```r
+# select the columns you want
+*df &lt;- df %&gt;%
+* select(item)
+df
+```
+--
+
+
+```
+    item
+1 coffee
+2    tea
+```
+--
+
+
+```r
+# unselect the columns you do not want
+*df &lt;- df %&gt;%
+* select(-amount)
+df
+```
+--
+
+
+```
+    item
+1 coffee
+2    tea
+```
+
+---
+
+**Selecting rows based on a condition(logical subsetting)** 
+
+
+
+```r
+df &lt;- data.frame(item = c("coffee", "tea", "water"),
+                 amount = c(2,3, 2))
+df 
+```
+
+```
+    item amount
+1 coffee      2
+2    tea      3
+3  water      2
+```
+--
+
+
+```r
+# select all rows with amount == 2
+*df[df$amount == 2,]
+```
+--
+
+
+```
+    item amount
+1 coffee      2
+3  water      2
+```
+--
+
+
+```r
+# select all rows with amount == 2 and item == "water"
+*df[df$amount == 2 &amp; df$item == "water",]
+```
+--
+
+
+```
+   item amount
+3 water      2
+```
+
+--
+
+
+```r
+# same with tidyverse - not in book
+*df %&gt;% filter(amount == 2, item == "water")
+```
+--
+
+
+```
+   item amount
+1 water      2
+```
+---
+
+**Boolean algebra versus sets**
+
+
+```r
+x &lt;- c(3, 5, 2, 6, 2, 7)
+```
+--
+
+
+```r
+# gives T/F
+x &lt; 4
+```
+
+```
+[1]  TRUE FALSE  TRUE FALSE  TRUE FALSE
+```
+--
+
+
+```r
+# gives indices
+which(x &lt; 4)
+```
+
+```
+[1] 1 3 5
+```
+
+--
+
+
+```r
+# subsetting with T/F, same result as with indices
+x[x&lt;4]
+```
+
+```
+[1] 3 2 2
+```
+--
+
+
+
+```r
+# subsettubg with indices, same result as with T/F vector
+x[which(x &lt; 4)]
+```
+
+```
+[1] 3 2 2
+```
+---
+
+**Major code block on page 93 - 1/5**
+
+which: gives the TRUE indices of a logical object  
+
+
+```r
+which(c(TRUE, FALSE, FALSE, TRUE))
+```
+--
+
+
+```
+[1] 1 4
+```
+--
+
+
+```r
+# code between ( ) automatically prints result
+(x1 &lt;- 1:10 %% 2 == 0)  # F/T depending on being a 2 fold
+```
+
+```
+ [1] FALSE  TRUE FALSE  TRUE FALSE  TRUE FALSE  TRUE FALSE  TRUE
+```
+
+```r
+(x2 &lt;- which(x1))
+```
+
+```
+[1]  2  4  6  8 10
+```
+
+```r
+(y1 &lt;- 1:10 %% 5 ==0)   # F/T depending on being a 5 fold
+```
+
+```
+ [1] FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE  TRUE
+```
+
+```r
+(y2 &lt;- which(y1))
+```
+
+```
+[1]  5 10
+```
+---
+
+**Major code block on page 93 - 2/5**  
+
+*intersect of X and Y*
+
+`\(X \&amp; Y\)`, `\(X\cap Y\)`, `\(x \land y\)`  
+
+.pull-left[
+
+
+```r
+x2
+```
+
+```
+[1]  2  4  6  8 10
+```
+
+```r
+y2
+```
+
+```
+[1]  5 10
+```
+]
+--
+
+.pull-right[
+
+&lt;img src="Ch4_Xaringan_files/figure-html/unnamed-chunk-166-1.png" width="504" /&gt;
+]
+
+--
+
+```r
+*x1 &amp; y1
+```
+
+--
+
+```
+ [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE
+```
+
+--
+
+```r
+*intersect(x2,y2)
+```
+
+--
+
+```
+[1] 10
+```
+
+---
+**Major code block on page 93 - 3/5**  
+
+*union of X and Y*
+
+`\(X | Y\)`, `\(X\cup Y\)`, `\(X \lor Y\)`  
+
+.pull-left[
+
+
+```r
+x2
+```
+
+```
+[1]  2  4  6  8 10
+```
+
+```r
+y2
+```
+
+```
+[1]  5 10
+```
+]
+--
+
+.pull-right[
+
+&lt;img src="Ch4_Xaringan_files/figure-html/unnamed-chunk-172-1.png" width="504" /&gt;
+]
+
+--
+
+```r
+*x1 | y1
+```
+
+--
+
+```
+ [1] FALSE  TRUE FALSE  TRUE  TRUE  TRUE FALSE  TRUE FALSE  TRUE
+```
+
+--
+
+```r
+*union(x2,y2)
+```
+
+--
+
+```
+[1]  2  4  6  8 10  5
+```
+
+---
+**Major code block on page 93 - 4/5**  
+
+*setdiff of X and Y*
+
+`\(X \&amp; !Y\)`, `\(X \land  \neg Y\)`  
+
+.pull-left[
+
+
+```r
+x2
+```
+
+```
+[1]  2  4  6  8 10
+```
+
+```r
+y2
+```
+
+```
+[1]  5 10
+```
+]
+--
+
+.pull-right[
+
+&lt;img src="Ch4_Xaringan_files/figure-html/unnamed-chunk-178-1.png" width="504" /&gt;
+]
+
+--
+
+```r
+*x1 &amp; !y1
+```
+
+--
+
+```
+ [1] FALSE  TRUE FALSE  TRUE FALSE  TRUE FALSE  TRUE FALSE FALSE
+```
+
+--
+
+```r
+*setdiff(x2,y2)
+```
+
+--
+
+```
+[1] 2 4 6 8
+```
+
+---
+**Major code block on page 93 - 5/5**  
+
+*Exclusive OR of X and Y*
+
+xor(X,Y), `\((X\land \neg Y) \cup (\neg X \land Y)\)` 
+
+.pull-left[
+
+
+```r
+x2
+```
+
+```
+[1]  2  4  6  8 10
+```
+
+```r
+y2
+```
+
+```
+[1]  5 10
+```
+]
+--
+
+.pull-right[
+
+&lt;img src="Ch4_Xaringan_files/figure-html/unnamed-chunk-184-1.png" width="504" /&gt;
+]
+
+--
+
+```r
+*xor(x1, y1)
+```
+
+--
+
+```
+ [1] FALSE  TRUE FALSE  TRUE  TRUE  TRUE FALSE  TRUE FALSE FALSE
+```
+
+--
+
+```r
+*setdiff(union(x2, y2), intersect(x2, y2))
+```
+
+--
+
+```
+[1] 2 4 6 8 5
+```
+
+
+
+---
+
+# The puzzle!  
+
+Answer the 18 questions.  
+Transfer the letters found to the corresponding numbers below:
+
+&lt;img src="Ch4_Xaringan_files/figure-html/unnamed-chunk-189-1.png" width="1296" /&gt;
+
+
+![parkiet](parkiet.png)
+---
+
+## Question 1  
+
+`x &lt;- c(3, 1, 4, 1, 5, 9, 2)`  
+
+What is the result of   `x[c(3,5)]` ?
+
+R &amp;emsp;&amp;emsp;`c(1,4,1,9,2)`  
+P &amp;emsp;&amp;emsp;`c(3,1,1,9,2)`  
+V &amp;emsp;&amp;emsp;`c(3,5)`  
+N &amp;emsp;&amp;emsp;`c(4,5)`
+
+## Question 2
+
+`x &lt;- c(3, 1, 4, 1, 5, 9, 2)`  
+
+Which expression will result in `c(3, 1, 1, 5, 9)`?
+
+E &amp;emsp;&amp;emsp;`x[x%%2 == 1]`  
+H &amp;emsp;&amp;emsp;`x[c(T,T,F,T,T,T,F)]`  
+G &amp;emsp;&amp;emsp; both expressions above will do that  
+D &amp;emsp;&amp;emsp; none of the expressions above will do that
+---
+
+## Question 3  
+
+We want to create matrix `\(A = \begin{pmatrix} 3 &amp; 1 &amp; 4 &amp; 1 \\ 5 &amp; 9 &amp; 2 &amp; 6 \\ 5 &amp; 3 &amp; 8 &amp; 9\end{pmatrix}\)`  
+with this r code: &amp;emsp; `A &lt;- matrix(c(3,1,4,1,5,9,2,6,5,3,8,9), nrow = 3)` .  
+
+Is this correct?  
+
+N &amp;emsp;&amp;emsp; No!  
+Y &amp;emsp;&amp;emsp; Yes!
+
+## Question 4
+
+What are the dimensions of `A[,1]`?  
+
+A &amp;emsp;&amp;emsp; 1 &amp;emsp; 3  
+R &amp;emsp;&amp;emsp; 3 &amp;emsp; 1  
+V &amp;emsp;&amp;emsp; There are no dimensions
+---
+
+## Question 5  
+
+What is the length of `A[,1]`?  
+
+N &amp;emsp;&amp;emsp; 1  
+P &amp;emsp;&amp;emsp; 3  
+R &amp;emsp;&amp;emsp; There is no length 
+
+## Question 6 
+
+What are the dimensions of `A[1:2,-c(1,2)]`  
+
+D &amp;emsp;&amp;emsp; 2 &amp;emsp; 2  
+E &amp;emsp;&amp;emsp; 4 &amp;emsp; 1 &amp;emsp;2 &amp;emsp; 6  
+F &amp;emsp;&amp;emsp; There are no dimensions  
+---
+
+## Question 7
+
+`x &lt;- c("a", "b", "c")`.  
+What is the result of `x[4]`?  
+
+O &amp;emsp;&amp;emsp; character(0)  
+A &amp;emsp;&amp;emsp; NA  
+E &amp;emsp;&amp;emsp; 1  
+
+## Question 8  
+
+What is the result of `x[[-1]]`?  
+
+L &amp;emsp;&amp;emsp; Error in x[[-1]] : invalid negative subscript in get1index &lt;real&gt;  
+M &amp;emsp;&amp;emsp; Error in x[[-1]] : subscript out of bounds  
+N &amp;emsp;&amp;emsp; "a"  
+O &amp;emsp;&amp;emsp; "b" "c"
+---
+
+## Question 9  
+
+
+```r
+L &lt;- list(lucky_numbers = 1:9,
+       lucky_words = c("cat", "cure"),
+       happy_times = data.frame(
+         location = c("Online", "Friesland", "Pub"),
+         activity = c("R-Ladies Boookclub", "sailing", "talking to friends")))
+L
+```
+
+```
+$lucky_numbers
+[1] 1 2 3 4 5 6 7 8 9
+
+$lucky_words
+[1] "cat"  "cure"
+
+$happy_times
+   location           activity
+1    Online R-Ladies Boookclub
+2 Friesland            sailing
+3       Pub talking to friends
+```
+
+Which code would extract "R-Ladies Boookclub"? 
+
+R &amp;emsp;&amp;emsp; `L[[3]][1,2]`  
+S &amp;emsp;&amp;emsp; `L[1,2][[3]]`  
+R &amp;emsp;&amp;emsp; `L[[3]][[2]][[1]]`  
+S &amp;emsp;&amp;emsp; `L[[1]][[2]][[3]]`   
+---
+
+## Question 10  (exercise 4.3.5)
+
+`mod` is a linear regression model, which explains `mpg` from `wt`:  
+
+
+```r
+mod &lt;- lm(mpg ~ wt, data = mtcars)
+```
+
+What kind of R object is `mod` ?  
+
+M &amp;emsp;&amp;emsp; data.frame  
+N &amp;emsp;&amp;emsp; vector  
+O &amp;emsp;&amp;emsp; list
+
+## Question 11  
+
+What code will extract from `mod` the residual degrees of freedom as an integer ?  
+
+I &amp;emsp;&amp;emsp; `mod$df.residual`  
+J &amp;emsp;&amp;emsp; `mod[["df.residual"]]`  
+K &amp;emsp;&amp;emsp; `mod["df.residual"]`  
+L &amp;emsp;&amp;emsp; first two answers are correct  
+M &amp;emsp;&amp;emsp; first three answers are correct  
+N &amp;emsp;&amp;emsp; none of the answers is correct
+---
+
+## Question 12  
+
+
+```r
+mod &lt;- lm(mpg ~ wt, data = mtcars)
+summ_mod &lt;- summary(mod)
+```
+
+What code with "$" will extract the `\(R^2\)` from the model summary?  
+
+Take of this code the 16th letter from the start.
+That is the letter for slot 12.  
+
+
+## Question 13  
+
+How would you remove the residuals from the summary? (Not that this is a useful skill to have :) )
+
+S &amp;emsp;&amp;emsp; `summ_mod[["residuals"]] &lt;- NULL`  
+T &amp;emsp;&amp;emsp; `summ_mod[["residuals"]] &lt;- NA`  
+U &amp;emsp;&amp;emsp; `summ_mod[[residuals]] &lt;- NULL`  
+V &amp;emsp;&amp;emsp; `summ_mod[[residuals]] &lt;- NA`  
+S &amp;emsp;&amp;emsp; `summ_mod$residuals &lt;- NULL`  
+T &amp;emsp;&amp;emsp; `summ_mod$residuals &lt;- NA`
+---
+
+## Question 14  (exercise 4.5.9)
+
+
+
+```r
+df &lt;- data.frame(item = c(1,2), color = c("red", "blue"), amount = c(3,6))
+df
+```
+
+```
+  item color amount
+1    1   red      3
+2    2  blue      6
+```
+
+What code would order df so that the columns are alphabetically?  
+
+O &amp;emsp;&amp;emsp; `df[order(names(df))]`  
+P &amp;emsp;&amp;emsp; `df[order(names(df)),]`  
+O &amp;emsp;&amp;emsp; `df[,order(names(df))]`  
+
+## Question 15  (exercise 4.5.9)
+
+What code samples 2 random columns from df?  
+
+A &amp;emsp;&amp;emsp; `df[sample(names(df),2),]`  
+E &amp;emsp;&amp;emsp; `df[sample(names(df),2)]`  
+I &amp;emsp;&amp;emsp;&amp;ensp; `df[sample(names(df,2))]`  
+
+---
+
+## Question 16  
+
+
+
+```r
+df &lt;- data.frame(item = c(1,2, 3),
+                 color = c("red", "green", "green"),
+                 amount = c(3,6,2))
+df
+```
+
+```
+  item color amount
+1    1   red      3
+2    2 green      6
+3    3 green      2
+```
+
+What code would select the rows with green items with a minimal amount of 4?
+
+M &amp;emsp;&amp;emsp; `df[df$color = "green" &amp; df$amount &gt; 4]`  
+N &amp;emsp;&amp;emsp; `df[df$color = "green" &amp; df$amount &gt; 4,]`  
+O &amp;emsp;&amp;emsp; `df[df$color != "red" &amp; df$color != "blue" &amp; df$amount &gt; 4]`  
+P &amp;emsp;&amp;emsp; `df[df$color != "red" &amp; df$color != "blue" &amp; df$amount &gt; 4,]`   
+---
+
+## Question 17  
+
+`setdiff(setdiff(LETTERS[1:13],LETTERS[1:8]), LETTERS[10:13])`
+
+
+## Question 18  
+
+`x &lt;- 1:10`  
+`y &lt;- x %% 5 == 0`  
+`z &lt;- x %% 2 != 0`  
+`intersect(  
+  intersect(LETTERS[x], LETTERS[y]),  
+  LETTERS[z])`
+
+---
+
+
+ 
+&lt;img src="done.gif" width="150%" /&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
