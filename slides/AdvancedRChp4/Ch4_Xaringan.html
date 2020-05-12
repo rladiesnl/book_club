@@ -413,7 +413,8 @@ data.frame df
 --
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 --
 
@@ -449,7 +450,8 @@ dframe
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 
 ]
@@ -519,7 +521,8 @@ dframe
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 
 
@@ -706,7 +709,8 @@ dframe &lt;-
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 
 
@@ -716,7 +720,8 @@ dframe &lt;-
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 
 
@@ -726,7 +731,8 @@ dframe &lt;-
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 
 
@@ -736,7 +742,8 @@ dframe &lt;-
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 
 
@@ -746,7 +753,8 @@ dframe &lt;-
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 (partial matching)
 ]
@@ -772,7 +780,8 @@ dframe$z
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 --
     
@@ -790,7 +799,8 @@ Warning in dframe$z: partial match of 'z' to 'z3'
 ```
 
 ```
-[1] "a" "b" "c"
+[1] a b c
+Levels: a b c
 ```
 
 
@@ -1220,7 +1230,7 @@ Reorder randomly
 
 
 ```
-[1] 4 3 2 5 1
+[1] 2 1 5 4 3
 ```
 --
 
@@ -1233,7 +1243,7 @@ Sample
 
 
 ```
-[1] 2 3
+[1] 3 5
 ```
 --
 
@@ -1246,7 +1256,7 @@ Sample with replacement
 
 
 ```
-[1] 1 3 5 5 2
+[1] 1 3 3 2 4
 ```
 ---
 
@@ -1918,7 +1928,7 @@ Transfer the letters found to the corresponding numbers below:
 &lt;img src="Ch4_Xaringan_files/figure-html/unnamed-chunk-189-1.png" width="1296" /&gt;
 
 
-![parkiet](parkiet.png)
+![parkiet](parkiet.PNG)
 ---
 
 ## Question 1  
@@ -2211,20 +2221,30 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
 })();
 (function() {
   "use strict"
-  // Replace <script> tags in slides area to make them executable
+  /* Replace <script> tags in slides area to make them executable
+   *
+   * Runs after post-processing of markdown source into slides and replaces only
+   * <script>s on the last slide of continued slides using the .has-continuation
+   * class added by xaringan. Finally, any <script>s in the slides area that
+   * aren't executed are commented out.
+   */
   var scripts = document.querySelectorAll(
-    '.remark-slides-area .remark-slide-container script'
+    '.remark-slides-area .remark-slide-container:not(.has-continuation) script'
   );
   if (!scripts.length) return;
   for (var i = 0; i < scripts.length; i++) {
     var s = document.createElement('script');
     var code = document.createTextNode(scripts[i].textContent);
     s.appendChild(code);
-    var scriptAttrs = scripts[i].attributes;
-    for (var j = 0; j < scriptAttrs.length; j++) {
-      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
-    }
     scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+  var scriptsNotExecuted = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container.has-continuation script'
+  );
+  if (!scriptsNotExecuted.length) return;
+  for (var i = 0; i < scriptsNotExecuted.length; i++) {
+    var comment = document.createComment(scriptsNotExecuted[i].outerHTML)
+    scriptsNotExecuted[i].parentElement.replaceChild(comment, scriptsNotExecuted[i])
   }
 })();
 (function() {

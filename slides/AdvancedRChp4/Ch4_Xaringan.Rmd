@@ -1507,7 +1507,7 @@ dPuzzle %>%
 ```
 
 
-![parkiet](parkiet.png)
+![parkiet](parkiet.PNG)
 ---
 
 ## Question 1  
