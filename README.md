@@ -121,7 +121,7 @@ Nijmengen
 
 <td style="text-align:left;">
 
-[slides](https://rladiesnl.github.io/book_club/slides/AdvR_ch2#1)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvR_ch2#1)
 
 </td>
 
@@ -170,7 +170,7 @@ Rotterdam
 
 <td style="text-align:left;">
 
-[slides](https://rladiesnl.github.io/book_club/slides/chap3)
+[Slides](https://rladiesnl.github.io/book_club/slides/chap3)
 
 </td>
 
@@ -218,7 +218,7 @@ Den Bosch
 
 <td style="text-align:left;">
 
-[meetup link](https://bit.ly/355r1JG)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp4/Ch4_Xaringan.html#1)
 
 </td>
 
@@ -267,7 +267,7 @@ Amsterdam
 
 <td style="text-align:left;">
 
-NA
+[Meetup link](https://bit.ly/2yS3nV7)
 
 </td>
 
@@ -362,7 +362,7 @@ Sign up\!
 
 <td style="text-align:left;">
 
-Rotterdam
+Utrecht
 
 </td>
 
@@ -412,7 +412,7 @@ Sign up\!
 
 <td style="text-align:left;">
 
-Den Bosch
+Rotterdam
 
 </td>
 
@@ -458,6 +458,54 @@ Sign up\!
 <td style="text-align:left;">
 
 2020-07-07
+
+</td>
+
+<td style="text-align:left;">
+
+Den Bosch
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:left;">
+
+Function factories
+
+</td>
+
+<td style="text-align:left;">
+
+Introduces function factories: functions that create functions. Function
+factories are less commonly used than functionals, but can allow you to
+elegantly partition work between different parts of your code.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+2020-07-21
 
 </td>
 
