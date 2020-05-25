@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R-Ladies NL Book-Club</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Margaux" />
+    <meta name="date" content="2020-05-24" />
+    <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/rladies-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R-Ladies NL Book-Club
+## Advanced R: Control Flows (Chapter 5)
+### Margaux
+### 2020-05-24
+
+---
+
+
+
+
+## Welcome!
+
+- This is collaborative effort between RLadies Nijmengen, Rotterdam, Den Bosch and Amsterdam.
+
+--
+
+- We meet every 2 weeks to go through a chapter
+
+--
+
+- Please use the HackMD (shared) to present yourself, ask questions and see your breakout room
+
+--
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after 30 min.
+
+--
+&lt;br&gt;&lt;br&gt;
+
+--
+- Solutions to the exercises from _Advanced R_ can be found in the (Advanced R Solutions Book)[https://advanced-r-solutions.rbind.io/index.html]  
+
+- The R4DS book club repo has a Q&amp;A section.https://github.com/r4ds/bookclub-Advanced_R
+
+&lt;br&gt;
+- We are always looking for new speakers! If you are interested, please sign up to present a chapter at https://rladiesnl.github.io/book_club/
+
+---
+
+name: title
+class: center, middle
+
+## Control Flows ##
+
+---
+
+## Outline
+
+Note that this is a relatively short chapter, but we will go through many examples and exercises. 
+
+The outline for today is: 
+
+  - What do we mean by control flows?
+
+--
+
+  - Choices
+
+--
+
+  - Loops
+
+--
+
+  - Applications 
+
+--
+
+- Breakout Sessions
+
+
+---
+### Let's get to it! 
+
+&lt;center&gt;
+![](https://media.giphy.com/media/LHZyixOnHwDDy/giphy.gif)
+&lt;/center&gt;
+
+
+---
+
+### 1. What do we mean by control flows
+
+--
+
+- Controls flows are a fundamental concept in computer programming  
+
+--
+
+- Allow us to express the **order** and the **way** a command of execution components are put together to perform a specific task.
+
+--
+
+- There are 3 main groups of control flows in programming: 
+  1. Sequencing ( do this, THEN this, THEN this ...)
+  2. Selection/choices (if, unless)
+  3. Iteration (for, while, repeat...)
+
+---
+### 1. What do we mean by control flows
+
+-- 
+
+- Control flow commands allow your R code to choose between different options, in other words, **make decisions**. 
+
+--
+
+- Control flows are used to execute a action using **certain conditions**, or execute an action **repetitively**, or **manipulate a sequential flow** by breaking code under certain circumstances.
+
+---
+### 1. What do we mean by control flows
+
+Examples of control flows: 
+
+
++ Anyone want to volunteer and share an example, or  recent experience where you produced some R code with control flows. Why did you need to use control flow command? 
+
+--
+
+1. Perform an mathematical algorithm on a series on numbers - say convert a the temperatures recorded at every hour of the day from F to C.
+
+2. Produce a function but skip all values that aren't numeric. 
+
+3. Prevent an iterative function from performing if the input value is `NA`.
+
+
+
+---
+## 1. What do we mean by control flows
+
+- In Hadley Wickam's book, this chapter looks at **choices**  and **loops** 
+
+&lt;br&gt;&lt;br&gt;
+
+![](https://media.giphy.com/media/OmAdpbVnAAWJO/giphy.gif)
+
+---
+
+---
+
+## 2. Choices 
+
+- Choices are expressed using **If statement**
+
+--
+
+`if (condition){true_action}`
+
+- if the condition is true, than the action is evaluated
+
+--
+&lt;br&gt;
+
+`if (condition){true_action} else {false_action}`
+
+- Using `else`, an optional other  action can be evaluated if the condition is `FALSE.`
+
+--
+&lt;br&gt;
+- in R, we use `{}`  to compound the action statements.
+
+---
+### 2. Choices
+
+Example given using a function to translate to letter grades:
+
+
+```r
+grade &lt;- function(x) {
+  
+  if (x &gt; 90) {
+    
+    "A"
+    
+  } else if (x &gt; 80) {
+    
+    "B"
+  } else if (x &gt; 50) {
+    
+    "C"
+  } else {
+    
+    "F"
+  }
+}
+```
+
+If student gets a above 90, received A. 
+If student gets above 80, recieves B.
+If student gets above 50, receives C.
+If the grade does not meet this above conditions student receives F.
+--
+*Note the order of conditional statements: we cannot have the first conditional statement after the second one, in the way that it is written.* 
+
+---
+### 2.0 Choices 
+
+Using `else`: 
+
+Choice statements don't always need an `else`. `if` invisibly returns NULL if the conditional is False.
+
+
+```r
+## code chunk to add
+```
+
+- The output here will be blank
+
+and many functions drop NULL so a function that has this condition within works perfectly
+
+
+```r
+greet &lt;- function(name, birthday = FALSE) {
+  paste0(
+    "Hi ", name,
+    if (birthday) " and HAPPY BIRTHDAY"
+  )
+}
+greet("Maria", FALSE)
+```
+
+```
+## [1] "Hi Maria"
+```
+
+```r
+#&gt; [1] "Hi Maria"
+greet("Jaime", TRUE)
+```
+
+```
+## [1] "Hi Jaime and HAPPY BIRTHDAY"
+```
+
+```r
+#&gt; [1] "Hi Jaime and HAPPY BIRTHDAY"
+```
+
+
+---
+
+### 2.1 Invalid Inputs
+
+The `condition` inputed in the if() function must be evaluated to a `TRUE` or `FALSE`. 
+
+
+```
+## Error in if ("x") 1: argument is not interpretable as logical
+```
+
+
+```r
+if (logical()) 1
+```
+
+```
+## Error in if (logical()) 1: argument is of length zero
+```
+
+
+```r
+if (NA) 1
+```
+
+```
+## Error in if (NA) 1: missing value where TRUE/FALSE needed
+```
+
+---
+### 2.1 Invalid Inputs
+
+Another invalid input are logical vectors of length greater than 1.
+
+
+```r
+vector &lt;-c("a","b","c")
+
+if(vector == "a") print("yes!!")
+```
+
+```
+## Warning in if (vector == "a") print("yes!!"): the condition has length &gt; 1 and
+## only the first element will be used
+```
+
+```
+## [1] "yes!!"
+```
+--
+- notice that `'yes!!'` result still appears, because it is the first element in the vector
+--
+
+```r
+vector &lt;-c("a","b","c")
+
+if(vector == "b") print("yes!!")
+```
+
+```
+## Warning in if (vector == "b") print("yes!!"): the condition has length &gt; 1 and
+## only the first element will be used
+```
+--
+- doesn't work this time! But all we get a is a **warning**, not an **error**.
+
+---
+
+### 2.1 Invalid Inputs
+
+
+In R version 3.5.0 or greater, you can turn this warning into an error by setting an **environment variable**:
+
+
+```
+## Error in Sys.Setenv(`_R_CHECK_LENGTH_1_CONDITION_` = "TRUE"): could not find function "Sys.Setenv"
+```
+
+
+```r
+if(vector == "b") print("YES!!!")
+```
+
+```
+## Warning in if (vector == "b") print("YES!!!"): the condition has length &gt; 1 and
+## only the first element will be used
+```
+
+Indeed, now we get a **Error**! 
+
+This brings us to our next section...
+
+---
+
+### 2.2 Vectorised if 
+
+- Alterinatively, the `ifelse()` function can handle vectors
+- This function tests a condition:
+  `ifelse("condition", "action if TRUE", "Action if FALSE")`
+
+- Taking my vector used above, our output will be a list:
+
+
+```r
+vector &lt;-c("a","b","c")
+
+ifelse(vector == "b","yes!!","no!")
+```
+
+```
+## [1] "no!"   "yes!!" "no!"
+```
+
+---
+
+### 2.2 Vectorised if 
+
+- Again, taking from the examples from the chapter: 
+
+
+```r
+x &lt;- 1:10 
+
+# print xxx when the remainder of x divided by 5 is 0.  
+
+ifelse(x %% 5 == 0, "XXX", x)
+```
+
+```
+##  [1] "1"   "2"   "3"   "4"   "XXX" "6"   "7"   "8"   "9"   "XXX"
+```
+
+--
+
+
+```r
+# print 'even' when  when the remainder of x divided by 2 is 0, print 'odd'.
+
+ifelse(x %% 2 == 0,
+       "even",
+       "odd")
+```
+
+```
+##  [1] "odd"  "even" "odd"  "even" "odd"  "even" "odd"  "even" "odd"  "even"
+```
+
+---
+### 2.2 Vectorised if 
+
+
+- Another example presented is the `dplyr::case_when()` which allows for **multiple conditions.** 
+
+In this example, we have 3 different conditions to apply: 
+
+
+```r
+dplyr::case_when(
+  x %% 35 == 0 ~ "fizz buzz",
+  x %% 5 == 0 ~ "fizz",
+  x %% 7 == 0 ~ "buzz",
+  is.na(x) ~ "???",
+  TRUE ~ as.character(x)
+)
+```
+
+```
+##  [1] "1"    "2"    "3"    "4"    "fizz" "6"    "buzz" "8"    "9"    "fizz"
+```
+
+---
+### 2.3 switch() statement
+
+- `switch()` is closely related to the `if()` statement. 
+
+- While with `if()` you have to write it out 
+--
+
+```r
+x_option &lt;- function(x){
+  
+  if (x == "a") {
+    "option 1"
+  } else if (x == "b") {
+    "option 2" 
+  } else if (x == "c") {
+    "option 3"
+  } else {
+    stop("Invalid `x` value")
+  }
+
+}  
+```
+--
+
+- `switch()` is more succinct: 
+
+
+```r
+x_option &lt;- function(x) {
+  switch(x,
+    a = "option 1",
+    b = "option 2",
+    c = "option 3"
+    # stop("Invalid `x` value")
+  )
+}
+```
+
+Indeed, each condition is listed and no need for `else`.
+--
+
+- **Note! The last component of the `switch()` should throw an error.** 
+
+---
+### 2.3 switch() statement
+
+- With `switch()`, if multiple inputs have the same output, `switch()` can be written the following way:  
+
+
+```r
+legs &lt;- function(x) {
+  switch(x,
+    cow = ,
+    horse = ,
+    dog = 4,
+    human = ,
+    chicken = 2,
+    plant = 0,
+    stop("Unknown input")
+  )
+}
+```
+
+
+Note that it is recommended that the inputs for `switch()` function is recommended to be of type character. 
+
+---
+
+### 3.0 Loops 
+
+For loops are used to perform an action **iteratively** over indices in a vector.
+
+In R, the format is the following: 
+
+`for (item in vector) action_to_perform`
+
+
+- So, for example, action is to **print** every item in a vector.
+
+
+```r
+for (i in 1:3) {
+  
+  print(i)
+  
+  }
+```
+
+```
+## [1] 1
+## [1] 2
+## [1] 3
+```
+
+```r
+## note - i can be named anything 
+```
+
+---
+### 3.0 Loops 
+
+- Another more developed example:
+
+
+```r
+vector &lt;- 1:8
+
+for (j in vector){
+  
+ print(
+   ((j+(j+1))/(j))
+ )
+  
+  }
+```
+
+```
+## [1] 3
+## [1] 2.5
+## [1] 2.333333
+## [1] 2.25
+## [1] 2.2
+## [1] 2.166667
+## [1] 2.142857
+## [1] 2.125
+```
+--
+- And with an `if else` statement:
+
+
+```r
+vector &lt;- 1:8
+
+for (k in vector){
+  
+if(k &lt; 4){
+  print(
+    paste0(k," is less than 4!")
+  )
+  
+} else{
+  print(
+    paste0(k," is greater than 4!"))
+    }
+
+  }
+```
+
+```
+## [1] "1 is less than 4!"
+## [1] "2 is less than 4!"
+## [1] "3 is less than 4!"
+## [1] "4 is greater than 4!"
+## [1] "5 is greater than 4!"
+## [1] "6 is greater than 4!"
+## [1] "7 is greater than 4!"
+## [1] "8 is greater than 4!"
+```
+
+
+---
+
+### 3.0 loops
+
+- Additionally, for loop will overwrite variable if previously defined. 
+
+
+```r
+i &lt;- 100
+
+for (i in 1:3) {
+  print(i)
+  }
+```
+
+```
+## [1] 1
+## [1] 2
+## [1] 3
+```
+--
+
+```r
+print(i)
+```
+
+```
+## [1] 3
+```
+
+---
+###3.0 For Loops:
+
+Terminating For Loops early: 
+
+2 ways to terminate a for loop early: 
+- `next` to exit the current interation 
+- `break` to exit the entire `for` loop
+
+
+```r
+for (i in 1:10) {
+  
+  if (i &lt; 3) 
+    next
+  
+    print(i)
+  
+  if (i &gt;= 5)
+    break
+
+}
+```
+
+```
+## [1] 3
+## [1] 4
+## [1] 5
+```
+
+---
+
+### 3.1 Common pitfalls
+
+1. Preallocate the output container for faster process:
+--
+
+```r
+means &lt;- c(1, 50, 20)
+out &lt;- vector("list", length(means))
+
+for (i in 1:length(means)) {
+  out[[i]] &lt;- rnorm(10,means[[i]])
+
+  }
+```
+
+--
+
+```r
+vector &lt;- c("a", "b", "c")
+output_list &lt;-list()
+
+for (i in 1:length(vector)){
+  
+  output_list[i] &lt;- paste(vector[i],vector[i+1])
+}
+output_list
+```
+
+```
+## [[1]]
+## [1] "a b"
+## 
+## [[2]]
+## [1] "b c"
+## 
+## [[3]]
+## [1] "c NA"
+```
+
+---
+### 3.1 Common pitfalls
+
+2.  Using 1:length(x) gives error when x has a lenghth of 0.
+
+
+```r
+means &lt;- c()
+
+out &lt;- vector("list", length(means))
+
+for (i in 1:length(means)) {
+  out[[i]] &lt;- rnorm(10, means[[i]])
+}
+```
+
+```
+## Error in rnorm(10, means[[i]]): invalid arguments
+```
+
+
+```r
+1:length(means)
+```
+
+```
+## [1] 1 0
+```
+--
+Alternatively, in the for loop, use `seq_along()` instead of `1:length()`: 
+
+
+```r
+means &lt;- c()
+
+out &lt;- vector("list", length(means))
+
+for (i in seq_along(means)) {
+  out[[i]] &lt;- rnorm(10, means[[i]])
+}
+
+out
+```
+
+```
+## list()
+```
+
+---
+### 3.1 Common Loopholes
+
+3. Problems arise when iterating over S3 Vectors (Categorical Data, Dates, Time, etc)
+
+
+```r
+dates &lt;- as.Date(c("2020-01-01", "2010-01-01"))
+
+for (i in dates) {
+  print(i)
+}
+```
+
+```
+## [1] 18262
+## [1] 14610
+```
+
+```r
+## for loop strips attributes of s3 vectors
+```
+
+
+```r
+dates &lt;- as.Date(c("2020-01-01", "2010-02-01"))
+
+for (i in seq_along(dates)) {
+  print(dates[[i]])
+}
+```
+
+```
+## [1] "2020-01-01"
+## [1] "2010-02-01"
+```
+
+---
+### 3.2 Related tools
+
+For loops are helpful when you know exactly what you want to iterate over. However, if you do not know what you want to iterate over, there are two other loops we can use.
+
+1. `while(){}` performs action when condition is true
+
+
+```r
+i &lt;- 8
+
+while (i &lt; 6) {
+
+  print(i)
+
+  i = i+1
+
+  }
+```
+
+2. `repeat(){}` performs action forever - repeat is an infinite loop! A `break` is therefore necessary here. 
+
+
+```r
+i &lt;- 0
+
+repeat{
+  
+  print(i)
+  
+  if(i &gt;8)
+    
+    break
+  
+  i &lt;- i+1
+  
+} 
+```
+
+```
+## [1] 0
+## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
+## [1] 9
+```
+
+---
+
+
+```r
+knitr::include_graphics("3controlflow_flowcharts.png")
+```
+
+&lt;img src="3controlflow_flowcharts.png" width="60%" /&gt;
+
+---
+
+### 3.3 Nested for loops
+
+Some instances, you will need to put a loop inside a loop! 
+This is the case to iterate through rows and columns.
+
+This is possible if the data structure you are iterating over is a matrix:
+
+
+```r
+matrix &lt;- matrix(c(1,2,3, 3,4,5, 1,2,3),
+                 nrow=3, ncol=3, byrow = T)
+matrix
+```
+
+```
+##      [,1] [,2] [,3]
+## [1,]    1    2    3
+## [2,]    3    4    5
+## [3,]    1    2    3
+```
+
+
+```r
+for(i in 1:dim(matrix)[1]) {
+  for(j in 1:dim(matrix)[2]) {
+    
+    matrix[i,j] = matrix[i,j] * 2
+  }
+}
+
+matrix
+```
+
+```
+##      [,1] [,2] [,3]
+## [1,]    2    4    6
+## [2,]    6    8   10
+## [3,]    2    4    6
+```
+
+---
+
+name: title
+class: center, middle
+
+## Exercises - break out sessions ##
+
+---
+
+### 1. Choices
+
+**Q1: What type of vector does each if the following calls to ifelse() return?**
+
+--
+
+```r
+ifelse(TRUE, 1, "no")
+```
+
+--
+
+
+```
+## [1] 1
+```
+--
+
+```r
+ifelse(FALSE, 1, "no")
+```
+--
+
+```
+## [1] "no"
+```
+--
+
+```r
+ifelse(NA, 1, "no")
+```
+--
+
+
+```
+## [1] NA
+```
+--
+&lt;br&gt;&lt;br&gt;
+
+The arguments of ifelse() are `test`, `yes` and `no`.
+
+The function returns the entry for yes when test is TRUE, no when test is FALSE or NA when test is NA.
+
+---
+
+**Q2: Why do the following code chunks work?**
+
+
+```r
+a &lt;- 1:10
+
+if (length(a)) "not empty" else "empty"
+```
+
+```
+## [1] "not empty"
+```
+
+
+```r
+a &lt;- numeric()
+
+if (length(a)) "not empty" else "empty"
+```
+
+```
+## [1] "empty"
+```
+
+--
+if() expects a logical condition that it can test such as `if(a&gt;4)` or `if(5 %in% a)`.  
+
+But if() also accepts a numeric vector where 0 is treated as false and all other numbers are treated as TRUE.
+
+That is why the condition is:  
++ TRUE i.e. `not empty` when length&gt;0.
++ FALSE i.e. `empty` when length=0.
+
+---
+### 2. Loops
+
+**Q3: Why does this code succeed with errors or warnings?**
+
+
+```r
+x &lt;- numeric()
+out &lt;- vector("list", length(x))
+
+for (i in 1:length(x)) {
+  out[i] &lt;- x[i] ^ 2
+ }
+out
+```
+
+```
+## [[1]]
+## [1] NA
+```
+--
+Let's break down the code behavior: 
+
+--
++ Because the vector is of length 0, the loop goes from `i = 1` to `i = 0`. This works still, because : counts down, as well as up. 
+
+--
+
++ During first iteration, `x[1]` will generate NA because it is out of the bounds of x. And, `NA^2` leads to `NA`. 
+
++ `x[0]` returns `numeric(0)` which does not change when squared. Here, we assign a 0-length vector to a 0-length subset `out[0]` which works but changes nothing. 
+
+--
+
+In sum, each step is a valid  operation. 
+
+---
+### 2. Loops
+
+**Q4: What does the following code tell you about when the vector being iterated over is evaluated? Specifically, we are interested in `xs` **
+
+
+```r
+xs &lt;- c(1, 2, 3)
+
+for (x in xs) {
+
+    xs &lt;- c(xs, x * 2)
+    print(xs)
+
+    }
+```
+
+```
+## [1] 1 2 3 2
+## [1] 1 2 3 2 4
+## [1] 1 2 3 2 4 6
+```
+
+```r
+xs
+```
+
+```
+## [1] 1 2 3 2 4 6
+```
+
+--
+&lt;br&gt;&lt;br&gt;
+
+x takes the values of `xs` which gets redefined in this loop.  
+Based on the output, x is evaluated once at the beginning on the initial xs, not after each iteration.
+
+---
+### 2. Loops
+
+**Q5: What does the following code tell you about when the index is updated? **
+
+
+```r
+for (i in 1:3) {
+  
+   i &lt;- i * 2
+   print(i)
+
+   }
+```
+
+```
+## [1] 2
+## [1] 4
+## [1] 6
+```
+&lt;br&gt;&lt;br&gt;
+--
+
+The index is udated in the beginning of each iteration.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
