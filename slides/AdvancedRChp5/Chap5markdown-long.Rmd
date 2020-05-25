@@ -1,7 +1,7 @@
 ---
 title: "R-Ladies NL Book-Club"
 subtitle: "Advanced R: Control Flows (Chapter 5)"  
-author: "Margaux"
+author: "Margaux Sleckman"
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
@@ -60,7 +60,7 @@ RLadies-NL chapters in Nijmengen, Rotterdam, Den Bosch, Amsterdam, Utrecht.
 
 - Please use the **HackMD** (shared in email and in chat) to present yourself, ask overarching questions, and to find your break out room.
 
-- Use the chat to participate in the discussion during the presentation and your breakout session. 
+- Use the **chat** to participate in the discussion during the presentation and your breakout session. 
 
 - The Bookclub github repository has also been made available. 
 
@@ -195,7 +195,7 @@ The outline for today is:
 <br>  
 <br>  
 
-+ In the chat box, volunteer and share an example, of a recently use of control flows commands.  
++ **YOUR TURN!** Can you share an example of a instance when you recently used  a control flow command? (_Use chat_) 
 
 
 ---
@@ -204,7 +204,7 @@ The outline for today is:
 
 <br>
 
-- In Hadley Wickam's book chapter, we look at **choices**  and **loops** 
+- In Hadley Wickham's book chapter, we look at **choices**  and **loops** 
 
 <br>
 .center[
@@ -267,7 +267,7 @@ grade <- function(x) {
 
 ```
 
-If student gets a above 90, received A.
+If student gets above 90, received A.
 If student gets above 80, recieves B.
 If student gets above 50, receives C.
 If the grade does not meet this above conditions, student receives F.
@@ -308,7 +308,7 @@ if(x == 3){
 
 --
 
-```{r}
+```{r }
 
 x = 3
 
@@ -550,7 +550,7 @@ x_option <- function(x) {
 
 ### 2.3 `switch()` statement
 
-- Indeed, each condition is listed and no need for `else`.
+- Indeed, each condition is alreadylisted. No need for `else`.
 
 --
 
@@ -560,7 +560,7 @@ x_option <- function(x) {
 
 <br>
 
-- With `switch()`, if multiple inputs have the same output, `switch()` can be written the following way:  
+- If multiple inputs have same output, `switch()` can be written the following way:  
 
 ```{r }
 
@@ -577,7 +577,7 @@ legs <- function(x) {
 
 ```
 
-Note that it is recommended that the inputs for `switch()` function is recommended to be of type character. 
+It is recommended that the inputs for `switch()` function is recommended to be of type character. 
 
 ---
 
@@ -603,7 +603,19 @@ class: top, middle
 
 - So, for example, action is to **print** every item in a vector.
 
-```{r }
+```{r eval = F}
+
+for (i in 1:3) {
+  
+  print(i)
+  
+  }
+
+```
+
+--
+
+```{r echo = F}
 
 for (i in 1:3) {
   
@@ -618,7 +630,25 @@ for (i in 1:3) {
 ### 3.0 Loops 
 
 
-```{r }
+```{r eval = F}
+
+vector <- 1:4
+
+for (j in vector){
+  
+ print(
+   
+   j/(j+1)
+   
+   )
+}
+
+
+```
+
+--
+
+```{r echo = F}
 
 vector <- 1:4
 
@@ -638,7 +668,7 @@ for (j in vector){
 
 ### 3.0 Loops 
 
-- And with an `if else` statement:
+- `if else` in for loop:
 
 ```{r }
 
@@ -695,6 +725,8 @@ print(i)
   - `next` to exit the current interation 
   
   - `break` to exit the entire `for` loop
+  
+--
 
 ```{r echo = T}
 
@@ -761,7 +793,7 @@ output_list
 
 ### 3.1 Common pitfalls
 
-2) Using 1:length(x) gives error when x has a lenghth of 0.
+2) Using 1:length(x) gives error when x has a length of 0.
 
 ```{r echo = TRUE, error = TRUE}
 
@@ -777,6 +809,8 @@ for (i in 1:length(means)) {
 
 ```
 
+--
+
 ```{r echo = TRUE}
 
 1:length(means)
@@ -791,7 +825,7 @@ for (i in 1:length(means)) {
 
 <br>
 
-- Alternatively, in the for loop, use `seq_along()` instead of `1:length()`: 
+- use **`seq_along()`** instead of **`1:length()`**: 
 
 ```{r }
 
@@ -845,7 +879,7 @@ dates <- as.Date(c("2020-01-01", "2010-02-01"))
 
 for (i in seq_along(dates)) {
   
-  print(dates[i])
+  print(dates[[i]])
 
   }
 
@@ -862,7 +896,7 @@ However, if you do not know what you want to iterate over, there are two other l
 
 --
 
-* `while(){}` performs action when condition is `TRUE`
+* **`while(){}`** performs action when condition is `TRUE`
 
 ```{r ech=TRUE}
 
@@ -910,8 +944,13 @@ repeat{
 
 ---
 
-```{r, out.width="98%", echo= F}
+name: title
+class: middle
+
+```{r, out.width="100%", fig.align="center", echo= F}
+
 knitr::include_graphics("3controlflow_flowcharts.png")
+
 ```
 
 ---
@@ -954,14 +993,16 @@ class: center, middle
 
 ## Thank you ##
  
-Questions? Break for 10 min, and meet in your breakout group
- 
+Questions? Break for 10 min, and meet in your breakout rooms
+
+_Check hackMD for your breakout room assignment_
+
 ---
 
 name: title
 class: center, middle
 
-## Exercises - break out sessions ##
+## Exercises - break out sessions in progress ##
 
 ---
 
@@ -1125,7 +1166,7 @@ xs
 
 **Q5: What does the following code tell you about how/when the index is updated?**
 
-```{r} 
+```{r } 
 
 for (i in 1:3) {
   
@@ -1141,3 +1182,89 @@ for (i in 1:3) {
 --
 
 The index is updated in the beginning of each iteration. 
+
+
+---
+
+
+### 2. Loops - Your turn 
+
+**Q6: Repeat statements: without running this code, what is the expected output? **
+
+```{r eval = FALSE}
+x <- 3
+
+repeat {
+  
+  print(x)
+
+  x = x+1
+}
+
+```
+
+--
+
+**What is missing?**
+
+--
+
+conditional statement (`if()`) to `break` loop
+
+--
+
+```{r eval = FALSE}
+
+repeat {
+  
+  print(x)
+
+  x = x+1
+
+  if(x>15){
+    break
+  }
+    
+}
+
+```
+
+---
+
+**Q7: Write a while statement**
+
+```{r eval = F}
+
+while("this condition is true"){
+  
+  print("do a thing")
+  
+} 
+
+```
+
+
+---
+
+
+**Q8: Free flow with  control flows!**
+
+<br>
+
+If you still have time, write a code chunk that uses all the following control flow commands to 
+produce an specific output:
+
+
+* `if(){}` or `ifelse()`
+* `switch()` or `case_when()`
+* `for(){}`  
+* `while(){}`
+
+
+And ... try using different data types! For example,
+
+* Dates 
+* String
+* Categorical data
+
+

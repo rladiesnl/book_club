@@ -3,8 +3,8 @@
   <head>
     <title>R-Ladies NL Book-Club</title>
     <meta charset="utf-8" />
-    <meta name="author" content="Margaux" />
-    <meta name="date" content="2020-05-25" />
+    <meta name="author" content="Margaux Sleckman" />
+    <meta name="date" content="2020-05-26" />
     <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/rladies-fonts.css" rel="stylesheet" />
@@ -15,8 +15,8 @@ class: center, middle, inverse, title-slide
 
 # R-Ladies NL Book-Club
 ## Advanced R: Control Flows (Chapter 5)
-### Margaux
-### 2020-05-25
+### Margaux Sleckman
+### 2020-05-26
 
 ---
 
@@ -58,7 +58,7 @@ RLadies-NL chapters in Nijmengen, Rotterdam, Den Bosch, Amsterdam, Utrecht.
 
 - Please use the **HackMD** (shared in email and in chat) to present yourself, ask overarching questions, and to find your break out room.
 
-- Use the chat to participate in the discussion during the presentation and your breakout session. 
+- Use the **chat** to participate in the discussion during the presentation and your breakout session. 
 
 - The Bookclub github repository has also been made available. 
 
@@ -193,7 +193,7 @@ The outline for today is:
 &lt;br&gt;  
 &lt;br&gt;  
 
-+ In the chat box, volunteer and share an example, of a recently use of control flows commands.  
++ **YOUR TURN!** Can you share an example of a instance when you recently used  a control flow command? (_Use chat_) 
 
 
 ---
@@ -202,7 +202,7 @@ The outline for today is:
 
 &lt;br&gt;
 
-- In Hadley Wickam's book chapter, we look at **choices**  and **loops** 
+- In Hadley Wickham's book chapter, we look at **choices**  and **loops** 
 
 &lt;br&gt;
 .center[
@@ -265,7 +265,7 @@ grade &lt;- function(x) {
 }
 ```
 
-If student gets a above 90, received A.
+If student gets above 90, received A.
 If student gets above 80, recieves B.
 If student gets above 50, receives C.
 If the grade does not meet this above conditions, student receives F.
@@ -579,7 +579,7 @@ x_option &lt;- function(x) {
 
 ### 2.3 `switch()` statement
 
-- Indeed, each condition is listed and no need for `else`.
+- Indeed, each condition is alreadylisted. No need for `else`.
 
 --
 
@@ -589,7 +589,7 @@ x_option &lt;- function(x) {
 
 &lt;br&gt;
 
-- With `switch()`, if multiple inputs have the same output, `switch()` can be written the following way:  
+- If multiple inputs have same output, `switch()` can be written the following way:  
 
 
 ```r
@@ -605,7 +605,7 @@ legs &lt;- function(x) {
 }
 ```
 
-Note that it is recommended that the inputs for `switch()` function is recommended to be of type character. 
+It is recommended that the inputs for `switch()` function is recommended to be of type character. 
 
 ---
 
@@ -640,6 +640,9 @@ for (i in 1:3) {
   }
 ```
 
+--
+
+
 ```
 ## [1] 1
 ## [1] 2
@@ -665,6 +668,9 @@ for (j in vector){
 }
 ```
 
+--
+
+
 ```
 ## [1] 0.5
 ## [1] 0.6666667
@@ -676,7 +682,7 @@ for (j in vector){
 
 ### 3.0 Loops 
 
-- And with an `if else` statement:
+- `if else` in for loop:
 
 
 ```r
@@ -750,6 +756,8 @@ print(i)
   - `next` to exit the current interation 
   
   - `break` to exit the entire `for` loop
+  
+--
 
 
 ```r
@@ -800,16 +808,16 @@ out
 
 ```
 ## [[1]]
-##  [1]  1.69811886  1.88588542  2.07361004  1.58029548  2.50110738  1.08515966
-##  [7]  0.14802867  0.05486348  0.79861101 -0.10658131
+##  [1] 0.40718048 0.00754482 2.01586564 3.27849342 1.73240807 1.07064743
+##  [7] 1.93264768 0.24553141 1.26446047 0.83663371
 ## 
 ## [[2]]
-##  [1] 48.87848 50.21438 51.63937 47.89085 50.99470 50.16326 50.13789 49.36262
-##  [9] 50.33606 51.86378
+##  [1] 48.73674 48.75986 51.64706 50.43571 50.77631 48.38048 50.50410 51.13012
+##  [9] 50.96799 51.03921
 ## 
 ## [[3]]
-##  [1] 18.77755 20.07377 19.44224 19.30198 19.96610 19.07319 19.21831 20.58201
-##  [9] 18.10423 19.29053
+##  [1] 19.69330 19.89698 20.21106 19.90861 20.63694 20.20366 18.40203 21.13966
+##  [9] 18.12300 20.02226
 ```
 
 ---
@@ -847,7 +855,7 @@ output_list
 
 ### 3.1 Common pitfalls
 
-2) Using 1:length(x) gives error when x has a lenghth of 0.
+2) Using 1:length(x) gives error when x has a length of 0.
 
 
 ```r
@@ -866,6 +874,8 @@ for (i in 1:length(means)) {
 ## Error in rnorm(10, means[i]): invalid arguments
 ```
 
+--
+
 
 ```r
 1:length(means)
@@ -883,7 +893,7 @@ for (i in 1:length(means)) {
 
 &lt;br&gt;
 
-- Alternatively, in the for loop, use `seq_along()` instead of `1:length()`: 
+- use **`seq_along()`** instead of **`1:length()`**: 
 
 
 ```r
@@ -933,7 +943,7 @@ dates &lt;- as.Date(c("2020-01-01", "2010-02-01"))
 
 for (i in seq_along(dates)) {
   
-  print(dates[i])
+  print(dates[[i]])
 
   }
 ```
@@ -953,7 +963,7 @@ However, if you do not know what you want to iterate over, there are two other l
 
 --
 
-* `while(){}` performs action when condition is `TRUE`
+* **`while(){}`** performs action when condition is `TRUE`
 
 
 ```r
@@ -1012,7 +1022,10 @@ repeat{
 
 ---
 
-&lt;img src="3controlflow_flowcharts.png" width="98%" /&gt;
+name: title
+class: middle
+
+&lt;img src="3controlflow_flowcharts.png" width="100%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1066,14 +1079,16 @@ class: center, middle
 
 ## Thank you ##
  
-Questions? Break for 10 min, and meet in your breakout group
- 
+Questions? Break for 10 min, and meet in your breakout rooms
+
+_Check hackMD for your breakout room assignment_
+
 ---
 
 name: title
 class: center, middle
 
-## Exercises - break out sessions ##
+## Exercises - break out sessions in progress ##
 
 ---
 
@@ -1274,7 +1289,89 @@ for (i in 1:3) {
 
 --
 
-The index is updated in the beginning of each iteration.
+The index is updated in the beginning of each iteration. 
+
+
+---
+
+
+### 2. Loops - Your turn 
+
+**Q6: Repeat statements: without running this code, what is the expected output? **
+
+
+```r
+x &lt;- 3
+
+repeat {
+  
+  print(x)
+
+  x = x+1
+}
+```
+
+--
+
+**What is missing?**
+
+--
+
+conditional statement (`if()`) to `break` loop
+
+--
+
+
+```r
+repeat {
+  
+  print(x)
+
+  x = x+1
+
+  if(x&gt;15){
+    break
+  }
+    
+}
+```
+
+---
+
+**Q7: Write a while statement**
+
+
+```r
+while("this condition is true"){
+  
+  print("do a thing")
+  
+} 
+```
+
+
+---
+
+
+**Q8: Free flow with  control flows!**
+
+&lt;br&gt;
+
+If you still have time, write a code chunk that uses all the following control flow commands to 
+produce an specific output:
+
+
+* `if(){}` or `ifelse()`
+* `switch()` or `case_when()`
+* `for(){}`  
+* `while(){}`
+
+
+And ... try using different data types! For example,
+
+* Dates 
+* String
+* Categorical data
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
