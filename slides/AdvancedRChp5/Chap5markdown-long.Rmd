@@ -74,9 +74,9 @@ RLadies-NL chapters in Nijmengen, Rotterdam, Den Bosch, Amsterdam, Utrecht.
 
 ### Resources
 
-- Solutions to the exercises from _Advanced R_ can be found in the (Advanced R Solutions Book)[https://advanced-r-solutions.rbind.io/index.html]  
+- Solutions to the exercises from _Advanced R_ can be found in the [Advanced R Solutions Book](https://advanced-r-solutions.rbind.io/index.html)  
 
-- The R4DS book club repo has a Q&A section  section.https://github.com/r4ds/bookclub-Advanced_R
+- The R4DS book club repo has a Q&A section  : [github.com/r4ds/bookclub-Advanced_R](https://github.com/r4ds/bookclub-Advanced_R)
 
 --
 <br>
@@ -165,7 +165,7 @@ The outline for today is:
 <br>
 
 - There are 3 main groups of control flows in programming: 
-  1. Sequencing ( do this, THEN this, THEN this ...)
+  1. Sequencing (do this, THEN this, THEN this ...)
   2. Selection/choices (if, unless)
   3. Iteration (for, while, repeat...)
 
@@ -900,7 +900,7 @@ However, if you do not know what you want to iterate over, there are two other l
 
 ```{r ech=TRUE}
 
-i <- 5
+i <- 4
 
 while (i < 6) {
 
