@@ -267,12 +267,7 @@ Amsterdam
 
 <td style="text-align:left;">
 
-<<<<<<< HEAD
 [Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp5/Chap5markdown-long.html)
-=======
-[Meetup link](https://bit.ly/2yS3nV7)
-[Slides](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp5/Chap5markdown-long.pdf)
->>>>>>> 7c6039875ba415ae894914249879c9c494d8b2bd
 
 </td>
 
