@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R-Ladies NL Book-Club</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Josephine Daub" />
+    <meta name="date" content="2020-06-09" />
+    <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/rladies-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R-Ladies NL Book-Club
+## Advanced R: Functions (Chapter 6)
+### Josephine Daub
+### 2020-06-09
+
+---
+
+
+
+
+### Welcome R-Ladies Netherlands Book-Club!
+
+.left[
+- R-Ladies is a global organization to promote gender diversity in the R 
+community via meetups, mentorship in a safe and inclusive environment. 
+]
+
+&lt;br&gt;
+--
+
+.left[
+- **R-Ladies Netherlands Book-Club** is a collaborative effort between 
+RLadies-NL chapters in Nijmengen, Rotterdam, Den Bosch, Amsterdam, Utrecht.
+]
+
+--
+
+- We meet every **2 weeks** to go through one of the chapters of Hadley Wickam _Advanced R_, and run through  exercises to put the concepts into practice.  
+
+---
+
+### Today's Session!
+
+&lt;br&gt;
+
+- Starts with a  30-45 min presentation
+
+- Breakout session - we **split** into breakout rooms to practice exercises.
+
+--
+&lt;br&gt;
+&lt;br&gt;
+
+- Please use the **HackMD** (shared in email and in chat) to present yourself, ask overarching questions, and to find your break out room.
+
+- Use the **chat** to participate in the discussion during the presentation and your breakout session. 
+
+- The Bookclub github repository has also been made available. 
+
+--
+&lt;br&gt;
+&lt;br&gt;
+
+- Any questions?
+
+---
+
+### Resources
+
+- Solutions to the exercises from _Advanced R_ can be found in the [Advanced R Solutions Book](https://advanced-r-solutions.rbind.io/index.html)  
+
+- The R4DS book club repo has a Q&amp;A section  : [github.com/r4ds/bookclub-Advanced_R](https://github.com/r4ds/bookclub-Advanced_R)
+
+--
+&lt;br&gt;
+
+- We are always looking for new speakers! If you are interested, please sign up to present a chapter at https://rladiesnl.github.io/book_club/
+
+---
+
+name: title
+class: center, middle
+
+## Functions ##
+
+---
+
+## Outline
+
+The outline for today is: 
+--
+&lt;br&gt;&lt;br&gt;
+- Function fundamentals
+
+- Function composition
+
+- Lexical scoping
+
+- Lazy evaluation
+
+- ... (dot-dot-dot)
+
+- Exiting a function
+
+- Function forms
+--
+&lt;br&gt;&lt;br&gt;
+
+**Breakout Sessions**
+
+
+---
+
+### Let's get to it! 
+
+---
+
+### Function fundamentals
+
+--
+
+In R, a **function** has three parts:
+  1. `formals()`: list of arguments that control how you call the function
+  2. `body()`: the code inside the function
+  3. `environment()`: data structure that determines how the function finds the values associated with the names
+
+--
+
+The formals and body are specified **explicitly** when creating a function
+&lt;br&gt;
+The environment is specified **implicitly**, based on *where* you define a function
+
+---
+### Example
+
+
+```r
+f02 &lt;- function(x, y) {
+  # A comment
+  x + y
+}
+
+formals(f02)
+```
+
+```
+## $x
+## 
+## 
+## $y
+```
+
+```r
+body(f02)
+```
+
+```
+## {
+##     x + y
+## }
+```
+
+```r
+environment(f02)
+```
+
+```
+## &lt;environment: R_GlobalEnv&gt;
+```
+---
+### Function fundamentals
+
+Functions can have additional `attributes()`, such as `srcref` (source reference):
+
+
+```r
+attr(f02, "srcref")
+```
+
+```
+## function(x, y) {
+##   # A comment
+##   x + y
+## }
+```
+
+--
+&lt;br&gt;&lt;br&gt;
+Exception: **primitive functions** call C code directly:
+
+
+```r
+sum
+```
+
+```
+## function (..., na.rm = FALSE)  .Primitive("sum")
+```
+
+```r
+`[`
+```
+
+```
+## .Primitive("[")
+```
+---
+
+### Function fundamentals
+
+Functions are **objects**
+--
+&lt;br&gt;&lt;br&gt;
+Create a function object (with `function`) and bind it to a name with `&lt;-`:
+
+
+```r
+f01 &lt;- function(x) {
+  sin(1 / x ^ 2)
+}
+```
+--
+&lt;br&gt;
+Or: you can choose not to give a name to get a **anonymous function**:
+
+
+```r
+lapply(mtcars, function(x) length(unique(x)))
+Filter(function(x) !is.numeric(x), mtcars)
+integrate(function(x) sin(x) ^ 2, 0, pi)
+```
+--
+&lt;br&gt;
+Or: put functions in a **list**:
+
+
+```r
+funs &lt;- list(
+  half = function(x) x / 2,
+  double = function(x) x * 2
+)
+
+funs$double(10)
+```
+---
+
+### Function composition
+
+--
+
+How to compose **multiple** function calls?
+
+--
+
+**Nest** the function calls
+
+
+```r
+sqrt(mean(x))
+```
+
+--
+
+Save **intermediate results**
+
+
+```r
+y&lt;-mean(x)
+sqrt(y))
+```
+
+--
+
+Use **magrittr** package to use pipe (`%&gt;%`)
+
+
+```r
+library(magrittr)
+
+x %&gt;%
+  mean() %&gt;%
+  sqrt()
+```
+---
+### Lexical scoping
+
+--
+
+**Scoping**: finding the value associated with a name
+
+--
+
+What will `g01()` return?
+
+
+
+```r
+x &lt;- 10
+g01 &lt;- function() {
+  x &lt;- 20
+  x
+}
+
+g01()
+```
+
+--
+
+**R uses lexical scoping**: look up values of names based on how a function is defined, not how it is called 
+
+--
+
+**Four rules**:
+1. Name masking
+2. Functions versus variables
+3. A fresh start
+4. Dynamic lookup
+
+---
+
+### Lexical scoping
+
+**Name masking**: names defined inside a function mask names defined outside a function
+
+--
+
+
+```r
+x &lt;- 10
+y &lt;- 20
+g02 &lt;- function() {
+  x &lt;- 1
+  y &lt;- 2
+  c(x, y)
+}
+g02()
+```
+
+```
+## [1] 1 2
+```
+
+--
+
+If a name is not defined inside a function, R looks **one level up**:
+
+
+```r
+x &lt;- 2
+g03 &lt;- function() {
+  y &lt;- 1
+  c(x, y)
+}
+g03()
+```
+
+```
+## [1] 2 1
+```
+
+---
+
+### Lexical scoping
+
+**Name masking**: names defined inside a function mask names defined outside a function
+
+The same rules apply if a **function is defined inside another function**:
+
+
+
+```r
+x &lt;- 1
+g04 &lt;- function() {
+  y &lt;- 2
+  i &lt;- function() {
+    z &lt;- 3
+    c(x, y, z)
+  }
+  i()
+}
+g04()
+```
+
+```
+## [1] 1 2 3
+```
+
+---
+
+### Lexical scoping
+
+**Functions vs variables**
+
+--
+
+Scoping rules also apply to functions:
+
+
+```r
+g07 &lt;- function(x) x + 1
+g08 &lt;- function() {
+  g07 &lt;- function(x) x + 100
+  g07(10)
+}
+g08()
+```
+
+```
+## [1] 110
+```
+
+--
+
+But what happens when a **function** and a **non-function** share the same name?
+
+--
+
+
+```r
+g09 &lt;- function(x) x + 100
+g10 &lt;- function() {
+  g09 &lt;- 10
+  g09(g09)
+}
+g10()
+```
+
+```
+## [1] 110
+```
+---
+
+### Lexical scoping
+
+**A fresh start**
+
+--
+
+What happens to values between invocations of a function?
+
+
+```r
+g11 &lt;- function() {
+  if (!exists("a")) {
+    a &lt;- 1
+  } else {
+    a &lt;- a + 1
+  }
+  a
+}
+
+g11()
+```
+
+```
+## [1] 1
+```
+
+What happens if you call `g11()` again?
+
+
+```r
+g11()
+```
+
+```
+## [1] 1
+```
+
+---
+
+### Lexical scoping
+
+**Dynamic lookup**
+
+--
+
+R looks for values when the function is **run**, not when the function is **created**
+
+--
+
+
+```r
+g12 &lt;- function() x + 1
+x &lt;- 15
+g12()
+```
+
+```
+## [1] 16
+```
+
+```r
+x &lt;- 20
+g12()
+```
+
+```
+## [1] 21
+```
+
+--
+
+&lt;br&gt;
+
+Use `codetools::findGlobals()` to list all unbound symbols within a function:
+
+
+```r
+codetools::findGlobals(g12)
+```
+
+```
+## [1] "+" "x"
+```
+
+---
+
+### Lazy evaluation
+
+--
+
+Arguments are **lazily evaluated**: they’re only evaluated if accessed
+
+--
+
+
+```r
+h01 &lt;- function(x) {
+  10
+}
+h01(stop("This is an error!"))
+```
+
+```
+## [1] 10
+```
+
+--
+
+&lt;br&gt;
+
+Lazy evaluation is powered by a data structure called a **promise** (see Chapter 20)
+
+&lt;br&gt;
+A promise has **three components**:
+1. An **expression**
+2. An **environment** where the expression should be evaluated
+3. A **value**, computed and cached the first time when a promise is accessed in the specified environment
+
+
+---
+
+### Lazy evaluation
+
+Example:
+
+
+```r
+y &lt;- 10
+h02 &lt;- function(x) {
+  y &lt;- 100
+  x + 1
+}
+
+h02(y)
+```
+
+```
+## [1] 11
+```
+
+--
+
+When doing **assignment inside a function call**, the variable is bound **outside** of the function, not inside of it:
+
+
+```r
+h02(y &lt;- 1000)
+```
+
+```
+## [1] 1001
+```
+
+```r
+y
+```
+
+```
+## [1] 1000
+```
+
+---
+### Lazy evaluation
+
+--
+
+**Default arguments** can be defined in terms of other arguments or variables defined later in the function:
+
+
+```r
+h04 &lt;- function(x = 1, y = x * 2, z = a + b) {
+  a &lt;- 10
+  b &lt;- 100
+  
+  c(x, y, z)
+}
+
+h04()
+```
+
+```
+## [1]   1   2 110
+```
+
+--
+
+**Not recommended!**
+
+---
+
+### Lazy evaluation
+
+**Missing values**
+
+--
+
+You can use `missing()` to determine if an argument’s value comes from the **user** or from a **default**:
+
+
+```r
+h06 &lt;- function(x = 10) {
+  list(missing(x), x)
+}
+
+str(h06())
+```
+
+```
+## List of 2
+##  $ : logi TRUE
+##  $ : num 10
+```
+
+```r
+str(h06(10))
+```
+
+```
+## List of 2
+##  $ : logi FALSE
+##  $ : num 10
+```
+
+---
+
+### Lazy evaluation
+
+**Missing values**
+
+You can use `missing()` to determine if an argument’s value comes from the **user** or from a **default**:
+
+&lt;br&gt;
+
+**Recommendation**: use `missing()` sparingly, instead use  `NULL` to indicate that an argument is not required but can be supplied
+
+--
+
+```r
+args(sample)
+```
+
+```
+## function (x, size, replace = FALSE, prob = NULL) 
+## NULL
+```
+
+
+
+```r
+sample &lt;- function(x, size = NULL, replace = FALSE, prob = NULL) {
+  if (is.null(size)) {
+    size &lt;- length(x)
+  }
+  
+  x[sample.int(length(x), size, replace = replace, prob = prob)]
+}
+```
+
+---
+
+### ... (dot-dot-dot)
+
+--
+
+Functions can have a special argument: `...`
+
+--
+
+You can use `...` to pass additional arguments on to another function:
+
+
+```r
+i01 &lt;- function(y, z) {
+  list(y = y, z = z)
+}
+
+i02 &lt;- function(x, ...) {
+  i01(...)
+}
+
+str(i02(x = 1, y = 2, z = 3))
+```
+
+```
+## List of 2
+##  $ y: num 2
+##  $ z: num 3
+```
+
+---
+### ... (dot-dot-dot)
+
+Functions can have a special argument: `...`
+
+You can use `...` to pass additional arguments on to another function:
+
+
+```r
+args(lapply)
+```
+
+```
+## function (X, FUN, ...) 
+## NULL
+```
+
+```r
+x &lt;- list(c(1, 3, NA), c(4, NA, 6))
+str(lapply(x, mean, na.rm = TRUE))
+```
+
+```
+## List of 2
+##  $ : num 2
+##  $ : num 5
+```
+
+
+---
+### ... (dot-dot-dot)
+
+Functions can have a special argument: `...`
+
+You can use `...` to pass additional arguments on to another function
+
+&lt;br&gt;
+
+**Downsides**:
+
+When you use it to pass arguments to another function, **carefully explain** where those arguments go
+
+--
+
+A misspelled argument will not raise an error
+
+
+```r
+sum(1, 2, NA, na_rm = TRUE)
+```
+
+```
+## [1] NA
+```
+
+---
+### Exiting a function
+
+--
+
+Two ways that a function can return a value:
+
+**Implicitly**, the last evaluated expression is the return value:
+
+
+```r
+j01 &lt;- function(x) {
+  if (x &lt; 10) {
+    0
+  } else {
+    10
+  }
+}
+j01(5)
+```
+
+```
+## [1] 0
+```
+
+--
+
+**Explicitly**, by calling `return()`:
+
+
+```r
+j02 &lt;- function(x) {
+  if (x &lt; 10) {
+    return(0)
+  } else {
+    return(10)
+  }
+}
+```
+
+---
+
+### Exiting a function
+
+Most functions **return visibly**: calling the function prints the result:
+
+
+```r
+j03 &lt;- function() 1
+j03()
+```
+
+```
+## [1] 1
+```
+
+--
+
+Apply `invisible()` to the last value to prevent automatic printing:
+
+
+```r
+j04 &lt;- function() invisible(1)
+j04()
+```
+
+---
+
+### Exiting a function
+
+**Print** or **wrap** function call in parentheses to make return value visible, or use `withVisible()`:
+
+
+```r
+print(j04())
+```
+
+```
+## [1] 1
+```
+
+```r
+(j04())
+```
+
+```
+## [1] 1
+```
+
+```r
+str(withVisible(j04()))
+```
+
+```
+## List of 2
+##  $ value  : num 1
+##  $ visible: logi FALSE
+```
+
+---
+
+### Exiting a function
+
+**Errors**
+
+If a function cannot complete its assigned task, it should **throw an error** with `stop()`, which immediately terminates the execution of the function.
+
+
+```r
+j05 &lt;- function() {
+  stop("I'm an error")
+  return(10)
+}
+j05()
+#&gt; Error in j05(): I'm an error
+```
+
+&lt;br&gt;
+
+Learn more about error handling in **Chapter 8**
+
+---
+
+### Exiting a function
+
+**Exit handlers**
+
+Sometimes a function needs to make **temporary changes** to the **global state**. 
+
+--
+
+&lt;br&gt;
+Use `on.exit()` to set up an **exit handler** with clean-up code that restores global state, even when functions exits with an error
+
+--
+
+
+```r
+cleanup &lt;- function(dir, code) {
+  old_dir &lt;- setwd(dir)
+  on.exit(setwd(old_dir), add = TRUE)
+  
+  old_opt &lt;- options(stringsAsFactors = FALSE)
+  on.exit(options(old_opt), add = TRUE)
+}
+```
+
+&lt;br&gt;
+
+**Note**: Always set `add = TRUE` to avoid overwriting previous exit handler
+
+---
+
+### Function forms
+
+--
+
+Function calls come in four varieties:
+
+- **prefix**: function name before arguments `foofy(a,b,c)`
+
+- **infix**: function name comes in between arguments: `x + y`
+
+- **replacement**: function replaces values by assignment:&lt;br&gt;
+`names(df)&lt;-c("a","b","c")`
+
+- **special**: functions like `[[`, `if` and `for`
+
+--
+
+&lt;br&gt;
+
+You can always **rewrite** a function in **prefix form**:
+
+
+```r
+x + y
+`+`(x, y)
+
+names(df) &lt;- c("x", "y", "z")
+`names&lt;-`(df, c("x", "y", "z"))
+
+for(i in 1:10) print(i)
+`for`(i, 1:10, print(i))
+```
+
+---
+
+### Function forms
+
+Useful example with `lapply`:
+
+
+```r
+add &lt;- function(x, y) x + y
+lapply(list(1:3, 4:5), add, 3)
+```
+
+```
+## [[1]]
+## [1] 4 5 6
+## 
+## [[2]]
+## [1] 7 8
+```
+
+--
+
+&lt;br&gt;
+
+You can get the same result with:
+
+
+```r
+lapply(list(1:3, 4:5), `+`, 3)
+```
+
+```
+## [[1]]
+## [1] 4 5 6
+## 
+## [[2]]
+## [1] 7 8
+```
+
+---
+
+### Function forms
+
+**Infix functions**
+
+Built-in examples: `:`, `::`, `$`, `@`, `^`, `*`, `/`, `+`, etc.
+
+--
+
+&lt;br&gt;
+
+You can **create your own infix function**: bind two arguments to a name that starts and ends with `%`:
+
+
+```r
+`%+%` &lt;- function(a, b) paste0(a, b)
+"new " %+% "string"
+```
+
+```
+## [1] "new string"
+```
+
+---
+
+### Function forms
+
+**Replacement functions**
+
+Replacement functions act like they **modify their arguments in place**, and have the special name `xxx&lt;-`
+
+--
+
+They must have arguments named `x` and `value`, and must return the modified object:
+
+
+
+```r
+`second&lt;-` &lt;- function(x, value) {
+  x[2] &lt;- value
+  x
+}
+```
+
+--
+
+Replacement functions are used by placing the function call on the left side of `&lt;-`:
+
+
+```r
+x &lt;- 1:10
+second(x) &lt;- 5L
+x
+```
+
+```
+##  [1]  1  5  3  4  5  6  7  8  9 10
+```
+---
+
+### Function forms
+
+**Replacement functions**
+
+Replacement functions **act like** they modify their arguments in place, and have the special name `xxx&lt;-`
+
+--
+
+
+```r
+x &lt;- 1:10
+tracemem(x)
+```
+
+```
+## [1] "&lt;0x7fe1f1fc74e0&gt;"
+```
+
+```r
+second(x) &lt;- 6L
+```
+
+```
+## tracemem[0x7fe1f1fc74e0 -&gt; 0x7fe1f5aae7f8]: eval eval withVisible withCallingHandlers handle timing_fn evaluate_call &lt;Anonymous&gt; evaluate in_dir block_exec call_block process_group.block process_group withCallingHandlers process_file &lt;Anonymous&gt; &lt;Anonymous&gt; 
+## tracemem[0x7fe1f5aae7f8 -&gt; 0x7fe1f5d0fd08]: second&lt;- eval eval withVisible withCallingHandlers handle timing_fn evaluate_call &lt;Anonymous&gt; evaluate in_dir block_exec call_block process_group.block process_group withCallingHandlers process_file &lt;Anonymous&gt; &lt;Anonymous&gt;
+```
+
+
+
+---
+
+### Function forms
+
+**Replacement functions**
+
+If your replacement function needs **additional arguments**, place them between `x` and `value`, and call the replacement function with additional arguments on the left:
+
+
+```r
+`modify&lt;-` &lt;- function(x, position, value) {
+  x[position] &lt;- value
+  x
+}
+modify(x, 1) &lt;- 10
+x
+```
+
+```
+##  [1] 10  6  3  4  5  6  7  8  9 10
+```
+
+---
+
+name: title
+class: center, middle
+
+## Thank you ##
+ 
+Questions? Break for 10 min, and meet in your breakout rooms
+
+_Check hackMD for your breakout room assignment_
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
