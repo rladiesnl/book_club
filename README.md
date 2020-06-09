@@ -319,6 +319,8 @@ Nijmegen
 
 [Meetup link](https://www.meetup.com/rladies-nijmegen/events/270925058/)
 
+[Slides(https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp6/Chap6markdown-long.Rmd)
+
 </td>
 
 </tr>
