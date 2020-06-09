@@ -115,7 +115,7 @@ Laurel Brehm
 
 <td style="text-align:left;">
 
-Nijmengen
+Nijmegen
 
 </td>
 
@@ -145,8 +145,8 @@ Vectors
 
 Dives into the details of vectors, helping you learn how the different
 types of vector fit together. You’ll also learn about attributes, which
-allow you to store arbitrary metadata, and form the basis for two of
-Râ€™s object-oriented programming toolkits.
+allow you to store arbitrary metadata, and form the basis for two of R’s
+object-oriented programming toolkits.
 
 </td>
 
@@ -267,7 +267,7 @@ Amsterdam
 
 <td style="text-align:left;">
 
-[Meetup link](https://bit.ly/2yS3nV7)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp5/Chap5markdown-long.html)
 
 </td>
 
@@ -290,10 +290,10 @@ Functions
 <td style="text-align:left;">
 
 Deals with functions, the most important building blocks of R code.
-Youâ€™ll learn exactly how they work, including the scoping rules,
-which govern how R looks up values from names. Youâ€™ll also learn more
-of the details behind lazy evaluation, and how you can control what
-happens when you exit a function.
+You’ll learn exactly how they work, including the scoping rules, which
+govern how R looks up values from names. You’ll also learn more of the
+details behind lazy evaluation, and how you can control what happens
+when you exit a function.
 
 </td>
 
@@ -311,13 +311,13 @@ Josephine Daub
 
 <td style="text-align:left;">
 
-Nijmengen
+Nijmegen
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+[Meetup link](https://www.meetup.com/rladies-nijmegen/events/270925058/)
 
 </td>
 
@@ -343,8 +343,8 @@ Describes a data structure that is crucial for understanding how R
 works, but quite unimportant for data analysis: the environment.
 Environments are the data structure that binds names to values, and they
 power important tools like package namespaces. Unlike most programming
-languages, environments in R are â€œfirst classâ€ which means that you
-can manipulate them just like other objects.
+languages, environments in R are “first class” which means that you can
+manipulate them just like other objects.
 
 </td>
 
@@ -390,23 +390,23 @@ Conditions
 
 <td style="text-align:left;">
 
-Concludes the foundations of R with an exploration of â€œconditionsâ€,
-the umbrella term used to describe errors, warnings, and messages.
-Youâ€™ve certainly encountered these before, so in this chapter you
-learn how to signal them appropriately in your own functions, and how to
-handle them when signalled elsewhere.
+Concludes the foundations of R with an exploration of “conditions”, the
+umbrella term used to describe errors, warnings, and messages. You’ve
+certainly encountered these before, so in this chapter you learn how to
+signal them appropriately in your own functions, and how to handle them
+when signalled elsewhere.
 
 </td>
 
 <td style="text-align:left;">
 
-Sign up\!
+Semiramis Castro
 
 </td>
 
 <td style="text-align:left;">
 
-2020-06-23
+2020-07-07
 
 </td>
 
@@ -444,8 +444,8 @@ Shows you how to replace many for loops with functionals which are
 functions (like lapply()) that take another function as an argument.
 Functionals allow you to take a function that solves the problem for a
 single input and generalise it to handle any number of inputs.
-Functionals are by far and away the most important technique and
-youâ€™ll use them all the time in data analysis.
+Functionals are by far and away the most important technique and you’ll
+use them all the time in data analysis.
 
 </td>
 
@@ -457,7 +457,7 @@ Sign up\!
 
 <td style="text-align:left;">
 
-2020-07-07
+2020-07-21
 
 </td>
 
@@ -505,13 +505,61 @@ Sign up\!
 
 <td style="text-align:left;">
 
-2020-07-21
+2020-08-04
 
 </td>
 
 <td style="text-align:left;">
 
 Amsterdam
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+11
+
+</td>
+
+<td style="text-align:left;">
+
+Function operators
+
+</td>
+
+<td style="text-align:left;">
+
+Shows you how to create function operators: functions that take
+functions as input and produce functions as output. They are like
+adverbs, because they typically modify the operation of a function.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
 
 </td>
 
