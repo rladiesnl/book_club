@@ -1,5 +1,6 @@
 ---
 output: html_document
+pagetitle: RLadies NL book-club 
 ---
 
 ```{r, include = FALSE}
@@ -40,9 +41,7 @@ The events will be hosted every two weeks by different R-Ladies chapters, on Tue
 ```{r, include = FALSE}
 
 url <- ("https://docs.google.com/spreadsheets/d/1oAzHwL8OMo3AE3994MkYVSPyR9RawZWiwvYDB-nSg-8/edit#gid=0") 
-
-## Use own email before knitting
-# sheets_auth(email = "email@xxxxx")
+gs4_deauth()
 
 data <- read_sheet(url) %>% 
   janitor::clean_names() %>% 
