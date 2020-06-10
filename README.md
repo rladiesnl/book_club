@@ -219,6 +219,8 @@ Den Bosch
 <td style="text-align:left;">
 
 [Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp4/Ch4_Xaringan.html#1)
+[Slides
+pdf](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp4/Advanced%20R%20-%20Hadley%20Wickham%20-%20Ch%204.pdf)
 
 </td>
 
@@ -268,6 +270,8 @@ Amsterdam
 <td style="text-align:left;">
 
 [Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp5/Chap5markdown-long.html)
+[Slides
+pdf](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp5/Chap5markdown-long.pdf)
 
 </td>
 
@@ -317,11 +321,9 @@ Nijmegen
 
 <td style="text-align:left;">
 
-[Meetup link](https://www.meetup.com/rladies-nijmegen/events/270925058/)
-
-[Slides: rmd](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp6/Chap6markdown-long.Rmd)
-
-[Slides: pdf](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp6/R-Ladies%20NL%20Book-Club.pdf)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp6/Chap6markdown-long.html)
+[Slides
+pdf](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp6/R-Ladies%20NL%20Book-Club.pdf)
 
 </td>
 
@@ -354,7 +356,7 @@ manipulate them just like other objects.
 
 <td style="text-align:left;">
 
-Sign up\!
+Alejandra Hernandez
 
 </td>
 
@@ -372,7 +374,7 @@ Utrecht
 
 <td style="text-align:left;">
 
-NA
+[Meetup link](https://www.meetup.com/rladies-utrecht/events/271184555/)
 
 </td>
 
