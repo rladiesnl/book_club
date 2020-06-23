@@ -204,7 +204,7 @@ e1
 ```
 
 ```
-&lt;environment: 0x0000000013ea30b8&gt;
+&lt;environment: 0x7fe5660108c8&gt;
 ```
 --
 
@@ -214,7 +214,7 @@ env_print(e1)
 ```
 
 ```
-&lt;environment: 0000000013EA30B8&gt;
+&lt;environment: 0x7fe5660108c8&gt;
 parent: &lt;environment: global&gt;
 bindings:
  * a: &lt;lgl&gt;
@@ -285,7 +285,7 @@ lobstr::obj_addr(e2a)
 ```
 
 ```
-[1] "0x1d9ed648"
+[1] "0x7fe564ee3040"
 ```
 
 
@@ -294,7 +294,7 @@ lobstr::obj_addr(e2b)
 ```
 
 ```
-[1] "0x1da51d90"
+[1] "0x7fe564fad518"
 ```
 --
 **Parent of** `e2b`**:**
@@ -304,7 +304,7 @@ env_parent(e2b)
 ```
 
 ```
-&lt;environment: 0x000000001d9ed648&gt;
+&lt;environment: 0x7fe564ee3040&gt;
 ```
 
 --
@@ -357,7 +357,7 @@ env_parents(e2b)
 ```
 
 ```
-[[1]]   &lt;env: 000000001D9ED648&gt;
+[[1]]   &lt;env: 0x7fe564ee3040&gt;
 [[2]] $ &lt;env: global&gt;
 ```
 
@@ -370,7 +370,7 @@ env_parents(e2b, last = empty_env())
 ```
 
 ```
- [[1]]   &lt;env: 000000001D9ED648&gt;
+ [[1]]   &lt;env: 0x7fe564ee3040&gt;
  [[2]] $ &lt;env: global&gt;
  [[3]] $ &lt;env: package:rlang&gt;
  [[4]] $ &lt;env: package:knitr&gt;
@@ -563,7 +563,7 @@ system.time(print(b))
 
 ```
    user  system elapsed 
-      0       0       1 
+  0.001   0.000   1.004 
 ```
 
 --
@@ -702,7 +702,7 @@ sd
 function (x, na.rm = FALSE) 
 sqrt(var(if (is.vector(x) || is.factor(x)) x else as.double(x), 
     na.rm = na.rm))
-&lt;bytecode: 0x000000001e1d99c0&gt;
+&lt;bytecode: 0x7fe5676a2ad0&gt;
 &lt;environment: namespace:stats&gt;
 ```
 
@@ -793,7 +793,7 @@ env_print(e)
 ```
 
 ```
-&lt;environment: 000000001D70FAF0&gt;
+&lt;environment: 0x7fe569ac4088&gt;
 parent: &lt;environment: global&gt;
 bindings:
  * a: &lt;dbl&gt;
@@ -845,11 +845,11 @@ f(x = 1)
 ```
 
 ```
-    x
- 1. \-global::f(x = 1)
- 2.   \-global::g(x = 2)
- 3.     \-global::h(x = 3)
- 4.       \-lobstr::cst()
+    █
+ 1. └─global::f(x = 1)
+ 2.   └─global::g(x = 2)
+ 3.     └─global::h(x = 3)
+ 4.       └─lobstr::cst()
 ```
 ---
 
@@ -866,14 +866,14 @@ a(f())
 ```
 
 ```
-    x
- 1. +-global::a(f())
- 2. | \-global::b(x)
- 3. |   \-global::c(x)
- 4. \-global::f()
- 5.   \-global::g(x = 2)
- 6.     \-global::h(x = 3)
- 7.       \-lobstr::cst()
+    █
+ 1. ├─global::a(f())
+ 2. │ └─global::b(x)
+ 3. │   └─global::c(x)
+ 4. └─global::f()
+ 5.   └─global::g(x = 2)
+ 6.     └─global::h(x = 3)
+ 7.       └─lobstr::cst()
 ```
 
 ---
