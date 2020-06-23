@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R. Chapter 7: Environments</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Rladies Utrecht (Dewi, Barbara and Ale)" />
+    <meta name="author" content="Presenter: Alejandra Hdz Segura" />
+    <meta name="date" content="2020-06-23" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R. Chapter 7: Environments
+## Book by Hadley Wickham
+### Rladies Utrecht (Dewi, Barbara and Ale)
+### Presenter: Alejandra Hdz Segura
+### June 23, 2020
+
+---
+
+&lt;style&gt;
+  .col2 {
+    columns: 2 200px;         /* number of columns and width in pixels*/
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+  }
+&lt;/style&gt;
+
+
+
+# Welcome!
+
+- This is a joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht 
+
+--
+
+- We meet every 2 weeks to go through a chapter 
+
+--
+
+- Use the [HackMD](https://hackmd.io/fzgOycJzSgGcelsdk5ZKNw?both) to present yourself, ask questions and see your breakout room 
+
+--
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after 20 min  
+
+--
+
+- There are still possibilities to present a chapter :) Sign up at [rladiesnl.github.io/book_club](https://rladiesnl.github.io/book_club/)
+
+--
+
+- [advanced-r-solutions.rbind.io](https://advanced-r-solutions.rbind.io/) has some anwers and we could PR the ones missing  
+
+--
+
+- The R4DS book club repo has [a Q&amp;A section](https://github.com/r4ds/bookclub-Advanced_R). 
+
+--
+
+- This week's chapter: [Environments](https://adv-r.hadley.nz/environments.html)!
+
+---
+
+# Contents  
+
+
+- Environment basics
+--
+
+
+- Recursing over environments
+--
+
+
+- Special environments
+--
+
+
+- Call stacks
+--
+
+
+- As data structures
+--
+
+
+- Let's practice!  
+
+
+---
+
+# Let's start!!
+
+&lt;img src="other_figs_and_gifs/1_lets_do_this_thing.gif" width="150%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Environment basics
+
+
+- You for sure have used environments
+
+--
+
+  - Functions
+--
+
+  - Packages
+  
+--
+
+- Similar to lists... with some exceptions. 
+
+--
+
+- In an environment:
+
+--
+
+  - Every name must be unique.
+--
+
+  - The names in an environment are not ordered.
+--
+
+  - An environment has a parent.
+--
+
+  - Environments are not copied when modified.
+
+---
+
+## Let's explore environments
+
+
+```r
+library(rlang)
+```
+--
+
+Creating an environment is like creating a list!
+
+
+```r
+e1 &lt;- env(
+  a = FALSE,
+  b = "a",
+  c = 2.3,
+  d = 1:3)
+```
+
+&lt;img src="book_figures/1_bindings.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Copy on modify vs Modify in place
+--
+
+&lt;div class="col2"&gt;
+
+&lt;b&gt;Copy on modify&lt;b&gt;
+
+&lt;img src="book_figures/copy_on_modify1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+&amp;nbsp;
+
+&lt;img src="book_figures/copy_on_modify2.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+&lt;b&gt;Modify in place&lt;b&gt;
+
+&lt;img src="book_figures/modify_in_place1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+&amp;nbsp;
+
+&lt;img src="book_figures/modify_in_place2.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+&lt;/div&gt;
+
+--
+
+Modified in place (not copy on modify) means also that environments can contain themselves!
+
+
+&lt;img src="book_figures/2_loop.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## Working with environments is special
+
+--
+
+- To print them
+--
+
+
+```r
+e1
+```
+
+```
+&lt;environment: 0x7fe5660108c8&gt;
+```
+--
+
+
+```r
+env_print(e1)
+```
+
+```
+&lt;environment: 0x7fe5660108c8&gt;
+parent: &lt;environment: global&gt;
+bindings:
+ * a: &lt;lgl&gt;
+ * b: &lt;chr&gt;
+ * c: &lt;dbl&gt;
+ * d: &lt;int&gt;
+```
+--
+
+
+- To see what they contain:
+--
+
+
+```r
+env_names(e1)
+```
+
+```
+[1] "a" "b" "c" "d"
+```
+
+---
+
+## Important environments
+
+
+- Current environment or `current_env()` is where your code is currently executing!
+
+--
+
+- Global environment or `global_env()` is where you can experiment interactively. also called 'workspace'. 
+--
+
+
+
+```r
+identical(global_env(), current_env())
+```
+
+```
+[1] TRUE
+```
+--
+
+- Note that we did not use normal ` ==` operator!
+
+---
+
+## Parents
+--
+
+
+```r
+e2a &lt;- env(d = 4, e = 5)
+e2b &lt;- env(e2a, a = 1, b = 2, c = 3)
+```
+
+&lt;img src="book_figures/3_parents.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## Finding parents
+
+
+```r
+lobstr::obj_addr(e2a)
+```
+
+```
+[1] "0x7fe564ee3040"
+```
+
+
+```r
+lobstr::obj_addr(e2b)
+```
+
+```
+[1] "0x7fe564fad518"
+```
+--
+**Parent of** `e2b`**:**
+
+```r
+env_parent(e2b) 
+```
+
+```
+&lt;environment: 0x7fe564ee3040&gt;
+```
+
+--
+
+**Parent of** `e2a`**:**
+
+```r
+env_parent(e2a)
+```
+
+```
+&lt;environment: R_GlobalEnv&gt;
+```
+
+---
+
+## The orphan environment 😢
+--
+
+- All environments have parents except the empty environment or `empty_env()` 
+--
+
+
+```r
+env_parent(empty_env())
+```
+
+```
+Error: The empty environment has no parent
+```
+
+--
+
+&amp;nbsp;
+&amp;nbsp;
+
+Actually, the `empty_env()` is sort of everyone else's great-grandma!!
+
+---
+
+# HEY!! Don't forget about me!!
+
+&lt;img src="other_figs_and_gifs/2_dont_forget_grandma.gif" width="55%" style="display: block; margin: auto;" /&gt;
+
+---
+**Almost full ancestry**
+
+```r
+env_parents(e2b)
+```
+
+```
+[[1]]   &lt;env: 0x7fe564ee3040&gt;
+[[2]] $ &lt;env: global&gt;
+```
+
+--
+
+**True full ancestry**
+
+```r
+env_parents(e2b, last = empty_env())
+```
+
+```
+ [[1]]   &lt;env: 0x7fe564ee3040&gt;
+ [[2]] $ &lt;env: global&gt;
+ [[3]] $ &lt;env: package:rlang&gt;
+ [[4]] $ &lt;env: package:knitr&gt;
+ [[5]] $ &lt;env: package:stats&gt;
+ [[6]] $ &lt;env: package:graphics&gt;
+ [[7]] $ &lt;env: package:grDevices&gt;
+ [[8]] $ &lt;env: package:utils&gt;
+ [[9]] $ &lt;env: package:datasets&gt;
+[[10]] $ &lt;env: package:methods&gt;
+[[11]] $ &lt;env: Autoloads&gt;
+[[12]] $ &lt;env: package:base&gt;
+[[13]] $ &lt;env: empty&gt;
+```
+--
+
+Did you notice? The ancestors of the global_env() include every attached package!!
+
+---
+
+## Super assignment &lt;&lt;-
+
+
+```r
+x &lt;- 0 # Normal assignment
+x
+```
+
+```
+[1] 0
+```
+
+--
+
+
+```r
+f &lt;- function() {
+  x &lt;&lt;- 1 # Super assignment! Modifies x outside the function!
+}
+f()
+x
+```
+
+```
+[1] 1
+```
+
+
+---
+
+## Subsetting environments
+
+--
+
+**The good way**
+
+
+
+```r
+e3 &lt;- env(x = 1, y = 2)
+e3$x
+```
+
+```
+[1] 1
+```
+
+```r
+e3[["y"]]
+```
+
+```
+[1] 2
+```
+
+---
+## Subsetting environments
+
+**The bad way**
+
+
+
+```r
+e3[[1]]
+```
+
+```
+Error in e3[[1]]: wrong arguments for subsetting an environment
+```
+
+
+```r
+e3$z
+```
+
+```
+NULL
+```
+
+
+```r
+env_get(e3, "xyz") #If you want an error instead of NULL
+```
+
+```
+Error in env_get(e3, "xyz"): object 'xyz' not found
+```
+
+---
+
+## Add/Remove bindings
+
+
+**Add**
+
+
+
+```r
+e3$z &lt;- 3
+
+env_poke(e3, "a", 100)
+
+env_bind(e3, b = 10, c = 20)
+```
+--
+
+
+```r
+env_names(e3)
+```
+
+```
+[1] "x" "y" "z" "a" "b" "c"
+```
+---
+## Add/Remove bindings
+
+**Remove** does not work like lists!!
+
+
+```r
+e3$a &lt;- NULL
+env_has(e3, "a")
+```
+
+```
+   a 
+TRUE 
+```
+--
+
+
+```r
+e3$a
+```
+
+```
+NULL
+```
+--
+
+You need to unbind instead!
+
+
+```r
+env_unbind(e3, "a")
+env_has(e3, "a")
+```
+
+```
+    a 
+FALSE 
+```
+
+---
+
+##  Advanced bindings...
+--
+
+**Delayed bindings** are evaluated the first time they are accessed!
+
+
+```r
+env_bind_lazy(current_env(), b = {Sys.sleep(1); 1})
+system.time(print(b))
+```
+
+```
+[1] 1
+```
+
+```
+   user  system elapsed 
+  0.001   0.000   1.004 
+```
+
+--
+
+
+```r
+system.time(print(b))
+```
+
+```
+[1] 1
+```
+
+```
+   user  system elapsed 
+      0       0       0 
+```
+
+--
+
+**Active bindings** are re-computed every time they are accessed:
+
+
+```r
+env_bind_active(current_env(), z1 = function(val) runif(1))
+```
+
+---
+
+## Recursing over environments
+
+How to find a variable?
+
+&lt;img src="book_figures/4_recursing.png" style="display: block; margin: auto;" /&gt;
+            e4b      --&gt;         e4a       --&gt;        empty_env
+
+--
+
+Three possible scenarios:
+1. `where("a", e4b)` will find a in e4b.
+
+--
+1. `where("b", e4b)` doesn’t find b in e4b, so it looks in its parent, e4a, and finds it there.
+
+--
+1. `where("c", e4b)` looks in e4b, then e4a, then hits the empty environment and throws an error.
+
+---
+class: inverse, middle, center
+
+# Special environments
+
+---
+## Function environment
+
+- A function binds the current environment when it is created
+
+--
+
+- Functions in R capture or enclose their environments
+  - function = _closure_
+--
+
+
+```r
+y &lt;- 1
+f &lt;- function(x) x+y
+fn_env(f)
+```
+
+```
+&lt;environment: R_GlobalEnv&gt;
+```
+
+
+&lt;img src="book_figures/7_binding.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## Package environments
+
+Packages also have parents and are parents themselves! 
+
+&lt;img src="book_figures/5_search-path.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+--
+
+Ancestry follows the order in which they have been attached!  --&gt;  _search path_
+--
+&amp;nbsp;
+&amp;nbsp;
+
+
+```r
+search()
+```
+
+```
+ [1] ".GlobalEnv"        "package:rlang"     "package:knitr"    
+ [4] "package:stats"     "package:graphics"  "package:grDevices"
+ [7] "package:utils"     "package:datasets"  "package:methods"  
+[10] "Autoloads"         "package:base"     
+```
+
+
+---
+
+## Wait a minute...
+
+We know that search path depends on how you loaded packages... 
+
+--
+  
+Does that mean that the package will find different functions if packages are loaded in a different order?
+--
+
+
+&lt;img src="other_figs_and_gifs/3_worried.gif" width="75%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## Namespace
+
+Make sure that every package works the same way regardless of what packages are attached by the user.
+
+--
+
+An example:
+
+
+```r
+sd
+```
+
+```
+function (x, na.rm = FALSE) 
+sqrt(var(if (is.vector(x) || is.factor(x)) x else as.double(x), 
+    na.rm = na.rm))
+&lt;bytecode: 0x7fe5676a2ad0&gt;
+&lt;environment: namespace:stats&gt;
+```
+
+--
+
+`sd` (like any package function) is associated with:
+--
+
+
+- The _package environment_ that is determined by search path
+
+    - `stats::sd`
+    
+--
+  
+- The _namespace environment_ that controls how the function finds its variables
+
+
+---
+
+## Understanding how package/namespaces work:
+
+&lt;img src="book_figures/11_namespace.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## Execution environments
+
+
+```r
+g &lt;- function(x) {
+  if (!env_has(current_env(), "a")) {
+    message("Defining a")
+    a &lt;- 1
+  } else {
+    a &lt;- a + 1
+  }
+  a
+}
+```
+--
+
+What will the function return the first time it’s run?
+--
+
+
+```r
+g(10)
+```
+
+```
+[1] 1
+```
+--
+
+What will happen if I call the function a second time?
+--
+
+
+```r
+g(10)
+```
+
+```
+[1] 1
+```
+--
+
+A new execution environment is created every time you call the function!
+
+---
+
+## Making execution environments less _ephemeral_
+--
+
+- Returning the environment
+
+
+```r
+h2 &lt;- function(x) {
+  a &lt;- x * 2
+  current_env()
+}
+
+
+e &lt;- h2(x = 10)
+env_print(e)
+```
+
+```
+&lt;environment: 0x7fe569ac4088&gt;
+parent: &lt;environment: global&gt;
+bindings:
+ * a: &lt;dbl&gt;
+ * x: &lt;dbl&gt;
+```
+
+- Return an object with a binding to that environment (**function factories**)
+
+  
+---
+
+# Call stacks
+
+Functions have two contexts:
+--
+
+- **Execution environment:** depends on where the function was created
+
+--
+
+- **Call stack: ** depends on where the function was called 
+
+--
+
+  - Useful default whenever you write a function that takes an environment as an argument.
+  
+--
+
+  - `rlang::caller_env()`
+
+---
+
+## Simple call stacks
+
+
+```r
+f &lt;- function(x) {
+  g(x = 2)
+}
+g &lt;- function(x) {
+  h(x = 3)
+}
+h &lt;- function(x) {
+  lobstr::cst()
+}
+
+
+f(x = 1)
+```
+
+```
+    █
+ 1. └─global::f(x = 1)
+ 2.   └─global::g(x = 2)
+ 3.     └─global::h(x = 3)
+ 4.       └─lobstr::cst()
+```
+---
+
+## Call stack with lazy evaluation
+
+
+```r
+a &lt;- function(x) b(x)
+b &lt;- function(x) c(x)
+c &lt;- function(x) x
+
+
+a(f())
+```
+
+```
+    █
+ 1. ├─global::a(f())
+ 2. │ └─global::b(x)
+ 3. │   └─global::c(x)
+ 4. └─global::f()
+ 5.   └─global::g(x = 2)
+ 6.     └─global::h(x = 3)
+ 7.       └─lobstr::cst()
+```
+
+---
+## Dynamic scoping
+
+Looking up variables in the calling stack rather than in the enclosing environment
+
+"Unique" of R.
+
+---
+
+## Environments as Data Structures
+
+Using them as data structures, they can help to solve some problems:
+--
+
+1. Avoiding copies of large data  
+  + For other/better ways check R6 objects (Ch. 14)  
+  
+1. Managing state within a package  
+  + Objects in a package are locked, so you can’t modify them directly unless you create a function that can access them (through environments)  
+  
+1. As a hashmap  
+  + Data structure that takes constant time to find an object based on its name
+  + Environments provide this behaviour by default (out of the scope) 
+
+---
+
+# ARE YOU AN EXPERT IN ENVIRONMENTS NOW?!!
+
+
+&lt;img src="other_figs_and_gifs/4_am_i_expert.gif" width="150%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Time to practice!!
+
+&lt;img src="other_figs_and_gifs/5_game_begin.gif" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## **Question 1**
+
+### What is the difference between `lobstr::cst()` and `traceback()`? 
+
+&amp;nbsp;
+&amp;nbsp;
+&amp;nbsp;
+--
+
+
+z) `traceback()` does not work for environments
+&amp;nbsp;
+&amp;nbsp;
+
+j) The order of `traceback()` and `lobstr::cst()` is reversed
+&amp;nbsp;
+&amp;nbsp;
+
+m) `lobstr::cst` only gives you information about the last environment 
+
+---
+
+## **Question 2**	
+
+Let’s say you first load package `tseries` and then `chron`, both containing a function named `is.weekend`. 
+
+### From which package does R use the function and why?
+
+_Also: what does this have to do with environments in R?_
+
+&amp;nbsp;
+&amp;nbsp;
+--
+
+
+i) From the package `tseries`
+&amp;nbsp;
+&amp;nbsp;
+
+o) From the package `chron`
+
+---
+
+## **Question 3**
+
+### Which of the following characteristics is not a difference between an environment and a named list? 
+
+&amp;nbsp;
+&amp;nbsp;
+--
+
+
+h) Environments are copied when modified, lists are not 
+&amp;nbsp;
+&amp;nbsp;
+
+m)	Every name in an environment must be unique
+&amp;nbsp;
+&amp;nbsp;
+
+t ) The names in an environment are not ordered
+&amp;nbsp;
+&amp;nbsp;
+
+---
+
+## **Question 4**
+
+### Which of the following code will show you the full ancestry of environment e2b? 
+&amp;nbsp;
+&amp;nbsp;
+--
+
+
+```r
+e2a &lt;- env(d = 4, e = 5)
+e2b &lt;- env(e2a, a = 1, b = 2, c = 3)
+```
+&amp;nbsp;
+
+n)	`env_parents(e2b, last = empty_env())`
+&amp;nbsp;
+
+o)	`env_parents(e2b, last = global_env())`
+&amp;nbsp;
+
+v)	`env_parent(e2b)`
+&amp;nbsp;
+
+z)	`env_full_ancestry(e2b)`
+
+---
+## **Question 5**
+
+### What is the difference between assignment (`&lt;-`) and super assignment (`&lt;&lt;-`)? And when is this useful?
+
+&amp;nbsp;
+&amp;nbsp;
+--
+
+
+w)	Assignment modifies a variable, while super assignment always creates a new variable. 
+&amp;nbsp;
+&amp;nbsp;
+
+h)	To create a variable in a new environment you always needs to use super assignment; regular  assignment does not work in this case. 
+&amp;nbsp;
+&amp;nbsp;
+
+s)	Assignment creates a variable in the current environment and super assignment modifies an existing variable found in a parent environment.
+
+---
+## **Question 6**	
+
+### Which of the following gives an error?
+
+
+
+```r
+e8 &lt;- env(x=1, y=2, u=4) 
+```
+
+m)	`e8$w`
+&amp;nbsp;
+
+k)	`e8[[1]]`
+&amp;nbsp;
+
+v)	`e8[["u"]]`
+&amp;nbsp;
+
+h)	`e8[c("x", "y")]`
+&amp;nbsp;
+
+u)	none of the above
+&amp;nbsp;
+
+w)	all of the above
+&amp;nbsp;
+
+e)	m, k and h
+&amp;nbsp;
+
+o) k and h
+
+---
+## **Question 7**
+
+### Which of the following code removes an element from an environment?
+
+&amp;nbsp;
+&amp;nbsp;
+--
+
+s)	`rm(e2a$x)`
+&amp;nbsp;
+
+n)	`env_unbind(e2a, x)`
+&amp;nbsp;
+
+k)	`e2a$x &lt;- NULL` 
+&amp;nbsp;
+
+x)	both n and k 
+&amp;nbsp;
+
+c)	both s and n 
+
+---
+# Extra questions
+
+&amp;nbsp;
+--
+
+- How does R look for objects? Why is this important?
+&amp;nbsp;
+
+--
+
+- How do you determine the environment from which a function was called? 
+&amp;nbsp;
+
+--
+
+- If you have an environment `e2` that contains another environment `e1`. What would happen if you change or add a variable in `e1`. Would `e2` be affected? What use do you see in this behavior?
+
+---
+
+# Answer
+&amp;nbsp;
+&amp;nbsp;
+
+--
+
+&lt;center&gt;
+
+J  O  H  N  S  O  N
+
+&lt;/center&gt;
+
+&amp;nbsp;
+&amp;nbsp;
+--
+.pull-left[
+
+&lt;img src="other_figs_and_gifs/6_Katherine_Johnson.jpg" width="80%" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+**Full name:** [Katherine Johnson](https://en.wikipedia.org/wiki/Katherine_Johnson) 
+
+**Who is she?** American mathematician and one of the first African-American women to work as a NASA scientist.
+
+]
+---
+
+&lt;img src="other_figs_and_gifs/7_thank_you.jpg" width="100%" style="display: block; margin: auto;" /&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
