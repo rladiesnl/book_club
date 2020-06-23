@@ -376,6 +376,8 @@ Utrecht
 
 [Meetup link](https://www.meetup.com/rladies-utrecht/events/271184555/)
 [Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp7/chapter7_presentation.html)
+[Slides
+pdf](https://rladiesnl.github.io/book_club/slides/AdvancedRChp7/chapter7_presentation.pdf)
 
 </td>
 
