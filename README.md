@@ -375,6 +375,7 @@ Utrecht
 <td style="text-align:left;">
 
 [Meetup link](https://www.meetup.com/rladies-utrecht/events/271184555/)
+[Slides](https://bvreede.github.io/book_club/slides/AdvancedRChp7/chapter7_presentation.html)
 
 </td>
 
