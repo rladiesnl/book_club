@@ -562,7 +562,54 @@ Sign up\!
 
 <td style="text-align:left;">
 
+2020-08-18
+
+</td>
+
+<td style="text-align:left;">
+
+Nijmegen
+
+</td>
+
+<td style="text-align:left;">
+
 NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+12 and 13 
+
+</td>
+
+<td style="text-align:left;">
+
+Base types & S3
+
+</td>
+
+<td style="text-align:left;">
+ 
+Ch 12 introduces object-oriented programming. Ch 13 introduces S3, the only OO system used in the base and stats packages, and the most commonly used system in CRAN packages. S3 is very flexible, which means it allows you to do things that are quite ill-advised. This chapter will therefore teach you the conventions you should (almost) always follow.
+ 
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+TBD
 
 </td>
 
@@ -579,6 +626,7 @@ NA
 </td>
 
 </tr>
+
 
 </tbody>
 
