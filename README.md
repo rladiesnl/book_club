@@ -627,7 +627,145 @@ NA
 
 </tr>
 
+<tr>
 
+<td style="text-align:right;">
+
+14
+
+</td>
+
+<td style="text-align:left;">
+
+R6
+
+</td>
+
+<td style="text-align:left;">
+
+This chapter describes the R6 OOP system. R6 has two special properties: It uses the encapsulated OOP paradigm, which means that methods belong to objects, not generics, and you call them like object$method(). R6 objects are mutable, which means that they are modified in place, and hence have reference semantics.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+TBD
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+
+<tr>
+
+<td style="text-align:right;">
+
+15
+
+</td>
+
+<td style="text-align:left;">
+
+S4
+
+</td>
+
+<td style="text-align:left;">
+ 
+S4 provides a formal approach to functional OOP. The underlying ideas are similar to S3 (the topic of Chapter 13), but implementation is much stricter and makes use of specialised functions for creating classes (setClass()), generics (setGeneric()), and methods (setMethod()). Additionally, S4 provides both multiple inheritance (i.e. a class can have multiple parents) and multiple dispatch (i.e. method dispatch can use the class of multiple arguments).
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+TBD
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+
+<tr>
+
+<td style="text-align:right;">
+
+16
+
+</td>
+
+<td style="text-align:left;">
+
+Trade-offs
+
+</td>
+
+<td style="text-align:left;">
+
+Now that we know about the different types of classes, how to pick one?  This chapter discusses.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+TBD
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
 </tbody>
 
 </table>
