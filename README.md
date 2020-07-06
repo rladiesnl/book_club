@@ -608,13 +608,13 @@ Sign up\!
 
 <td style="text-align:left;">
 
-TBD
+2020-09-01
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+Utrecht
 
 </td>
 
