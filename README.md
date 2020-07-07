@@ -427,6 +427,9 @@ Rotterdam
 <td style="text-align:left;">
 
 [Meetup link](https://www.meetup.com/rladies-rotterdam/events/271674531/)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp8/SemiramisPresentation.html)
+[Slides
+pdf](https://rladiesnl.github.io/book_club/slides/AdvancedRChp8/SemiramisPresentation.pdf)
 
 </td>
 
