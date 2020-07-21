@@ -558,7 +558,7 @@ adverbs, because they typically modify the operation of a function.
 
 <td style="text-align:left;">
 
-Sign up\!
+Laurel Brehm
 
 </td>
 
