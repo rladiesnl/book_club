@@ -29,7 +29,7 @@ chapters, on Tuesdays at 6pm, via jitsi.
 
 <tr>
 
-<th style="text-align:right;font-weight: bold;color: white !important;background-color: #562457 !important;">
+<th style="text-align:left;font-weight: bold;color: white !important;background-color: #562457 !important;">
 
 chapter
 
@@ -79,7 +79,7 @@ link
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 2
 
@@ -129,7 +129,7 @@ Nijmegen
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 3
 
@@ -178,7 +178,7 @@ Rotterdam
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 4
 
@@ -228,7 +228,7 @@ pdf](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp4/Adv
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 5
 
@@ -279,7 +279,7 @@ pdf](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp5/Cha
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 6
 
@@ -331,7 +331,7 @@ pdf](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp6/R-L
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 7
 
@@ -384,7 +384,7 @@ pdf](https://rladiesnl.github.io/book_club/slides/AdvancedRChp7/chapter7_present
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 8
 
@@ -426,7 +426,6 @@ Rotterdam
 
 <td style="text-align:left;">
 
-[Meetup link](https://www.meetup.com/rladies-rotterdam/events/271674531/)
 [Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp8/SemiramisPresentation.html)
 [Slides
 pdf](https://rladiesnl.github.io/book_club/slides/AdvancedRChp8/SemiramisPresentation.pdf)
@@ -437,7 +436,7 @@ pdf](https://rladiesnl.github.io/book_club/slides/AdvancedRChp8/SemiramisPresent
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 9
 
@@ -462,7 +461,7 @@ use them all the time in data analysis.
 
 <td style="text-align:left;">
 
-Sign up\!
+Martine Jansen
 
 </td>
 
@@ -480,7 +479,9 @@ Den Bosch
 
 <td style="text-align:left;">
 
-NA
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp9/Ch9_Xaringan.html)
+[Slides
+pdf](https://rladiesnl.github.io/book_club/slides/AdvancedRChp9/Advanced%20R%20-%20Hadley%20Wickham%20Ch%209%20Functionals.pdf)
 
 </td>
 
@@ -488,7 +489,7 @@ NA
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 10
 
@@ -510,7 +511,7 @@ elegantly partition work between different parts of your code.
 
 <td style="text-align:left;">
 
-Sign up\!
+Sarah Stole
 
 </td>
 
@@ -528,7 +529,8 @@ Amsterdam
 
 <td style="text-align:left;">
 
-NA
+[Meet-up
+link](https://www.meetup.com/rladies-amsterdam/events/272213195/)
 
 </td>
 
@@ -536,7 +538,7 @@ NA
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 11
 
@@ -584,22 +586,25 @@ NA
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
-12 and 13 
+12 and 13
 
 </td>
 
 <td style="text-align:left;">
 
-Base types & S3
+Base types and S3
 
 </td>
 
 <td style="text-align:left;">
- 
-Ch 12 introduces object-oriented programming. Ch 13 introduces S3, the only OO system used in the base and stats packages, and the most commonly used system in CRAN packages. S3 is very flexible, which means it allows you to do things that are quite ill-advised. This chapter will therefore teach you the conventions you should (almost) always follow.
- 
+
+Ch 12 introduces object-oriented programming. Ch 13 introduces S3, the
+only OO system used in the base and stats packages, and the most
+commonly used system in CRAN packages. S3 is very flexible, which means
+it allows you to do things that are quite ill-advised. This chapter will
+therefore teach you the conventions you should (almost) always follow.
 
 </td>
 
@@ -631,7 +636,7 @@ NA
 
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 14
 
@@ -645,7 +650,11 @@ R6
 
 <td style="text-align:left;">
 
-This chapter describes the R6 OOP system. R6 has two special properties: It uses the encapsulated OOP paradigm, which means that methods belong to objects, not generics, and you call them like object$method(). R6 objects are mutable, which means that they are modified in place, and hence have reference semantics.
+This chapter describes the R6 OOP system. R6 has two special properties:
+It uses the encapsulated OOP paradigm, which means that methods belong
+to objects, not generics, and you call them like object$method(). R6
+objects are mutable, which means that they are modified in place, and
+hence have reference semantics.
 
 </td>
 
@@ -657,13 +666,13 @@ Sign up\!
 
 <td style="text-align:left;">
 
-TBD
+2020-09-15
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+Rotterdam
 
 </td>
 
@@ -675,10 +684,9 @@ NA
 
 </tr>
 
-
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 15
 
@@ -691,8 +699,14 @@ S4
 </td>
 
 <td style="text-align:left;">
- 
-S4 provides a formal approach to functional OOP. The underlying ideas are similar to S3 (the topic of Chapter 13), but implementation is much stricter and makes use of specialised functions for creating classes (setClass()), generics (setGeneric()), and methods (setMethod()). Additionally, S4 provides both multiple inheritance (i.e. a class can have multiple parents) and multiple dispatch (i.e. method dispatch can use the class of multiple arguments).
+
+S4 provides a formal approach to functional OOP. The underlying ideas
+are similar to S3 (the topic of Chapter 13), but implementation is much
+stricter and makes use of specialised functions for creating classes
+(setClass()), generics (setGeneric()), and methods (setMethod()).
+Additionally, S4 provides both multiple inheritance (i.e. a class can
+have multiple parents) and multiple dispatch (i.e. method dispatch can
+use the class of multiple arguments).
 
 </td>
 
@@ -704,13 +718,13 @@ Sign up\!
 
 <td style="text-align:left;">
 
-TBD
+NA
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+Den Bosch ?
 
 </td>
 
@@ -722,10 +736,9 @@ NA
 
 </tr>
 
-
 <tr>
 
-<td style="text-align:right;">
+<td style="text-align:left;">
 
 16
 
@@ -739,7 +752,8 @@ Trade-offs
 
 <td style="text-align:left;">
 
-Now that we know about the different types of classes, how to pick one?  This chapter discusses.
+Now that we know about the different types of classes, how to pick one?
+This chapter discusses.
 
 </td>
 
@@ -751,13 +765,13 @@ Sign up\!
 
 <td style="text-align:left;">
 
-TBD
+NA
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+Amsterdam ?
 
 </td>
 
@@ -768,6 +782,7 @@ NA
 </td>
 
 </tr>
+
 </tbody>
 
 </table>

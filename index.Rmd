@@ -45,7 +45,7 @@ gs4_deauth()
 
 data <- read_sheet(url) %>% 
   janitor::clean_names() %>% 
-  mutate(date = as_date(date)) %>% 
+  mutate(date = as.character(date)) %>% 
   select(chapter, title, description, speaker, date, hosted_by, link)
 ```
 
