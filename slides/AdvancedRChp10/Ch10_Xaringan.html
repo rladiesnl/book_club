@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R - Hadley Wickham   Ch 10 Function Factories</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Sarah Stolle, August 4, 2020" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view/tile-view.js"></script>
+    <script src="libs/xaringanExtra-logo/logo.js"></script>
+    <link href="libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-webcam/webcam.js"></script>
+    <script id="xaringanExtra-webcam-options" type="application/json">{"width":"200","height":"200","margin":"1em"}</script>
+    <script src="libs/clipboard/clipboard.min.js"></script>
+    <link href="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.js"></script>
+    <script>window.xaringanExtraClipboard(null, {"button":"<i class=\"fa fa-clipboard\"><\/i>","success":"<i class=\"fa fa-check\" style=\"color: #90BE6D\"><\/i>","error":"<i class=\"fa fa-times-circle\" style=\"color: #F94144\"><\/i>"})</script>
+    <link href="libs/font-awesome/css/all.css" rel="stylesheet" />
+    <link href="libs/font-awesome/css/v4-shims.css" rel="stylesheet" />
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R - Hadley Wickham <br> Ch 10 Function Factories
+## R Ladies Netherlands Boookclub
+### Sarah Stolle, August 4, 2020
+
+---
+
+
+
+
+
+<style type="text/css">
+.xaringan-extra-logo {
+  width: 50px;
+  height: 128px;
+  z-index: 0;
+  background-image: url('R-LadiesGlobal.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  top:1em;right:1em;
+}
+</style>
+
+
+
+
+# Welcome!
+
+- This is joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht 
+--
+
+- We meet every 2 weeks to go through a chapter 
+--
+
+- Use the HackMD to present yourself, ask questions and see your breakout room 
+--
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after xx min  
+--
+
+- There are still possibilities to present a chapter :) Sign up at https://rladiesnl.github.io/book_club/  
+--
+
+- https://advanced-r-solutions.rbind.io/ has some anwers and we could PR the ones missing  
+--
+
+- The R4DS book club repo has a Q&amp;A section.https://github.com/r4ds/bookclub-Advanced_R 
+
+--
+
+---
+
+# Functional programming - Chp 9, 10 and 11  
+
+ 
+&lt;img src="functional_prog.png" width="150%" /&gt;
+
+---
+# What are Function factories?
+
+&gt; Functions that create functions
+
+* Not super popular or known
+* BUT good to know they exist
+* helpful to write better code
+
+---
+# General explanation of Function factories
+
+* Nested functions
+* In most cases -&gt; one internal function
+
+--
+
+&lt;img src="function_factory_explanation_outer.png" width="40%" /&gt;
+
+--
+
+&lt;img src="function_factory_explanation_inner.png" width="40%" /&gt;
+
+---
+# Code example of exponent function factory
+
+A simple power function
+
+```r
+power1 &lt;- function(exp) {
+  function(x) {
+    x ^ exp
+  }
+}
+
+square &lt;- power1(2)
+cube &lt;- power1(3)
+
+square(2)
+# 4
+
+# also possible
+power1(2)(2)
+```
+
+---
+# Force evaluation - function in a state of suspense
+
+* Calling the first function, creates an instance of it, but does not evaluate it
+* To force execution of the variables in the first function upon instantiation, wrap variables with `force(var)`.
+
+&lt;img src="function_factory_explanation_state.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+# Stateful functions
+
+* The environment (scope) of the first function can "remember" variables, i.e. create a "state"
+* Usually after the function is executed the "execution environment" is discarded. 
+* In this case the execution environment is in the secondary internal function. The outer function continues to exist. 
+
+&lt;img src="function_factory_explanation_state.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+
+
+```r
+generic_function(5)
+# Output 
+#&gt; function() counter &lt;&lt;- counter + 
+#&gt; &lt;bytecode: 0x4968f00&gt;
+#&gt; &lt;environment: 0x4a8f740&gt;
+
+generic_function(5)()
+# counter = 6
+```
+
+---
+# Examples: Ggplot - ggsave
+
+
+- Option with multiple internal function -&gt; `switch` 
+
+
+```r
+plot_dev &lt;- function(ext, dpi = 96) {
+  force(dpi)
+  
+  switch(ext,
+    pdf = function(filename, ...) grDevices::pdf(file = filename, ...),
+    svg = function(filename, ...) svglite::svglite(file = filename, ...),
+    png = function(...) grDevices::png(..., res = dpi, units = "in"),
+    stop("Unknown graphics extension: ", ext, call. = FALSE)
+  )
+}
+
+plot_dev("pdf")
+#&gt; function(filename, ...) grDevices::pdf(file = filename, ...)
+#&gt; &lt;bytecode: 0x4968f00&gt;
+#&gt; &lt;environment: 0x4a8f740&gt;
+plot_dev("png")
+#&gt; function(...) grDevices::png(..., res = dpi, units = "in")
+#&gt; &lt;bytecode: 0x5992f28&gt;
+#&gt; &lt;environment: 0x5f34518&gt;
+```
+
+---
+# Examples: Bootstrap sampling
+
+- Save state in outer function
+- Resample in inner function
+
+
+```r
+boot_model &lt;- function(df, formula) {
+  mod &lt;- lm(formula, data = df)
+  fitted &lt;- unname(fitted(mod))
+  resid &lt;- unname(resid(mod))
+  rm(mod)
+
+  function() {
+    fitted + sample(resid)
+  }
+} 
+
+boot_mtcars2 &lt;- boot_model(mtcars, mpg ~ wt)
+head(boot_mtcars2())
+#&gt; [1] 25.0 24.0 21.7 19.2 24.9 16.0
+head(boot_mtcars2())
+#&gt; [1] 27.4 21.0 20.3 19.4 16.3 21.3
+```
+
+---
+# Exercises 1 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Why is it better to force(x) instead of just x?
+
+Definition of force
+
+```r
+force
+&gt; function (x) 
+&gt; x
+&gt; &lt;bytecode: 0x1fd9660&gt;
+&gt; &lt;environment: namespace:base&gt;
+```
+]
+
+.panel[.panel-name[Answer]
+
+As you can see `force(x)` is just syntactic sugar for `x`. We prefer this explicit form, because “using this function clearly indicates that you’re forcing evaluation, not that you’ve accidentally typed `x`.” (Quote from the textbook).
+
+]
+]
+
+---
+# Exercise 2
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Base R contains two function factories, approxfun() and ecdf(). Read their documentation and experiment to figure out what the functions do and what they return.
+]
+
+.panel[.panel-name[Answer]
+
+Let’s begin with `approxfun()` as it is used within `ecdf()`also:
+
+- `approxfun()` takes a 2-dimensional combination of data points (`x` and `y`) as input and returns a stepwise interpolation function, which transforms new `x` values. Additional arguments control how the created function should behave. (The interpolation method may be linear or constant. `yleft`, `yright` and `rule` specify how the newly created function should map new values which are outside of `range(x)`. `f` controls the degree of right-left-continuity via a numeric value from `0` to `1` and `ties` expects a function name like min, mean etc. which defines how non-unique x-y-combinations should be handled when interpolating the data points.)
+
+- `ecdf()` is an acronym for empirical cumulative distribution function. For a numeric vector, `ecdf()` returns the appropriate distribution function (of class “ecdf”, which is inheriting from class “stepfun”). Initially the (x, y) pairs for the nodes of the density function are calculated. Afterwards these pairs are passed to `approxfun()`, which then returns the desired function.
+
+]
+]
+
+
+---
+# Exercise 3
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Create a function `pick()` that takes an index, `i`, as an argument and returns a function with an argument `x` that subsets `x` with `i`.
+
+
+```r
+pick(1)(x)
+# should be equivalent to
+x[[1]]
+
+lapply(mtcars, pick(5))
+# should be equivalent to
+lapply(mtcars, function(x) x[[5]])
+```
+
+]
+
+.panel[.panel-name[Answer]
+
+
+```r
+pick &lt;- function(i) {
+  force(i)
+
+  function(x) x[[i]]
+}
+
+x &lt;- 1:3
+identical(x[[1]], pick(1)(x))
+#&gt; [1] TRUE
+identical(lapply(mtcars, function(x) x[[5]]),
+          lapply(mtcars, pick(5)))
+#&gt; [1] TRUE
+```
+]
+]
+
+
+---
+# Exercise 4
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Create a function that creates functions that compute the ith central moment of a numeric vector. You can test it by running the following code:
+
+
+```r
+m1 &lt;- moment(1)
+m2 &lt;- moment(2)
+
+x &lt;- runif(100)
+stopifnot(all.equal(m1(x), 0))
+stopifnot(all.equal(m2(x), var(x) * 99 / 100))
+```
+]
+
+.panel[.panel-name[Answer]
+
+The first moment is closely related to the mean and describes the average deviation from the mean, which is 0 (within numerical margin of error). The second moment describes the variance of the input data. If we want compare it to var, we need to undo [Bessel’s correction](https://en.wikipedia.org/wiki/Bessel%27s_correction) correction by multiplying with (N−1)/N.
+
+
+```r
+moment &lt;- function(i){
+  force(i)
+
+  function(x) sum((x - mean(x)) ^ i) / length(x)
+}
+
+m1 &lt;- moment(1)
+m2 &lt;- moment(2)
+
+x &lt;- runif(100)
+all.equal(m1(x), 0)  # removed stopifnot() for clarity
+#&gt; [1] TRUE
+all.equal(m2(x), var(x) * 99 / 100)
+#&gt; [1] TRUE
+```
+
+]
+]
+
+
+
+---
+# Exercise 5
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; What happens if you don’t use a closure? Make predictions, then verify with the code below.
+
+
+```r
+i &lt;- 0
+new_counter2 &lt;- function() {
+  i &lt;&lt;- i + 1
+  i
+}
+```
+]
+
+.panel[.panel-name[Answer]
+
+
+```r
+new_counter2()
+#&gt; [1] 1
+i
+#&gt; [1] 1
+new_counter2()
+#&gt; [1] 2
+i
+#&gt; [1] 2
+
+i &lt;- 0
+new_counter2()
+#&gt; [1] 1
+i
+#&gt; [1] 1
+```
+]
+]
+
+
+
+---
+# Exercise 6
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; What happens if you use `&lt;-` instead of `&lt;&lt;-`? Make predictions, then verify with the code below.
+
+
+```r
+new_counter3 &lt;- function() {
+  i &lt;- 0
+  function() {
+    i &lt;- i + 1
+    i
+  }
+}
+```
+]
+
+.panel[.panel-name[Answer]
+
+Without the super assignment `&lt;&lt;-`, the counter will always return `1`. The counter always starts in a new execution environment within the same enclosing environment, which contains an unchanged value for `i` (in this case it remains `0`).
+
+
+```r
+new_counter_3 &lt;- new_counter3()
+
+new_counter_3()
+#&gt; [1] 1
+new_counter_3()
+#&gt; [1] 1
+```
+
+]
+]
+
+---
+# Exercise 7
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; In `boot_model()`, why don’t I need to force the evaluation of `df` or `model`?
+
+]
+
+.panel[.panel-name[Answer]
+
+`boot_model()` ultimately returns a function, and whenever you return a function you need to make sure all the inputs are explicitly evaluated. Here that happens automatically because we use df and formula in `lm()`.
+
+
+```r
+boot_model &lt;- function(df, formula) {
+  mod &lt;- lm(formula, data = df)
+  fitted &lt;- unname(fitted(mod))
+  resid &lt;- unname(resid(mod))
+  rm(mod)
+
+  function() {
+    fitted + sample(resid)
+  }
+} 
+```
+
+]
+]
+
+
+---
+# Exercise 8
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Why might you formulate the Box-Cox transformation like this?
+
+
+```r
+boxcox3 &lt;- function(x) {
+  function(lambda) {
+    if (lambda == 0) {
+      log(x)
+    } else {
+      (x ^ lambda - 1) / lambda
+    }
+  }  
+}
+```
+
+]
+
+.panel[.panel-name[Answer]
+
+`boxcox3()` returns a function where `x` is fixed (though it is not forced, so it may manipulated later). This allows us to apply and test different transformations for different inputs and give them a descriptive name.
+ 
+]
+]
+
+
+---
+# Exercise 9
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Why don’t you need to worry that `boot_permute()` stores a copy of the data inside the function that it generates?
+
+]
+
+.panel[.panel-name[Answer]
+
+Because it doesn’t actually store a copy; it’s just a name that points to the same underlying object in memory.
+
+
+```r
+boot_permute &lt;- function(df, var) {
+  n &lt;- nrow(df)
+  force(var)
+
+  function() {
+    col &lt;- df[[var]]
+    col[sample(n, replace = TRUE)]
+  }
+}
+boot_mtcars1 &lt;- boot_permute(mtcars, "mpg")
+
+lobstr::obj_size(mtcars)
+#&gt; 7,208 B
+lobstr::obj_size(boot_mtcars1)
+#&gt; 23,296 B
+lobstr::obj_sizes(mtcars, boot_mtcars1)
+#&gt; *  7,208 B
+#&gt; * 16,088 B
+```
+]
+]
+
+---
+# Exercise 10
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; How much time does `ll_poisson2()` save compared to `ll_poisson1()`? Use `bench::mark()` to see how much faster the optimisation occurs. How does changing the length of `x`change the results?
+
+
+```r
+# Definition of ll_poisson1 and ll_poisson2 
+ll_poisson1 &lt;- function(x) {
+  n &lt;- length(x)
+
+  function(lambda) {
+    log(lambda) * sum(x) - n * lambda - sum(lfactorial(x))
+  }
+}
+
+ll_poisson2 &lt;- function(x) {
+  n &lt;- length(x)
+  sum_x &lt;- sum(x)
+  c &lt;- sum(lfactorial(x))
+
+  function(lambda) {
+    log(lambda) * sum_x - n * lambda - c
+  }
+}
+```
+
+]
+
+.panel[.panel-name[Answer]
+
+A benchmark with this data reveals a performance improvement of factor 2 for `ll_poisson2()` over `ll_poisson1()`
+
+```r
+# provided test data
+x1 &lt;- c(41, 30, 31, 38, 29, 24, 30, 29, 31, 38)
+
+bench::mark(
+  llp1 = optimise(ll_poisson1(x1), c(0, 100), maximum = TRUE),
+  llp2 = optimise(ll_poisson2(x1), c(0, 100), maximum = TRUE)
+)
+#&gt; # A tibble: 2 x 6
+#&gt;   expression      min   median `itr/sec` mem_alloc `gc/sec`
+#&gt;   &lt;bch:expr&gt; &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;
+#&gt; 1 llp1         30.2µs   34.1µs    28225.    12.8KB     22.6
+#&gt; 2 llp2           15µs   17.1µs    55183.        0B     22.1
+```
+
+]
+.panel[.panel-name[Answer 2]
+
+Regarding differing lengths of x1, we expect even further performance improvements of `ll_poisson2()` compared to `ll_poisson1()`, as the redundant calculations within `ll_poisson1()`, become more expensive with growing length of `x1`. The following results imply that for a length of `x1` of `100000`, `ll_poisson2()` is about 20+ times as fast as `ll_poisson1()`:
+
+&lt;img src="chapter10_exercise10.png" width="50%" /&gt;
+
+]
+]
+
+
+
+---
+# Exercise 11
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Which of the following commands is equivalent to `with(x, f(z))`?
+
+1. `x$f(x$z)`.
+2. `f(x$z)`.
+3. `x$f(z)`.
+4. `f(z)`.
+5. It depends.
+
+]
+
+.panel[.panel-name[Answer]
+
+5) “It depends” is the correct answer. Usually `with()` is used with a data frame, so you’d usually expect (2), but if `x` is a list, it could be any of the options.
+
+
+```r
+f &lt;- mean
+z &lt;- 1
+x &lt;- list(f = mean, z = 1)
+
+identical(with(x, f(z)), x$f(x$z))
+#&gt; [1] TRUE
+identical(with(x, f(z)), f(x$z))
+#&gt; [1] TRUE
+identical(with(x, f(z)), x$f(z))
+#&gt; [1] TRUE
+identical(with(x, f(z)), f(z))
+#&gt; [1] TRUE
+```
+
+]
+]
+
+
+
+---
+# Exercise 12
+
+.panelset[
+.panel[.panel-name[Question]
+
+&gt; Compare and contrast the effects of env_bind() vs. attach() for the following code.
+
+
+```r
+funs &lt;- list(
+  mean = function(x) mean(x, na.rm = TRUE),
+  sum = function(x) sum(x, na.rm = TRUE)
+)
+
+attach(funs)
+#&gt; The following objects are masked from package:base:
+#&gt; 
+#&gt;     mean, sum
+mean &lt;- function(x) stop("Hi!")
+detach(funs)
+
+env_bind(globalenv(), !!!funs)
+mean &lt;- function(x) stop("Hi!") 
+env_unbind(globalenv(), names(funs))
+```
+]
+
+.panel[.panel-name[Answer]
+
+`attach()` adds funs to the search path. Therefore, the provided functions are found before their respective versions from the base package. Further, they can not get accidently overwritten by similar named functions in the global environment. One annoying downsinde of using `attach()` is the possibility to attach the same object multiple times, making it necessary to call `detach()` equally often.
+
+In contrast `rlang::env_bind()` just adds the functions in fun to the global environment. No further side effects are introduced and the functions are overwritten when similarly named functions are defined.
+
+]
+]
+
+
+---
+
+# Thanks to:
+
+- Hadley Wickham for writing [AdvancedR](https://adv-r.hadley.nz/)
+- R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+  Vienna, Austria. [URL](https://www.R-project.org/).  
+- Yihui Xie (2020). [xaringan](https://CRAN.R-project.org/package=xaringan): Presentation Ninja. R package version 0.16. 
+- Garrick Aden-Buie (2020). [xaringanExtra](https://github.com/gadenbuie/xaringanExtra): Extras And Extensions for Xaringan Slides. R package version 0.0.17.  
+
+and all the authors of R packages used in this presentation 
+
+--- 
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Functionals, **function**(function) = vector --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- let_us &lt;- function(f, inputs) f(inputs) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- let_us(sum, 1:4) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- let_us(median, 1:4) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- let_us(range, 1:4) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- let_us(sqrt, 1:4) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::map( )   --&gt;
+
+
+&lt;!-- .pull-left[ --&gt;
+
+&lt;!-- ```{r, out.width="100%"} --&gt;
+&lt;!-- knitr::include_graphics("Chp9_map.png") --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- input slot 1: vector   --&gt;
+&lt;!-- input slot 2: function   --&gt;
+&lt;!-- output: list --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- str(purrr::map) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- ] --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- .pull-right[ --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- map(penguins, typeof) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- ] --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::map( ) - atomic functions 1/3 --&gt;
+
+
+&lt;!-- .pull-left[ --&gt;
+
+&lt;!-- list as output --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- map(penguins, typeof) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- ] --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- .pull-right[ --&gt;
+
+&lt;!-- chr vector as output --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- map_chr(penguins, typeof) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::map( ) - atomic functions 2/3 --&gt;
+
+
+&lt;!-- logical vector as output --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_lgl(penguins, is.double) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+&lt;!-- ```{r} --&gt;
+&lt;!-- map_lgl(penguins, is.double) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- -- --&gt;
+
+&lt;!-- integer vector as output --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- n_unique &lt;- function(x) length(unique(x)) --&gt;
+&lt;!-- map_int(penguins, n_unique) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- n_unique &lt;- function(x) length(unique(x)) --&gt;
+&lt;!-- map_int(penguins, n_unique) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::map( ) - atomic functions 3/3 --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_dbl(penguins, mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map_dbl(penguins, mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+
+&lt;!-- This is an example of passing arguments:   --&gt;
+
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- knitr::include_graphics("Chp9_arguments.png") --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- Extra arguments (after f) will be passed along as is (no decomposition).  --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Anonymous functions and shortcuts 1/ --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- # instead of: --&gt;
+&lt;!-- n_unique &lt;- function(x) length(unique(x)) --&gt;
+&lt;!-- map_int(penguins, n_unique) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- # you can create an inline anonymous function: --&gt;
+&lt;!-- map_int(penguins, function(x) length(unique(x))) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- # or even with less characters, and with a tilde/twiddle: --&gt;
+&lt;!-- map_int(penguins, ~length(unique(.x))) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+
+&lt;!-- # Anonymous functions and shortcuts 2/  --&gt;
+
+&lt;!-- Very useful for making sets of random numbers --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- x &lt;- map(1:3, ~ runif(.x)) --&gt;
+&lt;!-- str(x) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- -- --&gt;
+
+&lt;!-- If at the second spot there is a vector/list instead of function,   --&gt;
+&lt;!-- result is extraction of elements from the input vector:   --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- map_dbl(x, 1) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, eval = FALSE, echo= TRUE} --&gt;
+&lt;!-- map_dbl(x, 2) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- ```{r, error = TRUE} --&gt;
+&lt;!-- map_dbl(x, 2) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Anonymous functions and shortcuts 3/ --&gt;
+
+
+&lt;!-- ```{r, error = TRUE,echo = TRUE} --&gt;
+&lt;!-- map_dbl(x, 2) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- Prevent this error by supplying a default value: --&gt;
+
+&lt;!-- ```{r, echo= TRUE} --&gt;
+&lt;!-- map_dbl(x, 2, .default = NA) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- Extract elements by:   --&gt;
+
+&lt;!-- *  location, with an integer vector --&gt;
+&lt;!-- *  by name, with a character vector --&gt;
+&lt;!-- *  combi name/location, with a list --&gt;
+
+
+&lt;!-- --- --&gt;
+
+&lt;!-- background-image: url("8cabcf7e19ecf6c73da7c1e7947b5394.gif") --&gt;
+&lt;!-- background-size: cover --&gt;
+
+&lt;!-- --- --&gt;
+&lt;!-- # Intermezzo on *trim* --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- Plain mean:  --&gt;
+&lt;!-- ```{r,echo = TRUE} --&gt;
+&lt;!-- mean(c(1,1,2,2,2,2,2,2,2,2,1000,1000)) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- Trim 20% of the observations at both sides:  --&gt;
+&lt;!-- ```{r,echo = TRUE} --&gt;
+&lt;!-- mean(c(1,1,2,2,2,2,2,2,2,2,1000,1000), trim = 0.2) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- It cuts of from the ordered vector: --&gt;
+
+&lt;!-- ```{r,echo = TRUE} --&gt;
+&lt;!-- mean(c(1000,1,2,2,2,2,2,2,2,2,1000,1), trim = 0.2) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+&lt;!-- So it trims the smallest and the largest values. --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Use argument names --&gt;
+
+&lt;!-- Calculate the means for the numeric columns in `penguins`:   --&gt;
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_dbl(penguins[,3:6], mean, TRUE) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, error = TRUE} --&gt;
+&lt;!-- map_dbl(penguins[,3:6], mean, TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- What we wanted was to have the `na.rm = TRUE`; --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_dbl(penguins[,3:6], mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, error = TRUE} --&gt;
+&lt;!-- map_dbl(penguins[,3:6], mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- Another example:   --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- map_dbl(penguins[,3:6], mean, na.rm = TRUE, 0.1) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- The 0.1 appears to be the *trim*. But would you know that by looking at the script?   --&gt;
+
+
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Regression example --&gt;
+
+&lt;!-- ```{r, fig.width = 10} --&gt;
+&lt;!-- colors_penguin &lt;- c(Adelie = "#FF8C00", --&gt;
+&lt;!--                     Chinstrap = "#A034F0", --&gt;
+&lt;!--                     Gentoo = "#018B8B") --&gt;
+&lt;!-- penguins %&gt;% --&gt;
+&lt;!--   ggplot(aes(x = bill_length_mm, y = bill_depth_mm, --&gt;
+&lt;!--              color = species, shape = species)) + --&gt;
+&lt;!--   geom_point(size = 2) + --&gt;
+&lt;!--   geom_smooth(method = "lm", se = FALSE, size = 1.5) + --&gt;
+&lt;!--   scale_color_manual(values = colors_penguin) + --&gt;
+&lt;!--   theme_minimal() --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Regression example --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- penguins_species &lt;- split(penguins, penguins$species) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- .pull-left[ --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+
+&lt;!-- penguins_species %&gt;% --&gt;
+&lt;!--   # inputs are the 3 splits --&gt;
+&lt;!--   # of penguins --&gt;
+&lt;!--   # function is the lm: --&gt;
+&lt;!--   map(~ lm(bill_depth_mm ~  --&gt;
+&lt;!--              bill_length_mm, --&gt;
+&lt;!--            data = .x)) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+&lt;!-- .pull-right[ --&gt;
+
+&lt;!-- ```{r} --&gt;
+
+&lt;!-- penguins_species %&gt;% --&gt;
+&lt;!--   # inputs are the 3 splits of penguins --&gt;
+&lt;!--   # function is the lm: --&gt;
+&lt;!--   map(~ lm(bill_depth_mm ~ bill_length_mm, --&gt;
+&lt;!--            data = .x)) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+&lt;!-- --- --&gt;
+
+
+&lt;!-- # Regression example --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- penguins_species &lt;- split(penguins, penguins$species) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- .pull-left[ --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+
+&lt;!-- penguins_species %&gt;% --&gt;
+&lt;!--   # inputs are the 3 splits --&gt;
+&lt;!--   # of penguins --&gt;
+&lt;!--   # function is the lm: --&gt;
+&lt;!--   map(~ lm(bill_depth_mm ~  --&gt;
+&lt;!--              bill_length_mm, --&gt;
+&lt;!--            data = .x)) %&gt;% --&gt;
+&lt;!--   # inputs are the models --&gt;
+&lt;!--   # function is coef() --&gt;
+&lt;!--   map(coef)  --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+&lt;!-- .pull-right[ --&gt;
+
+&lt;!-- ```{r} --&gt;
+
+&lt;!-- penguins_species %&gt;% --&gt;
+&lt;!--   # inputs are the 3 splits of penguins --&gt;
+&lt;!--   # function is the lm: --&gt;
+&lt;!--   map(~ lm(bill_depth_mm ~ bill_length_mm, --&gt;
+&lt;!--            data = .x)) %&gt;% --&gt;
+&lt;!--   # with baseR coef() extract coefficients --&gt;
+&lt;!--   map(coef) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+&lt;!-- --- --&gt;
+
+
+&lt;!-- # Regression example --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- penguins_species &lt;- split(penguins, penguins$species) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- .pull-left[ --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+
+&lt;!-- penguins_species %&gt;% --&gt;
+&lt;!--   # inputs are the 3 splits --&gt;
+&lt;!--   # of penguins --&gt;
+&lt;!--   # function is the lm: --&gt;
+&lt;!--   map(~ lm(bill_depth_mm ~  --&gt;
+&lt;!--              bill_length_mm, --&gt;
+&lt;!--            data = .x)) %&gt;% --&gt;
+&lt;!--   # inputs are the models --&gt;
+&lt;!--   # function is coef() --&gt;
+&lt;!--   map(coef) %&gt;% --&gt;
+&lt;!--   # inputs are sets of coefficients --&gt;
+&lt;!--   # subset to get the slopes --&gt;
+&lt;!--   map(2) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+&lt;!-- .pull-right[ --&gt;
+
+&lt;!-- ```{r} --&gt;
+
+&lt;!-- penguins_species %&gt;% --&gt;
+&lt;!--   # inputs are the 3 splits of penguins --&gt;
+&lt;!--   # function is the lm: --&gt;
+&lt;!--   map(~ lm(bill_depth_mm ~ bill_length_mm, --&gt;
+&lt;!--            data = .x)) %&gt;% --&gt;
+&lt;!--   # with baseR coef() extract coefficients --&gt;
+&lt;!--   map(coef) %&gt;% --&gt;
+&lt;!--   # subset to get the slopes --&gt;
+&lt;!--   map(2) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::map2( )   --&gt;
+
+
+&lt;!-- ```{r, out.width="80%"} --&gt;
+&lt;!-- knitr::include_graphics("Chp9_map2.png") --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- str(purrr::map2) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- input slot 1: vector   --&gt;
+&lt;!-- input slot 2: another vector   --&gt;
+&lt;!-- input slot 3: function   --&gt;
+&lt;!-- input slot 4: additional arguments to function   --&gt;
+&lt;!-- output: list --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::map2( ) - examples --&gt;
+
+
+&lt;!-- ```{r, echo=TRUE, eval = FALSE} --&gt;
+&lt;!-- map2(1:3, 4:6, ~.x ^ .y) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map2(1:3, 4:6, ~.x ^ .y) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map2_chr(penguins$species, penguins$island, str_c, sep = " - ") %&gt;% head(30) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map2_chr(penguins$species, penguins$island, str_c, sep = " - ") %&gt;% head(30) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::map2( ) recycles --&gt;
+
+
+&lt;!-- ```{r, echo=TRUE, eval = FALSE} --&gt;
+&lt;!-- map2(1:3, 4,  ~.x ^ .y) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map2(1:3, 4,  ~.x ^ .y) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- This is equivalent with   --&gt;
+&lt;!-- treating the second argument as an additional argument to the function in a map():   --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo=TRUE, eval = FALSE} --&gt;
+&lt;!-- map(1:3, ~.x ^ .y, 4) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map(1:3, ~.x ^ .y, 4) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::pmap( ) --&gt;
+
+
+&lt;!-- ```{r, out.width="80%"} --&gt;
+&lt;!-- knitr::include_graphics("Chp9_pmap.png") --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- str(purrr::pmap) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- input slot 1: list   --&gt;
+&lt;!-- input slot 2: function   --&gt;
+&lt;!-- input slot 3: additional arguments to function   --&gt;
+&lt;!-- output: list --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::pmap( ) - example   --&gt;
+
+&lt;!-- Use pmap to draw sets of random samples from a number of normal distributions:   --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- str(rnorm) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+&lt;!-- So we need a tibble with the desired inputs:  --&gt;
+&lt;!-- -- --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+
+&lt;!-- params &lt;- tibble(n = 3:5, mean = c(30, 20, 10), sd = 1:3) --&gt;
+
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- Because the variable names in `params` match the argument names in `rnorm`, this works:   --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- pmap(params, rnorm) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- pmap(params, rnorm) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # purrr::imap( ) - example names  --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- str(imap) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+
+&lt;!-- `imap(x,f)`:   --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- *  x has names `\(\rightarrow\)` `map2(x, names(x), f)` --&gt;
+
+&lt;!-- -- --&gt;
+&lt;!-- *  x has NO names `\(\rightarrow\)` `map2(x, seq_along(x), f)`   --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- **Example**  --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- imap_chr(penguins, ~ str_c("First value of ", .y, " is ", .x[[1]])) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- imap_chr(penguins, ~ str_c("First value of ", .y, " is ", .x[[1]])) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+&lt;!-- # purrr::imap( ) - example no names --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- x &lt;- map(1:3, ~ sample(1000, 10)) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- x --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- imap_chr(x, ~ paste0("The highest value of ", .y, " is ", max(.x))) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+&lt;!-- ```{r} --&gt;
+&lt;!-- imap_chr(x, ~ paste0("The highest value of ", .y, " is ", max(.x))) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- background-image: url("tumblr_mvg9gwlqxd1qhpnsyo1_500.gif") --&gt;
+&lt;!-- background-size: cover --&gt;
+
+&lt;!-- --- --&gt;
+
+
+&lt;!-- # modify( ) --&gt;
+
+&lt;!-- Returns  a modified copy, same type of output as input. --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- str(modify) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, eval = FALSE, echo = TRUE} --&gt;
+&lt;!-- map(penguins[3:6], ~.x*2) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map(penguins[3:6], ~.x*2) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, eval = FALSE, echo = TRUE} --&gt;
+&lt;!-- modify(penguins[3:6], ~.x*2) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- modify(penguins[3:6], ~.x*2) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # walk( )  --&gt;
+
+&lt;!-- Most functions are used for their return value.   --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- Some mainly for their side-effects, like plot(), write.csv(), ...   --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- These latter functions do have an invisible return value (see 6.7.2),   --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- that become visible with map( ).   --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- print(3:4) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_chr(3:4, print) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map_chr(3:4, print) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- Use `walk` when you only want the side-effect:   --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- walk(3:4, print) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- walk(3:4, print) --&gt;
+
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # walk( ) - example saving multiple files --&gt;
+
+&lt;!-- ```{r, echo = TRUE}  --&gt;
+&lt;!-- temp &lt;- tempfile()  --&gt;
+&lt;!-- # returns a vector of character strings  --&gt;
+&lt;!-- # which can be used as names for temporary files --&gt;
+&lt;!-- temp --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- # make the temporary directory --&gt;
+&lt;!-- dir.create(temp) --&gt;
+&lt;!-- # and see that it is empty --&gt;
+&lt;!-- dir(temp) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- peng &lt;- split(penguins, penguins$species) --&gt;
+&lt;!-- paths &lt;- file.path(temp, paste0("species-", names(peng), ".csv")) --&gt;
+&lt;!-- walk2(peng, paths, write.csv) --&gt;
+&lt;!-- dir(temp) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- peng &lt;- split(penguins, penguins$species) --&gt;
+&lt;!-- paths &lt;- file.path(temp, paste0("species-", names(peng), ".csv")) --&gt;
+&lt;!-- walk2(peng, paths, write.csv) --&gt;
+&lt;!-- dir(temp) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- # to clean up all the temp directories and content made --&gt;
+&lt;!-- unlink(temp, recursive = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # reduce( ) --&gt;
+
+&lt;!-- ```{r, out.width="60%"} --&gt;
+&lt;!-- knitr::include_graphics("Chp9_reduce.png") --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- str(reduce) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- --- --&gt;
+
+&lt;!-- # reduce( ) - example intersect   --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- mylist &lt;- map(1:3, ~ sample(1:10, 15, replace = T)) --&gt;
+&lt;!-- str(mylist) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- How to find the common numbers?   --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- .pull-left[ --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- out &lt;- mylist[[1]] --&gt;
+&lt;!-- (out &lt;- intersect(out, mylist[[2]])) --&gt;
+&lt;!-- (out &lt;- intersect(out, mylist[[3]])) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- ] --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- .pull-right[ --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- reduce(mylist, intersect) --&gt;
+&lt;!-- accumulate(mylist, intersect) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- ] --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # reduce( ) - use of .init 1/2 --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- reduce(1:4, `*`) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- reduce(1:4, `*`) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- reduce(3, `*`) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- reduce(3, `*`) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- reduce("purrrrrr", `*`) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- reduce("purrrrrr", `*`) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+&lt;!-- So, obviously no check on input type ... --&gt;
+&lt;!-- --- --&gt;
+&lt;!-- # reduce( ) - use of .init 2/2 --&gt;
+
+
+&lt;!-- ```{r,echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- reduce(integer(), `*`) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, error = TRUE} --&gt;
+&lt;!-- reduce(integer(), `*`) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+&lt;!-- From the help on `init`:   --&gt;
+&lt;!-- If supplied, will be used as the first value to start the accumulation, rather than using .x[[1]]. This is useful if you want to ensure that reduce returns a correct value when .x is empty. If missing, and .x is empty, will throw an error.   --&gt;
+&lt;!-- -- --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- # prod returns the product of all the values present in its arguments. --&gt;
+&lt;!-- prod(integer()) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE, error = FALSE} --&gt;
+&lt;!-- reduce(integer(), `*`, .init=1) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE, error = TRUE} --&gt;
+&lt;!-- reduce("purrrrrr", `*`, .init = 1)   # and now this DOES throw an error --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- --- --&gt;
+
+&lt;!-- # Map-reduce   --&gt;
+
+&lt;!-- ```{r, out.width="100%"} --&gt;
+&lt;!-- knitr::include_graphics("MapReduce_Work_Structure.png") --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- Source: https://whatsbigdata.be/wp-content/uploads/2014/06/MapReduce_Work_Structure.png   --&gt;
+&lt;!-- --- --&gt;
+
+&lt;!-- # Predicate functionals 1/4  --&gt;
+
+&lt;!-- A **predicate function** is a function that returns TRUE or FALSE.   --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- is.numeric(penguins$species) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- A **predicate functional** applies a predicate function to each element of a vector:   --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- # some returns TRUE when first TRUE element is seen --&gt;
+&lt;!-- some(penguins, is.numeric) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- # every returns FALSE when first FALSE element is seen --&gt;
+&lt;!-- every(penguins, is.numeric) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo=TRUE} --&gt;
+&lt;!-- # none has to check entire vector --&gt;
+&lt;!-- none(mylist, is.numeric) --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- --- --&gt;
+
+&lt;!-- # Predicate functionals 2/4  --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- detect(penguins %&gt;% head(), is.factor)        # value of the first match --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- detect_index(penguins %&gt;% head(), is.factor)  # location of the first match --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- keep(penguins %&gt;% head(n = 1), is.numeric) --&gt;
+&lt;!-- ``` --&gt;
+
+
+&lt;!-- -- --&gt;
+&lt;!-- ```{r, echo = TRUE} --&gt;
+&lt;!-- discard(penguins %&gt;% head(n = 1), is.numeric) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Predicate functionals 3/4 --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_dbl(penguins, mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map_dbl(penguins, mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_dbl(keep(penguins, is.numeric), mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map_dbl(keep(penguins, is.numeric), mean, na.rm = TRUE) --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Predicate functionals 4/4 --&gt;
+
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- map_if(penguins,is.numeric, mean, na.rm = TRUE) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- map_if(penguins,is.numeric, mean, na.rm = TRUE) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, echo = TRUE, eval = FALSE} --&gt;
+&lt;!-- modify_if(penguins,is.numeric, mean, na.rm = TRUE) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r} --&gt;
+&lt;!-- modify_if(penguins,is.numeric, mean, na.rm = TRUE) %&gt;% str() --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # bye --&gt;
+
+
+&lt;!-- --- --&gt;
+
+&lt;!-- background-image: url("done.gif") --&gt;
+&lt;!-- background-size: cover --&gt;
+
+&lt;!-- -- --&gt;
+
+&lt;!-- ```{r, out.width="100%"} --&gt;
+&lt;!-- knitr::include_graphics("break.png") --&gt;
+&lt;!-- ``` --&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Breakout questions   --&gt;
+
+&lt;!-- * Did you use these functions before? Please share some details/tips/stories.  --&gt;
+
+&lt;!-- * What are the 23 primary variants of `map( )` Hadley Wickham mentiones in 9.4? --&gt;
+
+&lt;!-- * In case you want to try some exercises, try these:   --&gt;
+&lt;!--   *  9.2.6.3 --&gt;
+&lt;!--   *  9.2.6.6 --&gt;
+&lt;!--   *  9.6.3.5 --&gt;
+&lt;!--   *  or any other exercise :) --&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

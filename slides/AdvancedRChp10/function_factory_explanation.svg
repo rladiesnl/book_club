@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:export-ydpi="300"
+   inkscape:export-xdpi="300"
+   inkscape:export-filename="/Users/little_monster/Documents/rladies/book_club/slides/AdvancedRChp10/function_factory_explanation_outer.png"
+   sodipodi:docname="function_factory_explanation.svg"
+   inkscape:version="1.0beta2 (2b71d25, 2019-12-03)"
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 174.23688 90.840492"
+   height="90.840492mm"
+   width="174.23688mm">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     inkscape:window-maximized="0"
+     inkscape:window-y="0"
+     inkscape:window-x="0"
+     inkscape:window-height="1120"
+     inkscape:window-width="1792"
+     fit-margin-bottom="0"
+     fit-margin-right="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     showgrid="false"
+     inkscape:document-rotation="0"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="mm"
+     inkscape:cy="219.8338"
+     inkscape:cx="338.21914"
+     inkscape:zoom="1.4"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-43.013687,-53.706603)"
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1">
+    <text
+       id="text835"
+       y="61.799107"
+       x="43.013687"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="stroke-width:0.264583"
+         y="61.799107"
+         x="43.013687"
+         id="tspan833"
+         sodipodi:role="line">generic_function &lt;- <tspan
+   id="tspan859"
+   style="fill:#0000ff">function</tspan>(i) <tspan
+   id="tspan857"
+   style="fill:#008000">{</tspan></tspan><tspan
+         id="tspan837"
+         style="stroke-width:0.264583"
+         y="75.028229"
+         x="43.013687"
+         sodipodi:role="line">    counter &lt;- force(i)</tspan><tspan
+         id="tspan847"
+         style="stroke-width:0.264583"
+         y="88.257355"
+         x="43.013687"
+         sodipodi:role="line" /><tspan
+         id="tspan849"
+         style="stroke-width:0.264583"
+         y="101.48648"
+         x="43.013687"
+         sodipodi:role="line">    <tspan
+   id="tspan861"
+   style="fill:#0000ff">function</tspan>() <tspan
+   id="tspan865"
+   style="fill:#ff6600">{</tspan></tspan><tspan
+         id="tspan851"
+         style="stroke-width:0.264583"
+         y="114.71561"
+         x="43.013687"
+         sodipodi:role="line">        counter &lt;&lt;- counter + 1</tspan><tspan
+         id="tspan853"
+         style="stroke-width:0.264583"
+         y="127.94473"
+         x="43.013687"
+         sodipodi:role="line">    <tspan
+   id="tspan867"
+   style="fill:#ff6600">}</tspan></tspan><tspan
+         id="tspan855"
+         style="fill:#008000;stroke-width:0.264583"
+         y="141.17386"
+         x="43.013687"
+         sodipodi:role="line">}</tspan><tspan
+         id="tspan839"
+         style="stroke-width:0.264583"
+         y="154.40298"
+         x="43.013687"
+         sodipodi:role="line" /><tspan
+         id="tspan841"
+         style="stroke-width:0.264583"
+         y="167.6321"
+         x="43.013687"
+         sodipodi:role="line" /><tspan
+         id="tspan843"
+         style="stroke-width:0.264583"
+         y="180.86122"
+         x="43.013687"
+         sodipodi:role="line" /><tspan
+         id="tspan845"
+         style="stroke-width:0.264583"
+         y="194.09035"
+         x="43.013687"
+         sodipodi:role="line" /></text>
+    <rect
+       y="64.478928"
+       x="57.376781"
+       height="70.492561"
+       width="158.18303"
+       id="rect995"
+       style="fill:#c6e9af;fill-opacity:0.198381;stroke:none;stroke-width:0.332449" />
+    <text
+       id="text999"
+       y="136.48338"
+       x="142.61041"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="fill:#008000;stroke-width:0.264583"
+         y="136.48338"
+         x="142.61041"
+         id="tspan997"
+         sodipodi:role="line">outer function</tspan></text>
+  </g>
+</svg>
