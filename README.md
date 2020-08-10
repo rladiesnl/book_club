@@ -529,8 +529,7 @@ Amsterdam
 
 <td style="text-align:left;">
 
-[Meet-up
-link](https://www.meetup.com/rladies-amsterdam/events/272213195/)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp10/Ch10_Xaringan.html)
 
 </td>
 
@@ -578,7 +577,8 @@ Nijmegen
 
 <td style="text-align:left;">
 
-NA
+[Meet-up
+link](https://www.meetup.com/rladies-nijmegen/events/272479527/)
 
 </td>
 
