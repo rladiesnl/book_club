@@ -580,6 +580,9 @@ Nijmegen
 [Meet-up
 link](https://www.meetup.com/rladies-nijmegen/events/272479527/)
 
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp11/Ch11_Xaringan.html)
+
+
 </td>
 
 </tr>
