@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R - Hadley Wickham   Chapter 11: Function operators</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Laurel Brehm, 18 August, 2020" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view/tile-view.js"></script>
+    <script src="libs/xaringanExtra-logo/logo.js"></script>
+    <link href="libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-webcam/webcam.js"></script>
+    <script id="xaringanExtra-webcam-options" type="application/json">{"width":"200","height":"200","margin":"1em"}</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R - Hadley Wickham <br> Chapter 11: Function operators
+## R Ladies Netherlands Boookclub
+### Laurel Brehm, 18 August, 2020
+
+---
+
+
+
+
+
+<style type="text/css">
+.xaringan-extra-logo {
+  width: 50px;
+  height: 128px;
+  z-index: 0;
+  background-image: url('R-LadiesGlobal.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  top:1em;right:1em;
+}
+</style>
+
+
+# Welcome!
+
+- This book club is a joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht 
+
+
+- We meet every ~2 weeks to go through a chapter, presented by one of our community members (sign up to present! https://tinyurl.com/smsfdos)
+
+
+- Use the HackMD markdown file (https://tinyurl.com/y6hy5pag) to introduce yourself, ask questions and see your breakout room assignment.
+
+
+- We will run through a short presentation, then split into breakout rooms of 5-6 people to solve exercises together.
+
+
+
+---
+
+# Functional programming - Chp 9, 10 and 11  
+
+This is the last in a 3-chapter series on functional programming-- a way of creating clean code that's easily re-used.
+
+Function operators, as Hadley Wickham says, are like 'adverbs' -- they're closely related to function factories (last chapter) and can be applied to your code to make it more reusable.
+
+&lt;img src="function_table.png" width="80%" /&gt;
+
+---
+
+# Using existing function operators: safely
+
+The chapter walks through two nice examples of existing function operators. 
+
+The first uses purrr::safely -- it's a way of capturing errors that might occur only sporadically in complex code.
+
+Let's first use a simple functional, map_dbl, with arguments x (a list of data) and sum (function).
+
+Note that it throws an error.
+
+```r
+x &lt;- list(
+  c(0.512, 0.165, 0.717),
+  c(0.064, 0.781, 0.427),
+  c(0.890, 0.785, 0.495),
+  c('NA')
+)
+
+# map_dbl(x, sum)
+# Error in .Primitive("sum")(..., na.rm = na.rm) : 
+#  invalid 'type' (character) of argument
+```
+
+---
+
+# Using existing function operators: safely
+
+If instead we wrap the whole thing in the function operator safely, we can catch the error and preserve the output that did work.
+
+
+```r
+out &lt;- map(x, safely(sum))
+str(out)
+```
+
+```
+List of 4
+ $ :List of 2
+  ..$ result: num 1.39
+  ..$ error : NULL
+ $ :List of 2
+  ..$ result: num 1.27
+  ..$ error : NULL
+ $ :List of 2
+  ..$ result: num 2.17
+  ..$ error : NULL
+ $ :List of 2
+  ..$ result: NULL
+  ..$ error :List of 2
+  .. ..$ message: chr "invalid 'type' (character) of argument"
+  .. ..$ call   : language .Primitive("sum")(..., na.rm = na.rm)
+  .. ..- attr(*, "class")= chr [1:3] "simpleError" "error" "condition"
+```
+---
+
+# Using existing function operators: safely
+
+This can be prettied up with some more code, to re-sort the output...
+
+
+```r
+out &lt;- transpose(map(x, safely(sum)))
+str(out)
+```
+
+```
+List of 2
+ $ result:List of 4
+  ..$ : num 1.39
+  ..$ : num 1.27
+  ..$ : num 2.17
+  ..$ : NULL
+ $ error :List of 4
+  ..$ : NULL
+  ..$ : NULL
+  ..$ : NULL
+  ..$ :List of 2
+  .. ..$ message: chr "invalid 'type' (character) of argument"
+  .. ..$ call   : language .Primitive("sum")(..., na.rm = na.rm)
+  .. ..- attr(*, "class")= chr [1:3] "simpleError" "error" "condition"
+```
+---
+
+# Using existing function operators: safely
+
+...and then id where errors occurred, and what the offending element of x is.
+
+```r
+ok &lt;- map_lgl(out$error, is.null)
+
+ok
+```
+
+```
+[1]  TRUE  TRUE  TRUE FALSE
+```
+
+```r
+x[!ok]
+```
+
+```
+[[1]]
+[1] "NA"
+```
+
+---
+
+# Using existing function operators: memoise
+
+Memoising (which is guess is pronounced 'memo-ising', but it looks like a French word 'mem-oise-ing') is a way of cacheing results for future computations.
+
+This is great for speeding up code, but it uses a lot of memory.  So use with caution, not with abandon...
+
+Memoising is recommended only for 'pure' functions-- those where the output depends on more than the input.
+
+---
+
+# Using existing function operators: memoise
+
+The book points out Fibonacci numbers as a sort of sequence that could benefit from this. Note how the compute time increases...
+
+```r
+fib &lt;- function(n) {
+  if (n &lt; 2) return(1)
+  fib(n - 2) + fib(n - 1)
+}
+system.time(fib(23))
+```
+
+```
+   user  system elapsed 
+  0.060   0.006   0.067 
+```
+
+```r
+system.time(fib(24))
+```
+
+```
+   user  system elapsed 
+  0.057   0.002   0.060 
+```
+
+```r
+system.time(fib(30))
+```
+
+```
+   user  system elapsed 
+  1.019   0.005   1.029 
+```
+
+---
+
+# Using existing function operators: memoise
+
+This makes fib() a good candidate for memo-ising.  Look at that speed up!
+
+
+```r
+fib2 &lt;- memoise::memoise(function(n) {
+  if (n &lt; 2) return(1)
+  fib2(n - 2) + fib2(n - 1)
+})
+
+system.time(fib2(23))
+```
+
+```
+   user  system elapsed 
+  0.033   0.001   0.035 
+```
+
+```r
+system.time(fib2(24))
+```
+
+```
+   user  system elapsed 
+  0.001   0.000   0.001 
+```
+
+```r
+system.time(fib2(30))
+```
+
+```
+   user  system elapsed 
+  0.003   0.000   0.003 
+```
+
+---
+
+# Creating a new function operator: downloading URLs
+
+Here's a simple code block that downloads files from URLs. 
+
+Works great for small number of inputs, but as the inputs increase, we will want to add a delay between each call (to avoid getting in trouble with the server) and to give ourselves a progress bar.
+
+One could do this as a for loop-- that's certainly my first inclination! But the book shows us how to do it in a better way. 
+
+
+```r
+urls &lt;- c(
+  "adv-r" = "https://adv-r.hadley.nz", 
+  "r4ds" = "http://r4ds.had.co.nz/"
+)
+path &lt;- paste(tempdir(), names(urls), ".html")
+
+walk2(urls, path, download.file, quiet = TRUE)
+
+## to display where files are
+tempdir()
+```
+
+```
+[1] "/var/folders/c1/cfncdkt521z6xts4nw8tgdr40000gp/T//Rtmp4PNF8G"
+```
+
+---
+# Creating a new function operator: downloading URLs
+
+As a first step, let's add a bit of delay between calls. Pretty easy to do.
+
+
+```r
+delay_by &lt;- function(f, amount) {
+  force(f)
+  force(amount)
+  
+  function(...) {
+    Sys.sleep(amount)
+    f(...)
+  }
+}
+
+system.time(runif(100))
+```
+
+```
+   user  system elapsed 
+      0       0       0 
+```
+
+```r
+system.time(delay_by(runif, 0.1)(100))
+```
+
+```
+   user  system elapsed 
+  0.000   0.000   0.101 
+```
+
+---
+# Creating a new function operator: downloading URLs
+
+This just slots in to the walk2 function!
+
+
+```r
+walk2(urls, path, delay_by(download.file, 0.1), quiet = TRUE)
+
+## check it:
+system.time(walk2(urls, path, download.file, quiet = TRUE))
+```
+
+```
+   user  system elapsed 
+  0.044   0.005   0.802 
+```
+
+```r
+system.time(walk2(urls, path, delay_by(download.file, 0.1), quiet = TRUE))
+```
+
+```
+   user  system elapsed 
+  0.046   0.008   0.944 
+```
+---
+
+# Creating a new function operator: downloading URLs
+
+Making a progress bar is a little harder, but do-able with an internal counter, as we learned with function factories.
+
+
+```r
+dot_every &lt;- function(f, n) {
+  force(f)
+  force(n)
+  
+  i &lt;- 0
+  function(...) {
+    i &lt;&lt;- i + 1
+    if (i %% n == 0) cat(".")
+    f(...)
+  }
+}
+
+walk2(
+  urls, path, 
+  dot_every(delay_by(download.file, 0.1), 1), 
+  quiet = TRUE
+)
+```
+
+```
+..
+```
+
+---
+
+# Creating a new function operator: downloading URLs
+
+For bonus readability, clean it up further with the pipe:
+
+
+```r
+walk2(
+  urls, path, 
+  download.file %&gt;% dot_every(1) %&gt;% delay_by(0.1), 
+  quiet = TRUE
+)
+```
+
+```
+..
+```
+
+
+---
+# Exercises 11.2.3 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(1.) Base R provides a function operator in the form of Vectorize(). 
+
+a. What does it do? 
+
+b. When might you use it?
+
+]
+
+.panel[.panel-name[Answer a1]
+
+In R a lot of functions are “vectorised”. Vectorised has two meanings. First, it means (broadly) that a function inputs a vector or vectors, and does something to each element. Secondly, it usually implies that these operations are implemented in a compiled language such as C or Fortran, so that the implementation is very fast.
+
+However, despite what the function’s name implies, Vectorize() is not able to speed up the provided function. It rather changes the input format of the supplied arguments (vectorize.args), so that they can be iterated over.
+]
+
+.panel[.panel-name[Answer a2]
+
+In essence, Vectorize() is mostly a wrapper for mapply(). Let’s take a look at an example from the documentation:
+
+
+```r
+vrep &lt;- Vectorize(rep.int)
+vrep
+```
+
+```
+function (x, times) 
+{
+    args &lt;- lapply(as.list(match.call())[-1L], eval, parent.frame())
+    names &lt;- if (is.null(names(args))) 
+        character(length(args))
+    else names(args)
+    dovec &lt;- names %in% vectorize.args
+    do.call("mapply", c(FUN = FUN, args[dovec], MoreArgs = list(args[!dovec]), 
+        SIMPLIFY = SIMPLIFY, USE.NAMES = USE.NAMES))
+}
+&lt;environment: 0x7fbd7210eff0&gt;
+```
+
+```r
+vrep(1:2, 3:4)
+```
+
+```
+[[1]]
+[1] 1 1 1
+
+[[2]]
+[1] 2 2 2 2
+```
+]
+
+.panel[.panel-name[Answer b]
+Vectorize() provides a convenient and concise notation to iterate over multiple arguments, but has some major drawbacks that mean you generally shouldn’t use it. See https://www.jimhester.com/post/2018-04-12-vectorize/ for more details.
+
+(from https://advanced-r-solutions.rbind.io/)
+
+]
+]
+
+---
+# Exercises 11.2.3 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(2.) Read the source code for possibly(). How does it work?
+
+]
+
+.panel[.panel-name[Answer]
+
+possibly() modifies functions to return a specified default value in case of an error (otherwise) and to suppress any error messages (quiet = TRUE).
+
+While reading the source code, we notice that possibly() internally uses purrr::as_mapper(). This enables users to supply not only functions, but also formulas or atomics via the same syntax as known from other functions in the purrr package. Besides this, the new default value (otherwise) gets evaluated once to make it (almost) immutable.
+
+The main functionality of possibly() is provided by base::tryCatch(). In this part the supplied function (.f) gets wrapped and the error and interrupt handling are specified.
+
+(from https://advanced-r-solutions.rbind.io/)
+
+]
+]
+
+---
+# Exercises 11.2.3 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(3.) Read the source code for safely(). How does it work?
+
+]
+
+.panel[.panel-name[Answer]
+
+safely() modifies functions to return a list, containing the elements “result” and “error”. It works in a similar fashion as possibly() and besides using as_mapper(), safely() also provides the otherwise and quiet argument. However, in order to provide the result and the error in a consistent way, the tryCatch() part of the implementation returns a list with the same structure in both cases. In the case of successful evaluation “error” equals to NULL and in case of an error “result” equals to otherwise, which is NULL by default.
+
+(from https://advanced-r-solutions.rbind.io/)
+
+]
+]
+
+---
+# Exercises 11.3.1 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(1.) Weigh the pros and cons of download.file %&gt;% dot_every(10) %&gt;% delay_by(0.1) versus download.file %&gt;% delay_by(0.1) %&gt;% dot_every(10).
+
+]
+
+.panel[.panel-name[Answer]
+
+Both commands will print a dot every 10 downloads and will take the same amout of time to run, so the differences may seem quite subtle.
+
+In the first case, first the dot functionality is added to download.file. Then the delay is added to this already tweaked function. This implies, that the printing of the dot will also be delayed and the first dot will be printed as soon as the download for the 10th url starts.
+
+In the latter case. The delay is added first and the dot-functionality is wrapped around it. This order will print the first dot immediately after the 9th download is finished, the the short delay occurs before the 10th download actually starts.
+
+(from https://advanced-r-solutions.rbind.io/)
+
+]
+]
+
+---
+# Exercises 11.3.1 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(2.) Should you memoise file.download()? Why or why not?
+
+]
+
+.panel[.panel-name[Answer]
+
+Memoising file.download() will only work if the files are immutable; i.e. if the file at a given url is always same. There’s no point memoising unless this is true. Even if this is true, however, memoise has to store the results in memory, and large files will potentially take up a lot of memory.
+
+This implies that it’s probably not beneficial to memoise file.download() in most cases. The only exception is if you are downloading small files many times, and the file at a given url is guaranteed not to change.
+
+(from https://advanced-r-solutions.rbind.io/)
+
+]
+]
+
+---
+# Exercises 11.3.1 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(3.) Create a function operator that reports whenever a file is created or deleted in the working directory, using dir() and setdiff(). What other global function effects might you want to track?
+
+]
+
+.panel[.panel-name[Answer pt 1]
+
+
+```r
+## create a function...
+dir_compare &lt;- function(old, new) {
+  if (setequal(old, new)) {
+    return()
+  }
+
+  added &lt;- setdiff(new, old)
+  removed &lt;- setdiff(old, new)
+
+  changes &lt;- c(
+    if (length(added) &gt; 0) paste0(" * '", added, "' was added"),
+    if (length(removed ) &gt; 0) paste0(" * '", removed ,
+                                     "' was removed")
+  )
+  message(paste(changes, collapse = "\n"))
+}
+```
+]
+.panel[.panel-name[Answer pt 2]
+
+```r
+##wrap it up in a function operator
+track_dir &lt;- function(f) {
+  force(f)
+  function(...) {
+    dir_old &lt;- dir()
+    on.exit(dir_compare(dir_old, dir()), add = TRUE)
+
+    f(...)
+  }
+}
+
+## try it out:
+file_create &lt;- track_dir(file.create)
+file_remove &lt;- track_dir(file.remove)
+
+file_create("delete_me")
+```
+
+```
+[1] TRUE
+```
+
+```r
+file_remove("delete_me")
+```
+
+```
+[1] TRUE
+```
+(from https://advanced-r-solutions.rbind.io/)
+
+]
+]
+
+---
+# Exercises 11.3.1 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(4.) Write a function operator that logs a timestamp and message to a file every time a function is run.
+]
+
+.panel[.panel-name[Answer pt 1]
+
+
+```r
+append_line &lt;- function(path, ...) { 
+  cat(..., "\n", sep = "", file = path, append = TRUE)
+}
+
+logger &lt;- function(f, log_path) {
+  force(f)
+  force(log_path)
+
+  append_line(log_path, "created at: ", as.character(Sys.time()))
+  function(...) {
+    append_line(log_path, "called at: ", as.character(Sys.time()))
+    f(...)
+  }
+}
+```
+]
+.panel[.panel-name[Answer pt 2]
+
+
+```r
+log_path &lt;- tempfile()
+mean2 &lt;- logger(mean, log_path)
+Sys.sleep(5)
+mean2(1:4) 
+```
+
+```
+[1] 2.5
+```
+
+```r
+Sys.sleep(1)
+mean2(1:4)
+```
+
+```
+[1] 2.5
+```
+
+```r
+readLines(log_path)
+```
+
+```
+[1] "created at: 2020-08-17 22:47:34" "called at: 2020-08-17 22:47:39" 
+[3] "called at: 2020-08-17 22:47:40" 
+```
+(from https://advanced-r-solutions.rbind.io/)
+
+]
+]
+
+---
+# Exercises 11.3.1 
+
+
+
+.panelset[
+.panel[.panel-name[Question]
+
+(5.)  Modify delay_by() so that instead of delaying by a fixed amount of time, it ensures that a certain amount of time has elapsed since the function was last called. That is, if you called g &lt;- delay_by(1, f); g(); Sys.sleep(2); g() there shouldn’t be an extra delay.
+
+]
+
+.panel[.panel-name[Answer]
+
+
+```r
+delay_atleast &lt;- function(amount, f) {
+  force(f)
+  force(amount)
+
+  # Store the last time the function was run
+  last_time &lt;- NULL
+
+  # Return modified 'delay-aware' function
+  function(...) {
+    if (!is.null(last_time)) {
+      wait &lt;- (last_time - Sys.time()) + amount
+      if (wait &gt; 0) {
+        Sys.sleep(wait)
+      }
+    }
+
+    # Update the time after the function has finished
+    on.exit(last_time &lt;&lt;- Sys.time()) 
+
+    f(...)
+  }
+}
+```
+
+]
+]
+
+---
+# And more:
+
+- Solutions today all came from https://advanced-r-solutions.rbind.io/
+
+
+- The R4DS book club repo also has a Q&amp;A section.https://github.com/r4ds/bookclub-Advanced_R
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
