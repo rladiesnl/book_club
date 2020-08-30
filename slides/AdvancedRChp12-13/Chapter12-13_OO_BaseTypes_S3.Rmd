@@ -1,0 +1,768 @@
+---
+title: 'Advanced R - Hadley Wickham <br> Chapter 12 and 13  <br> OO programming: Base types and S3 objects'
+author: "Alejandra Hernandez"
+date: "1/09/2020"
+output: 
+  xaringan::moon_reader:
+    widescreen: True
+    css: ["default", "rladies", "rladies-fonts"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+<style>
+  .col2 {
+    columns: 2 200px;         /* number of columns and width in pixels*/
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+  }
+</style>
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = "", cache = FALSE, echo = T, fig.retina = 3, fig.align = 'center')
+
+if(!require(xaringanExtra)){
+  devtools::install_github("gadenbuie/xaringanExtra")
+}
+
+if(!require(sloop)){
+  install.packages("sloop")
+}
+
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_tile_view()
+
+xaringanExtra::use_logo(
+  image_url = "R-LadiesGlobal.png",
+  width = "50px")
+
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         #<<
+  mute_unhighlighted_code = TRUE  #<<
+)
+
+xaringanExtra::use_webcam()
+
+```
+# Welcome!
+
+
+- This book club is a joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht  
+  
+
+- We meet every 2 weeks to go through a chapter  
+  
+
+- Use the [HackMD](https://hackmd.io/XrZ8u8RvRJelqfDPNCOUlQ?both) to present yourself, ask questions and see your breakout room  
+  
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after 20 min  
+  
+
+- There are still possibilities to present a chapter :) Sign up at [rladiesnl.github.io/book_club](https://rladiesnl.github.io/book_club/)
+
+
+---
+# Object-Oriented Programming
+
+
+- Multiple OOP systems!
+    + Today we focus on S3: important for base R! 
+    + Others: R6, S4, RC, R.oo, proto...
+
+--
+
+- Why use OOP?
+    + Making functions more versatile (same function for different input)
+    + Easier to contribute with new *methods* 
+    
+--
+
+```{r example_oop1}
+x_vector <- c(1:15)
+print(x_vector)
+
+x_matrix <- matrix(1:15, nrow = 5)
+print(x_matrix)
+```
+
+---
+# Important vocabulary for OOP
+
+- **Types of OOP**  
+
+    + **Encapsulated OOP:** methods belong to objects or classes, and method calls typically look like object.method(arg1, arg2)  
+    
+    + **Functional OOP:** methods belong to generic functions, and method calls look like ordinary function calls: generic(object, arg2, arg3) **<- S3**
+--
+
+- **Generic Function:** the function you actually call
+--
+
+- **Method:** the implementation of a generic function for the specific class of your object  
+--
+
+- **Method dispatch:** process of finding the correct method given a class
+
+---
+
+```{r fig2, out.width="80%", echo = FALSE}
+knitr::include_graphics("Figures/2_begin.gif")
+```
+Make sure you have installed and loaded `library(sloop)`
+
+---
+class: middle, inverse
+
+# .fancy[Chapter 12: Base Types]
+
+---
+# Objects in R
+
+```{r fig1, out.width="120%", echo = FALSE}
+knitr::include_graphics("Figures/1_R_objects.png")
+```
+
+---
+# How to find out if an object is Base or OO?
+--
+
+**Base object:**
+```{r base_vs_oo1}
+sloop::otype(1:10)
+attr(1:10, "class")
+```
+--
+
+**OO object**
+```{r base_vs_oo2}
+sloop::otype(mtcars)
+
+attr(mtcars, "class")
+```
+
+
+---
+# Base Types
+
+Every object has a base type:
+
+```{r basetype}
+typeof(1:10)
+
+typeof(mtcars)
+```
+&nbsp;
+
+&nbsp;
+
+--
+> Base types do not form an OOP system because functions that behave differently for different base types are primarily written in C code that uses switch statements. This means that only R-core can create new types
+
+---
+# What are the base types? (1/2)
+
+- Vectors:
+    + NULL (NILSXP), logical (LGLSXP), integer (INTSXP), double (REALSXP)**, complex (CPLXSXP), character (STRSXP), list (VECSXP), and raw (RAWSXP).
+
+- Functions:
+    + Closure (regular R functions, CLOSXP), special (internal functions, SPECIALSXP), and builtin (primitive functions, BUILTINSXP).
+
+- Environments have type environment (ENVSXP).
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+--
+** Careful with the _"numeric"_ type! It can mean many things in R!
+
+---
+# What are the base types? (2/2)
+
+- S4 type (S4SXP) is used for S4 classes that don’t inherit from an existing base type
+
+- Language components
+    + Symbol (aka name, SYMSXP), language (usually called calls, LANGSXP), and pairlist (used for function arguments, LISTSXP) types.
+
+- Expression (EXPRSXP) is a special purpose type that’s only returned by parse() and expression(). Expressions are generally not needed in user code.
+
+- Others
+    + Externalptr (EXTPTRSXP), weakref (WEAKREFSXP), bytecode (BCODESXP), promise (PROMSXP), ... (DOTSXP), and any (ANYSXP).
+    
+---
+class: middle, inverse
+
+# .fancy[Chapter 13: S3]
+
+---
+# S3 objects
+
+- Most commonly used system in CRAN packages
+
+- Very flexible! (good and bad)
+
+- At least a class attribute
+
+```{r s3_attributes1}
+
+f <- factor(c("a", "b", "c"))
+
+typeof(f)
+
+```
+
+```{r s3_attributes2}
+attributes(f)
+```
+
+---
+# How does the S3 object 'f' actually look like?
+
+You can remove the "special" behavior of a class:
+
+```{r unclass}
+f
+unclass(f)
+```
+
+---
+# Classes
+
+Not as formal as in other languages
+
+```{r create_class}
+# Create and assign class in one step
+x <- structure(list(), class = "my_class")
+
+# Create, then set class
+x <- list()
+class(x) <- "my_class"
+```
+
+---
+**Recommendations:**
+
+- The class name can be any string, but better to use only letters and _
+- When using a class in a package, good to include the package name in the class name
+
+S3 has no checks for correctness which means you can change the class of existing objects!
+
+```{r change_class}
+y <- matrix(1:10)
+class(y)
+class(y) <- "my_class"
+class(y)
+```
+
+---
+# Flexibility can be problematic
+
+```{r flexible_problem, error=TRUE}
+# Create a linear model 
+mod <- lm(log(mpg) ~ log(disp), data = mtcars)
+class(mod)
+
+print(mod)
+
+# Turn it into a date
+class(mod) <- "Date"
+print(mod)
+
+```
+
+---
+## Recommendations when creating a class:
+
+Provide three functions:  
+
+1. A constructor, `new_myclass()` <- MOST IMPORTANT!  
+
+2. A validator, `validate_myclass()`  
+
+3. A user-friendly helper, `myclass()`
+
+---
+## Constructor
+
+The constructor should follow three principles:
+
+- Be called `new_myclass()`
+- Have one argument for the base object, and one for each attribute
+- Check the type of the base object and the types of each attribute
+
+```{r factor_constructor}
+new_factor <- function(x = integer(), levels = character()) {
+  stopifnot(is.integer(x))
+  stopifnot(is.character(levels))
+
+  structure(
+    x,
+    levels = levels,
+    class = "factor"
+  )
+}
+
+new_factor(x = 1:2, levels = c("a", "b", "c"))
+```
+
+The constructor is a developer function: it’s OK to trade a little safety in return for performance.
+
+---
+# Validators (1/2)
+
+```{r validator_factor, error=TRUE}
+validate_factor <- function(x) {
+  values <- unclass(x)
+  levels <- attr(x, "levels")
+
+  if (!all(!is.na(values) & values > 0)) {
+    stop(
+      "All `x` values must be non-missing and greater than zero",
+      call. = FALSE
+    )
+  }
+
+  if (length(levels) < max(values)) {
+    stop(
+      "There must be at least as many `levels` as possible values in `x`",
+      call. = FALSE
+    )
+  }
+
+  x
+}
+
+```
+---
+# Validators (2/2)
+
+```{r malformed_factors, error = TRUE}
+# Without validator
+new_factor(1:5, "a")
+
+#With validator
+validate_factor(new_factor(1:5, "a"))
+
+```
+---
+# Helpers
+
+- Created mainly for users  
+
+- A helper should always:  
+  + Have the same name as the class, e.g. `myclass()`
+  + Finish by calling the constructor, and the validator, if it exists
+  + Create carefully crafted error messages tailored towards an end-user
+  + Have a thoughtfully crafted user interface with carefully chosen default values and useful conversions  
+    - Coerce inputs to the desired type
+--
+
+```{r factor_helper_default}
+factor <- function(x = character(), levels = unique(x)) {
+  ind <- match(x, levels)
+  validate_factor(new_factor(ind, levels))
+}
+
+factor(x = c("a", "a", "b"))
+```
+
+---
+# Generics and methods
+
+A **generic function** is an interface that uses **method dispatch** to find the right implementation (**method**) depending on the class of the main argument.  
+
+Every generic calls `UseMethod()` to do _method dispatch_. 
+
+```{r generic_inside}
+# In this case, the generic function is 'print'
+print
+```
+--
+
+Methods are named: `generic.class()`
+```{r method_dispatch}
+s3_dispatch(print(time))
+```
+---
+Creating your own generic is similarly simple:
+
+```{r mygeneric}
+my_new_generic <- function(x) {
+
+    UseMethod("my_new_generic")
+
+}
+```
+
+**WARNING!** It is not always the case! (think about `t.test`)
+
+---
+# Method dispatch
+
+How does `UseMethod()` work?
+
+```{r usemethod}
+x <- Sys.Date()
+s3_dispatch(print(x))
+```
+--
+```{r usemethod2}
+x <- matrix(1:10, nrow = 2)
+class(x)
+s3_dispatch(print(x))
+```
+
+---
+## Find Methods...
+
+```{r, echo=FALSE}
+xaringanExtra::use_panelset()
+```
+
+.panelset[
+.panel[.panel-name[...for a generic]
+
+```{r find_generic_methods}
+s3_methods_generic("mean")
+```
+]
+.panel[.panel-name[...for a class]
+
+```{r find_class_methods}
+s3_methods_class("ordered")
+```
+]
+]
+
+---
+# Other Object Styles (1/3)
+
+- Record style objects: list of equal-length vectors
+
+```{r record_style}
+x <- as.POSIXlt(ISOdatetime(2020, 1, 1, 0, 0, 1:3))
+x
+
+length(x)
+
+length(unclass(x))
+
+head(unclass(x), 2)
+```
+
+---
+# Other Object Styles (2/3)
+
+- Data frames: lists of equal length vectors that are conceptually 2-D. Individual components are exposed to the user
+
+```{r dataframes}
+x <- data.frame(x = 1:100, y = 1:100)
+nrow(x)
+length(x)
+unclass(x)
+```
+
+---
+# Other Object Styles (3/3)
+
+- Scalar objects: use a list to represent a single thing
+
+```{r models}
+mod <- lm(mpg ~ wt, data = mtcars)
+mod
+length(mod)
+#unclass(mod)
+```
+
+---
+# Inheritance
+
+If a method is not found for the class in the first element of the vector, R looks for a method for the second class (and so on):
+
+```{r inheritance}
+s3_dispatch(print(ordered("x")))
+
+s3_dispatch(print(Sys.time()))
+```
+
+A method can delegate work by calling `NextMethod()`.
+
+```{r delegation}
+s3_dispatch(ordered("x")[1])
+```
+
+---
+# Other ways of dispatching: Internal generics
+
+Functions that don’t call `UseMethod()` but instead call the C functions `DispatchGroup()` or `DispatchOrEval()`. Examples: `[`, `sum()` and `cbind()` 
+
+```{r internal_generics}
+s3_dispatch(Sys.time()[1])
+```
+
+---
+# Other ways of dispatching: Group generics
+
+Like internal generics, they only exist in base R, and you cannot define your own group generic. Four group generics:
+
+- Math: abs(), sign(), sqrt(), floor(), cos(), sin(), log(), and more
+
+- Ops: +, -, *, /, ^, %%, %/%, &, |, !, ==, !=, <, <=, >=, and >
+
+- Summary: all(), any(), sum(), prod(), min(), max(), and range()
+
+- Complex: Arg(), Conj(), Im(), Mod(), Re()
+
+Methods for group generics are looked for only if the methods for the specific generic do not exist:
+
+```{r group_generics1}
+s3_dispatch(sum(Sys.time()))
+
+y <- as.difftime(10, units = "mins")
+s3_dispatch(abs(y))
+```
+
+---
+# Double dispatch
+
+Generics in the Ops group, which includes the two-argument arithmetic and Boolean operators like - and &, implement a special type of method dispatch. They dispatch on the type of both of the arguments.
+
+```{r double_dispatch}
+date <- as.Date("2017-01-01")
+integer <- 1L
+
+date + integer
+```
+
+---
+Three possible outcomes of this lookup:
+1. The methods are the same, so it doesn’t matter which method is used.
+2. The methods are different, and R falls back to the internal method with a warning.
+3. One method is internal, in which case R calls the other method.
+
+```{r double_dispatch_example}
+s3_dispatch(date + integer)
+s3_dispatch(integer + date)
+```
+
+---
+# You got it all, right?
+```{r it_was_hard, echo = FALSE, out.height="90%"}
+knitr::include_graphics("Figures/3_was_hard.gif")
+```
+
+---
+class: middle, inverse
+
+# .fancy[Exercises]
+
+---
+# Exercise 1 
+
+.panelset[
+.panel[.panel-name[Question]
+
+Describe the difference between `t.test()` and `t.data.frame()`? When is each function called?
+]
+
+.panel[.panel-name[Answer]
+
+- `t.test()` is a generic function that performs a t-test.
+- `t.data.frame()` is a method that gets called by the generic `t()` to transpose data frame input.
+
+Due to R’s S3 dispatch rules, `t.test()` would also get called when `t()` is a applied to an object of class “test”.
+]
+]
+
+---
+# Exercise 2 
+
+.panelset[
+.panel[.panel-name[Question]
+
+What class of object does the following code return? What base type is it built on? What attributes does it use?
+
+```{r ex2}
+x <- table(rpois(100, 5))
+x
+```
+]
+
+.panel[.panel-name[Answer]
+
+This code returns a “table” object, which is build upon the “integer” type. The attribute “dimnames” is used to name the elements of the integer vector.
+
+```{r ex3}
+typeof(x)
+
+attributes(x)
+```
+]
+]
+
+---
+# Exercise 3 
+
+.panelset[
+.panel[.panel-name[Question]
+
+Read the documentation for `utils::as.roman()`. How would you write a constructor for this class? Does it need a validator? What would a helper look like?
+
+]
+
+.panel[.panel-name[Answer-Constructor]
+
+This function transforms numeric input into Roman numbers. This class is built on the “integer” type, which results in the following constructor.
+
+```{r ex3_constructor}
+new_roman <- function(x = integer()){
+  stopifnot(is.integer(x))
+  structure(x, class = "roman")
+}
+```
+
+]
+
+.panel[.panel-name[Answer-Validator]
+
+The documentation tells us, that only values between 1 and 3899 are uniquely represented, which we then include in our validation function.
+
+```{r ex3_validator}
+validate_roman <- function(x) {
+  values <- unclass(x)
+
+  if (any(values < 1 | values > 3899)) {
+    stop(
+      "Roman numbers must fall between 1 and 3899.",
+      call. = FALSE
+    )
+  }
+
+  x
+}
+```
+
+]
+
+.panel[.panel-name[Answer-Helper]
+
+For convenience, we allow the user to also pass real values to a helper function.
+
+```{r ex3_helper, error = TRUE}
+roman <- function(x = integer()) {
+  x <- as.integer(x)
+
+  validate_roman(new_roman(x))
+}
+
+# Test
+roman(c(1, 753, 2019))
+
+roman(0)
+```
+
+]
+]
+
+---
+# Exercise 4 
+
+.panelset[
+.panel[.panel-name[Question]
+
+Carefully read the documentation for `UseMethod()` and explain why the following code returns the results that it does. What two usual rules of function evaluation does `UseMethod()` violate?
+
+```{r ex4}
+g <- function(x) {
+  x <- 10
+  y <- 10
+  UseMethod("g")
+}
+g.default <- function(x) c(x = x, y = y)
+
+x <- 1
+y <- 1
+g(x)
+```
+]
+
+.panel[.panel-name[Answer]
+
+If you call `g.default()` directly you get `c(1, 1)` as you might expect. The value bound to x comes from the argument, the value from y comes from the global environment.
+
+```{r ex4_answer}
+g.default(x)
+```
+But when we call `g()` we get `c(1, 10)`:
+
+```{r ex4_answer2}
+g(x)
+```
+
+This is seemingly inconsistent: why does `x` come from the value defined inside of `g()`, and `y` still come from the global environment? It’s because `UseMethod()` calls `g.default()` in a special way so that variables defined inside the generic are available to methods. The exception are arguments supplied to the function: they are passed on as is, and cannot be affected by code inside the generic.
+]
+]
+
+---
+# Exercise 5 
+
+.panelset[
+.panel[.panel-name[Question]
+
+What do you expect this code to return? What does it actually return? Why?
+
+```{r ex5}
+generic2 <- function(x) UseMethod("generic2")
+generic2.a1 <- function(x) "a1"
+generic2.a2 <- function(x) "a2"
+generic2.b <- function(x) {
+  class(x) <- "a1"
+  NextMethod()
+}
+
+generic2(structure(list(), class = c("b", "a2")))
+```
+]
+
+.panel[.panel-name[Answer]
+
+When we execute the code above, this is what is happening:
+
+- We pass an object of classes `b` and `a2` to `generic2()`, which prompts R to look for a method `generic2.b()`
+- The method `generic2.b()` then changes the class to `a1` and calls `NextMethod()`
+
+One would think that this will lead R to call `generic2.a1()`, but in fact, as mentioned in the textbook,` NextMethod()`
+
+> doesn’t actually work with the class attribute of the object, but instead uses a special global variable (.Class) to keep track of which method to call next.
+
+This is why `generic2.a2()` is called instead.
+]
+]
+
+---
+class: middle, inverse
+
+```{r, echo = FALSE, out.height="130%"}
+knitr::include_graphics("Figures/4_wemadeit.gif")
+```
+
+---
+class: middle, inverse
+
+# .fancy[Thank you!]
+```{r echo = FALSE, out.height="40%"}
+knitr::include_graphics("Figures/5_thankyou.gif")
+```
+
+## Do you want to present next?
+### Or just follow the book club until the end!!
