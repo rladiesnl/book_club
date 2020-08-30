@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R - Hadley Wickham   Chapter 12 and 13   OO programming: Base types and S3 objects</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alejandra Hernandez" />
+    <link href="Chapter12-13_OO_BaseTypes_S3_files/remark-css/default.css" rel="stylesheet" />
+    <link href="Chapter12-13_OO_BaseTypes_S3_files/remark-css/rladies.css" rel="stylesheet" />
+    <link href="Chapter12-13_OO_BaseTypes_S3_files/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <link href="Chapter12-13_OO_BaseTypes_S3_files/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="Chapter12-13_OO_BaseTypes_S3_files/tile-view/tile-view.js"></script>
+    <link href="Chapter12-13_OO_BaseTypes_S3_files/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="Chapter12-13_OO_BaseTypes_S3_files/xaringanExtra-webcam/webcam.js"></script>
+    <script id="xaringanExtra-webcam-options" type="application/json">{"width":"200","height":"200","margin":"1em"}</script>
+    <link href="Chapter12-13_OO_BaseTypes_S3_files/panelset/panelset.css" rel="stylesheet" />
+    <script src="Chapter12-13_OO_BaseTypes_S3_files/panelset/panelset.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R - Hadley Wickham <br> Chapter 12 and 13 <br> OO programming: Base types and S3 objects
+### Alejandra Hernandez
+### 1/09/2020
+
+---
+
+&lt;style&gt;
+  .col2 {
+    columns: 2 200px;         /* number of columns and width in pixels*/
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+  }
+&lt;/style&gt;
+
+
+
+<style type="text/css">
+.xaringan-extra-logo {
+  width: 50px;
+  height: 128px;
+  z-index: 0;
+  background-image: url(R-LadiesGlobal.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(el => { el.innerHTML += '<div class="xaringan-extra-logo"></div>' })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+# Welcome!
+
+
+- This book club is a joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht  
+  
+
+- We meet every 2 weeks to go through a chapter  
+  
+
+- Use the [HackMD](https://hackmd.io/@Alejandra/r1WrVO77P/edit) to present yourself, ask questions and see your breakout room  
+  
+
+- We split in breakout rooms after the presentation, and we return to the main jitsi link after 20 min  
+  
+
+- There are still possibilities to present a chapter :) Sign up at [rladiesnl.github.io/book_club](https://rladiesnl.github.io/book_club/)
+
+
+---
+# Object-Oriented Programming
+
+
+- Multiple OOP systems!
+    + Today we focus on S3: important for base R! 
+    + Others: R6, S4, RC, R.oo, proto...
+
+--
+
+- Why use OOP?
+    + Making functions more versatile (same function for different input)
+    + Easier to contribute with new *methods* 
+    
+--
+
+
+```r
+x_vector &lt;- c(1:15)
+print(x_vector)
+```
+
+```
+ [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+```
+
+```r
+x_matrix &lt;- matrix(1:15, nrow = 5)
+print(x_matrix)
+```
+
+```
+     [,1] [,2] [,3]
+[1,]    1    6   11
+[2,]    2    7   12
+[3,]    3    8   13
+[4,]    4    9   14
+[5,]    5   10   15
+```
+
+---
+# Important vocabulary for OOP
+
+- **Types of OOP**  
+
+    + **Encapsulated OOP:** methods belong to objects or classes, and method calls typically look like object.method(arg1, arg2)  
+    
+    + **Functional OOP:** methods belong to generic functions, and method calls look like ordinary function calls: generic(object, arg2, arg3) **&lt;- S3**
+--
+
+- **Generic Function:** the function you actually call
+--
+
+- **Method:** the implementation of a generic function for the specific class of your object
+--
+
+- **Method dispatch:** process of finding the correct method given a class
+
+
+---
+# Let's start!!
+
+Make sure you have installed and loaded `library(sloop)`
+
+&lt;img src="Figures/2_begin.gif" width="75%" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle, inverse
+
+# .fancy[Chapter 12: Base Types]
+
+---
+# Objects in R
+
+&lt;img src="Figures/1_R_objects.png" width="120%" style="display: block; margin: auto;" /&gt;
+
+---
+# How to find out if an object is Base or OO?
+--
+
+**Base object:**
+
+```r
+sloop::otype(1:10)
+```
+
+```
+[1] "base"
+```
+
+```r
+attr(1:10, "class")
+```
+
+```
+NULL
+```
+--
+
+**OO object**
+
+```r
+sloop::otype(mtcars)
+```
+
+```
+[1] "S3"
+```
+
+```r
+attr(mtcars, "class")
+```
+
+```
+[1] "data.frame"
+```
+
+
+---
+# Base Types
+
+Every object has a base type:
+
+
+```r
+typeof(1:10)
+```
+
+```
+[1] "integer"
+```
+
+```r
+typeof(mtcars)
+```
+
+```
+[1] "list"
+```
+&amp;nbsp;
+
+&amp;nbsp;
+
+--
+&gt; Base types do not form an OOP system because functions that behave differently for different base types are primarily written in C code that uses switch statements. This means that only R-core can create new types
+
+---
+# What are the base types? (1/2)
+
+- Vectors:
+    + NULL (NILSXP), logical (LGLSXP), integer (INTSXP), double (REALSXP)**, complex (CPLXSXP), character (STRSXP), list (VECSXP), and raw (RAWSXP).
+
+- Functions:
+    + Closure (regular R functions, CLOSXP), special (internal functions, SPECIALSXP), and builtin (primitive functions, BUILTINSXP).
+
+- Environments have type environment (ENVSXP).
+
+&amp;nbsp;
+
+&amp;nbsp;
+
+&amp;nbsp;
+
+
+--
+** Careful with the _"numeric"_ type! It can mean many things in R!
+
+---
+# What are the base types? (2/2)
+
+- S4 type (S4SXP) is used for S4 classes that don’t inherit from an existing base type
+
+- Language components
+    + Symbol (aka name, SYMSXP), language (usually called calls, LANGSXP), and pairlist (used for function arguments, LISTSXP) types.
+
+- Expression (EXPRSXP) is a special purpose type that’s only returned by parse() and expression(). Expressions are generally not needed in user code.
+
+- Others
+    + Externalptr (EXTPTRSXP), weakref (WEAKREFSXP), bytecode (BCODESXP), promise (PROMSXP), ... (DOTSXP), and any (ANYSXP).
+    
+---
+class: middle, inverse
+
+# .fancy[Chapter 13: S3]
+
+---
+# S3 objects
+
+- Most commonly used system in CRAN packages
+
+- Very flexible! (good and bad)
+
+- At least a class attribute
+
+
+```r
+f &lt;- factor(c("a", "b", "c"))
+
+typeof(f)
+```
+
+```
+[1] "integer"
+```
+
+
+```r
+attributes(f)
+```
+
+```
+$levels
+[1] "a" "b" "c"
+
+$class
+[1] "factor"
+```
+
+---
+# How does the S3 object 'f' actually look like?
+
+You can remove the "special" behavior of a class:
+
+
+```r
+f
+```
+
+```
+[1] a b c
+Levels: a b c
+```
+
+```r
+unclass(f)
+```
+
+```
+[1] 1 2 3
+attr(,"levels")
+[1] "a" "b" "c"
+```
+
+---
+# Classes
+
+Not as formal as in other languages
+
+
+```r
+# Create and assign class in one step
+x &lt;- structure(list(), class = "my_class")
+
+# Create, then set class
+x &lt;- list()
+class(x) &lt;- "my_class"
+```
+
+---
+**Recommendations:**
+
+- The class name can be any string, but better to use only letters and _
+- When using a class in a package, good to include the package name in the class name
+
+S3 has no checks for correctness which means you can change the class of existing objects!
+
+
+```r
+y &lt;- matrix(1:10)
+class(y)
+```
+
+```
+[1] "matrix" "array" 
+```
+
+```r
+class(y) &lt;- "my_class"
+class(y)
+```
+
+```
+[1] "my_class"
+```
+
+---
+# Flexibility can be problematic
+
+
+```r
+# Create a linear model 
+mod &lt;- lm(log(mpg) ~ log(disp), data = mtcars)
+class(mod)
+```
+
+```
+[1] "lm"
+```
+
+```r
+print(mod)
+```
+
+```
+
+Call:
+lm(formula = log(mpg) ~ log(disp), data = mtcars)
+
+Coefficients:
+(Intercept)    log(disp)  
+     5.3810      -0.4586  
+```
+
+```r
+# Turn it into a date
+class(mod) &lt;- "Date"
+print(mod)
+```
+
+```
+Error in as.POSIXlt.Date(x): 'list' object cannot be coerced to type 'double'
+```
+
+---
+## Recommendations when creating a class:
+
+Provide three functions:  
+
+1. A constructor, `new_myclass()` &lt;- MOST IMPORTANT!  
+
+2. A validator, `validate_myclass()`  
+
+3. A user-friendly helper, `myclass()`
+
+---
+## Constructor
+
+The constructor should follow three principles:
+
+- Be called new_myclass()
+- Have one argument for the base object, and one for each attribute
+- Check the type of the base object and the types of each attribute
+
+
+```r
+new_factor &lt;- function(x = integer(), levels = character()) {
+  stopifnot(is.integer(x))
+  stopifnot(is.character(levels))
+
+  structure(
+    x,
+    levels = levels,
+    class = "factor"
+  )
+}
+
+new_factor(x = 1:2, levels = c("a", "b", "c"))
+```
+
+```
+[1] a b
+Levels: a b c
+```
+
+The constructor is a developer function: it’s OK to trade a little safety in return for performance.
+
+---
+# Validators (1/2)
+
+
+```r
+validate_factor &lt;- function(x) {
+  values &lt;- unclass(x)
+  levels &lt;- attr(x, "levels")
+
+  if (!all(!is.na(values) &amp; values &gt; 0)) {
+    stop(
+      "All `x` values must be non-missing and greater than zero",
+      call. = FALSE
+    )
+  }
+
+  if (length(levels) &lt; max(values)) {
+    stop(
+      "There must be at least as many `levels` as possible values in `x`",
+      call. = FALSE
+    )
+  }
+
+  x
+}
+```
+---
+# Validators (2/2)
+
+
+```r
+# Without validator
+new_factor(1:5, "a")
+```
+
+```
+Error in as.character.factor(x): malformed factor
+```
+
+```r
+#With validator
+validate_factor(new_factor(1:5, "a"))
+```
+
+```
+Error: There must be at least as many `levels` as possible values in `x`
+```
+---
+# Helpers
+
+- Created mainly for users  
+
+- A helper should always:  
+  + Have the same name as the class, e.g. myclass()
+  + Finish by calling the constructor, and the validator, if it exists
+  + Create carefully crafted error messages tailored towards an end-user
+  + Have a thoughtfully crafted user interface with carefully chosen default values and useful conversions  
+    - Coerce inputs to the desired type
+--
+
+
+```r
+factor &lt;- function(x = character(), levels = unique(x)) {
+  ind &lt;- match(x, levels)
+  validate_factor(new_factor(ind, levels))
+}
+
+factor(x = c("a", "a", "b"))
+```
+
+```
+[1] a a b
+Levels: a b
+```
+
+---
+# Generics and methods
+
+A **generic function** is an interface that uses **method dispatch** to find the right implementation (**method**) depending on the class of the main argument.  
+
+Every generic calls `UseMethod()` to do _method dispatch_. 
+
+
+```r
+# In this case, the generic function is 'print'
+print
+```
+
+```
+function (x, ...) 
+UseMethod("print")
+&lt;bytecode: 0x0000000014e98910&gt;
+&lt;environment: namespace:base&gt;
+```
+--
+
+Methods are named: `generic.class()`
+
+```r
+s3_dispatch(print(time))
+```
+
+```
+=&gt; print.function
+ * print.default
+```
+---
+Creating your own generic is similarly simple:
+
+
+```r
+my_new_generic &lt;- function(x) {
+
+    UseMethod("my_new_generic")
+
+}
+```
+
+**WARNING!** It is not always the case! (think about `t.test`)
+
+---
+# Method dispatch
+
+How does `UseMethod()` work?
+
+
+```r
+x &lt;- Sys.Date()
+s3_dispatch(print(x))
+```
+
+```
+=&gt; print.Date
+ * print.default
+```
+--
+
+```r
+x &lt;- matrix(1:10, nrow = 2)
+class(x)
+```
+
+```
+[1] "matrix" "array" 
+```
+
+```r
+s3_dispatch(print(x))
+```
+
+```
+   print.matrix
+   print.integer
+   print.numeric
+=&gt; print.default
+```
+
+---
+## Find Methods...
+
+
+
+.panelset[
+.panel[.panel-name[...for a generic]
+
+
+```r
+s3_methods_generic("mean")
+```
+
+```
+# A tibble: 6 x 4
+  generic class    visible source             
+  &lt;chr&gt;   &lt;chr&gt;    &lt;lgl&gt;   &lt;chr&gt;              
+1 mean    Date     TRUE    base               
+2 mean    default  TRUE    base               
+3 mean    difftime TRUE    base               
+4 mean    POSIXct  TRUE    base               
+5 mean    POSIXlt  TRUE    base               
+6 mean    quosure  FALSE   registered S3method
+```
+]
+.panel[.panel-name[...for a class]
+
+
+```r
+s3_methods_class("ordered")
+```
+
+```
+# A tibble: 4 x 4
+  generic       class   visible source             
+  &lt;chr&gt;         &lt;chr&gt;   &lt;lgl&gt;   &lt;chr&gt;              
+1 as.data.frame ordered TRUE    base               
+2 Ops           ordered TRUE    base               
+3 relevel       ordered FALSE   registered S3method
+4 Summary       ordered TRUE    base               
+```
+]
+]
+
+---
+# Other Object Styles (1/3)
+
+- Record style objects: list of equal-length vectors
+
+
+```r
+x &lt;- as.POSIXlt(ISOdatetime(2020, 1, 1, 0, 0, 1:3))
+x
+```
+
+```
+[1] "2020-01-01 00:00:01 CET" "2020-01-01 00:00:02 CET"
+[3] "2020-01-01 00:00:03 CET"
+```
+
+```r
+length(x)
+```
+
+```
+[1] 3
+```
+
+```r
+length(unclass(x))
+```
+
+```
+[1] 11
+```
+
+```r
+head(unclass(x), 2)
+```
+
+```
+$sec
+[1] 1 2 3
+
+$min
+[1] 0 0 0
+```
+
+---
+# Other Object Styles (2/3)
+
+- Data frames: lists of equal length vectors that are conceptually 2-D. Individual components are exposed to the user
+
+
+```r
+x &lt;- data.frame(x = 1:100, y = 1:100)
+nrow(x)
+```
+
+```
+[1] 100
+```
+
+```r
+length(x)
+```
+
+```
+[1] 2
+```
+
+```r
+unclass(x)
+```
+
+```
+$x
+  [1]   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+ [19]  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36
+ [37]  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54
+ [55]  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72
+ [73]  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90
+ [91]  91  92  93  94  95  96  97  98  99 100
+
+$y
+  [1]   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+ [19]  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36
+ [37]  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54
+ [55]  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72
+ [73]  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90
+ [91]  91  92  93  94  95  96  97  98  99 100
+
+attr(,"row.names")
+  [1]   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+ [19]  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36
+ [37]  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54
+ [55]  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72
+ [73]  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90
+ [91]  91  92  93  94  95  96  97  98  99 100
+```
+
+---
+# Other Object Styles (3/3)
+
+- Scalar objects: use a list to represent a single thing
+
+
+```r
+mod &lt;- lm(mpg ~ wt, data = mtcars)
+mod
+```
+
+```
+
+Call:
+lm(formula = mpg ~ wt, data = mtcars)
+
+Coefficients:
+(Intercept)           wt  
+     37.285       -5.344  
+```
+
+```r
+length(mod)
+```
+
+```
+[1] 12
+```
+
+```r
+#unclass(mod)
+```
+
+---
+# Inheritance
+
+If a method is not found for the class in the first element of the vector, R looks for a method for the second class (and so on):
+
+
+```r
+s3_dispatch(print(ordered("x")))
+```
+
+```
+   print.ordered
+=&gt; print.factor
+ * print.default
+```
+
+```r
+s3_dispatch(print(Sys.time()))
+```
+
+```
+=&gt; print.POSIXct
+   print.POSIXt
+ * print.default
+```
+
+A method can delegate work by calling NextMethod().
+
+
+```r
+s3_dispatch(ordered("x")[1])
+```
+
+```
+   [.ordered
+=&gt; [.factor
+   [.default
+-&gt; [ (internal)
+```
+
+---
+# Other ways of dispatching: Internal generics
+
+Functions that don’t call `UseMethod()` but instead call the C functions `DispatchGroup()` or `DispatchOrEval()`. Examples: `[`, `sum()` and `cbind()` 
+
+
+```r
+s3_dispatch(Sys.time()[1])
+```
+
+```
+=&gt; [.POSIXct
+   [.POSIXt
+   [.default
+-&gt; [ (internal)
+```
+
+---
+# Other ways of dispatching: Group generics
+
+Like internal generics, they only exist in base R, and you cannot define your own group generic. Four group generics:
+
+- Math: abs(), sign(), sqrt(), floor(), cos(), sin(), log(), and more
+
+- Ops: +, -, *, /, ^, %%, %/%, &amp;, |, !, ==, !=, &lt;, &lt;=, &gt;=, and &gt;
+
+- Summary: all(), any(), sum(), prod(), min(), max(), and range()
+
+- Complex: Arg(), Conj(), Im(), Mod(), Re()
+
+Methods for group generics are looked for only if the methods for the specific generic do not exist:
+
+
+```r
+s3_dispatch(sum(Sys.time()))
+```
+
+```
+   sum.POSIXct
+   sum.POSIXt
+   sum.default
+=&gt; Summary.POSIXct
+   Summary.POSIXt
+   Summary.default
+-&gt; sum (internal)
+```
+
+```r
+y &lt;- as.difftime(10, units = "mins")
+s3_dispatch(abs(y))
+```
+
+```
+   abs.difftime
+   abs.default
+=&gt; Math.difftime
+   Math.default
+-&gt; abs (internal)
+```
+
+---
+# Double dispatch
+
+Generics in the Ops group, which includes the two-argument arithmetic and Boolean operators like - and &amp;, implement a special type of method dispatch. They dispatch on the type of both of the arguments.
+
+
+```r
+date &lt;- as.Date("2017-01-01")
+integer &lt;- 1L
+
+date + integer
+```
+
+```
+[1] "2017-01-02"
+```
+
+---
+Three possible outcomes of this lookup:
+1. The methods are the same, so it doesn’t matter which method is used.
+2. The methods are different, and R falls back to the internal method with a warning.
+3. One method is internal, in which case R calls the other method.
+
+
+```r
+s3_dispatch(date + integer)
+```
+
+```
+=&gt; +.Date
+   +.default
+ * Ops.Date
+   Ops.default
+ * + (internal)
+```
+
+```r
+s3_dispatch(integer + date)
+```
+
+```
+   +.integer
+   +.numeric
+   +.default
+   Ops.integer
+   Ops.numeric
+   Ops.default
+=&gt; + (internal)
+```
+
+---
+# You got it all, right?
+&lt;img src="Figures/3_was_hard.gif" height="90%" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle, inverse
+
+# .fancy[Exercises]
+
+---
+# Exercise 1 
+
+.panelset[
+.panel[.panel-name[Question]
+
+Describe the difference between `t.test()` and `t.data.frame()`? When is each function called?
+]
+
+.panel[.panel-name[Answer]
+
+- `t.test()` is a generic function that performs a t-test.
+- `t.data.frame()` is a method that gets called by the generic `t()` to transpose data frame input.
+
+Due to R’s S3 dispatch rules, `t.test()` would also get called when `t()` is a applied to an object of class “test”.
+]
+]
+
+---
+# Exercise 2 
+
+.panelset[
+.panel[.panel-name[Question]
+
+What class of object does the following code return? What base type is it built on? What attributes does it use?
+
+
+```r
+x &lt;- table(rpois(100, 5))
+x
+```
+
+```
+
+ 1  2  3  4  5  6  7  8  9 
+ 2  9 13 17 16 13 26  2  2 
+```
+]
+
+.panel[.panel-name[Answer]
+
+This code returns a “table” object, which is build upon the “integer” type. The attribute “dimnames” is used to name the elements of the integer vector.
+
+
+```r
+typeof(x)
+```
+
+```
+[1] "integer"
+```
+
+```r
+attributes(x)
+```
+
+```
+$dim
+[1] 9
+
+$dimnames
+$dimnames[[1]]
+[1] "1" "2" "3" "4" "5" "6" "7" "8" "9"
+
+
+$class
+[1] "table"
+```
+]
+]
+
+---
+# Exercise 3 
+
+.panelset[
+.panel[.panel-name[Question]
+
+Read the documentation for `utils::as.roman()`. How would you write a constructor for this class? Does it need a validator? What would a helper look like?
+
+]
+
+.panel[.panel-name[Answer-Constructor]
+
+This function transforms numeric input into Roman numbers. This class is built on the “integer” type, which results in the following constructor.
+
+
+```r
+new_roman &lt;- function(x = integer()){
+  stopifnot(is.integer(x))
+  structure(x, class = "roman")
+}
+```
+
+]
+
+.panel[.panel-name[Answer-Validator]
+
+The documentation tells us, that only values between 1 and 3899 are uniquely represented, which we then include in our validation function.
+
+
+```r
+validate_roman &lt;- function(x) {
+  values &lt;- unclass(x)
+
+  if (any(values &lt; 1 | values &gt; 3899)) {
+    stop(
+      "Roman numbers must fall between 1 and 3899.",
+      call. = FALSE
+    )
+  }
+
+  x
+}
+```
+
+]
+
+.panel[.panel-name[Answer-Helper]
+
+For convenience, we allow the user to also pass real values to a helper function.
+
+
+```r
+roman &lt;- function(x = integer()) {
+  x &lt;- as.integer(x)
+
+  validate_roman(new_roman(x))
+}
+
+# Test
+roman(c(1, 753, 2019))
+```
+
+```
+[1] I       DCCLIII MMXIX  
+```
+
+```r
+roman(0)
+```
+
+```
+Error: Roman numbers must fall between 1 and 3899.
+```
+
+]
+]
+
+---
+# Exercise 4 
+
+.panelset[
+.panel[.panel-name[Question]
+
+Carefully read the documentation for `UseMethod()` and explain why the following code returns the results that it does. What two usual rules of function evaluation does `UseMethod()` violate?
+
+
+```r
+g &lt;- function(x) {
+  x &lt;- 10
+  y &lt;- 10
+  UseMethod("g")
+}
+g.default &lt;- function(x) c(x = x, y = y)
+
+x &lt;- 1
+y &lt;- 1
+g(x)
+```
+
+```
+ x  y 
+ 1 10 
+```
+]
+
+.panel[.panel-name[Answer]
+
+If you call `g.default()` directly you get `c(1, 1)` as you might expect. The value bound to x comes from the argument, the value from y comes from the global environment.
+
+
+```r
+g.default(x)
+```
+
+```
+x y 
+1 1 
+```
+But when we call `g()` we get `c(1, 10)`:
+
+
+```r
+g(x)
+```
+
+```
+ x  y 
+ 1 10 
+```
+
+This is seemingly inconsistent: why does `x` come from the value defined inside of `g()`, and `y` still come from the global environment? It’s because `UseMethod()` calls `g.default()` in a special way so that variables defined inside the generic are available to methods. The exception are arguments supplied to the function: they are passed on as is, and cannot be affected by code inside the generic.
+]
+]
+
+---
+# Exercise 5 
+
+.panelset[
+.panel[.panel-name[Question]
+
+What do you expect this code to return? What does it actually return? Why?
+
+
+```r
+generic2 &lt;- function(x) UseMethod("generic2")
+generic2.a1 &lt;- function(x) "a1"
+generic2.a2 &lt;- function(x) "a2"
+generic2.b &lt;- function(x) {
+  class(x) &lt;- "a1"
+  NextMethod()
+}
+
+generic2(structure(list(), class = c("b", "a2")))
+```
+
+```
+[1] "a2"
+```
+]
+
+.panel[.panel-name[Answer]
+
+When we execute the code above, this is what is happening:
+
+- We pass an object of classes `b` and `a2` to `generic2()`, which prompts R to look for a method `generic2.b()`
+- The method `generic2.b()` then changes the class to `a1` and calls `NextMethod()`
+
+One would think that this will lead R to call `generic2.a1()`, but in fact, as mentioned in the textbook,` NextMethod()`
+
+&gt; doesn’t actually work with the class attribute of the object, but instead uses a special global variable (.Class) to keep track of which method to call next.
+
+This is why `generic2.a2()` is called instead.
+]
+]
+
+---
+class: middle, inverse
+
+&lt;img src="Figures/4_wemadeit.gif" height="130%" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle, inverse
+
+# .fancy[Thank you!]
+&lt;img src="Figures/5_thankyou.gif" height="40%" style="display: block; margin: auto;" /&gt;
+
+## Do you want to present next?
+### Or just follow the book club until the end!!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
