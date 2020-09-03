@@ -631,7 +631,7 @@ Utrecht
 
 <td style="text-align:left;">
 
-[Slides](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp12-13/Chapter12-13_OO_BaseTypes_S3.html)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp12-13/Chapter12-13_OO_BaseTypes_S3.html#1)
 
 </td>
 
