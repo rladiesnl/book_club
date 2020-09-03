@@ -613,7 +613,7 @@ therefore teach you the conventions you should (almost) always follow.
 
 <td style="text-align:left;">
 
-Sign up\!
+Alejandra Hernandez Segura
 
 </td>
 
@@ -631,7 +631,7 @@ Utrecht
 
 <td style="text-align:left;">
 
-NA
+[Slides](https://github.com/rladiesnl/book_club/blob/master/slides/AdvancedRChp12-13/Chapter12-13_OO_BaseTypes_S3.html)
 
 </td>
 
