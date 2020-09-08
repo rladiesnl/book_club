@@ -577,11 +577,7 @@ Nijmegen
 
 <td style="text-align:left;">
 
-[Meet-up
-link](https://www.meetup.com/rladies-nijmegen/events/272479527/)
-
 [Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp11/Ch11_Xaringan.html)
-
 
 </td>
 
@@ -613,7 +609,7 @@ therefore teach you the conventions you should (almost) always follow.
 
 <td style="text-align:left;">
 
-Alejandra Hernandez Segura
+Alejandra Hernandez
 
 </td>
 
@@ -631,7 +627,7 @@ Utrecht
 
 <td style="text-align:left;">
 
-[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp12-13/Chapter12-13_OO_BaseTypes_S3.html#1)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp12-13/Chapter12-13_OO_BaseTypes_S3.html)
 
 </td>
 
@@ -663,7 +659,7 @@ hence have reference semantics.
 
 <td style="text-align:left;">
 
-Sign up\!
+Johanna Munoz
 
 </td>
 
@@ -681,7 +677,8 @@ Rotterdam
 
 <td style="text-align:left;">
 
-NA
+[Meet-up
+link](https://www.meetup.com/rladies-rotterdam/events/273109375/)
 
 </td>
 
@@ -727,7 +724,7 @@ NA
 
 <td style="text-align:left;">
 
-Den Bosch ?
+Den Bosch
 
 </td>
 
@@ -774,7 +771,103 @@ NA
 
 <td style="text-align:left;">
 
-Amsterdam ?
+Amsterdam
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+17
+
+</td>
+
+<td style="text-align:left;">
+
+Big picture
+
+</td>
+
+<td style="text-align:left;">
+
+Compares these three main OO systems. By understanding the trade-offs of
+each system you can appreciate when to use one or the othe
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+Utrecht
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+18
+
+</td>
+
+<td style="text-align:left;">
+
+Expressions
+
+</td>
+
+<td style="text-align:left;">
+
+Shows that that all R code can be described as a tree. You’ll learn how
+to visualise these trees, how the rules of R’s grammar convert linear
+sequences of characters into these trees, and how to use recursive
+functions to work with code trees.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+Rotterdam
 
 </td>
 
