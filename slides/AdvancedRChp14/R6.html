@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R Book Club: Chapter 14</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Johanna Munoz" />
+    <meta name="date" content="2020-09-14" />
+    <link href="libs/remark-css/kunoichi.css" rel="stylesheet" />
+    <link href="libs/remark-css/ninjutsu.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R Book Club: Chapter 14
+## R Ladies NL
+### Johanna Munoz
+### 2020-09-14
+
+---
+
+&lt;style type="text/css"&gt;
+
+body, td {
+   font-size: 14px;
+}
+code.r{
+  font-size: 16px;
+}
+pre {
+  font-size: 12px
+}
+&lt;/style&gt;
+
+
+
+
+
+
+## Welcome!
+
+This is chapter 14 of the R Ladies Netherlands bookclub. 
+
+We're reading Advanced R by Hadley Wickham.
+
+https://adv-r.hadley.nz/
+
+&lt;br&gt;
+&lt;br&gt;
+--
+
+## The Plan
+We will work through all of Advanced R together!
+
+You can find all materials on Github:
+https://github.com/rladiesnl/book_club
+
+We are going to rotate through every 2 weeks, with an event hosted by each of the NL RLadies chapters involved.
+---
+# Object- Oriented Programming (OPP)
+
+- Small number of well understood objects.
+- God for building tools instead for analysing data.
+- Functions behaviour depends on the object.
+
+&lt;br&gt;
+--
+
+# There are 9 different packages for OPP
+
+- S3: Simple system good to start. We saw it last chapter
+- S4: Bioconductor. We will see it later
+- ReferenceClasses (RC).
+- R6: Kind of RC but simple way.
+
+---
+
+class: middle center bg-white
+
+&lt;img src="img/logo.png" width="10%"&gt;
+
+--
+# Built on top of environments, it uses S3.
+
+--
+# Follows the OOP paradigm.
+
+--
+# R6 objects are mutable.
+
+--
+&lt;img src="img/R6class.png" width="60%" width="60%"&gt;
+
+
+---
+
+class: middle center bg-white
+
+#Let's use R6 in a 
+
+&lt;br&gt;
+--
+&lt;img src="img/toyfactory.jpeg" width="40%" width="40%"&gt;
+
+---
+# Defining a class: "Toy class"
+R6Class generates a class and the arguments
+
+```r
+library(R6)
+Toy &lt;- R6Class(
+  classname = "Toy",
+  public = list(
+                  #Attributes
+                    name = NA,
+                    phrase = NA,
+                    
+                  #Methods
+                    initialize = function(name = NA, phrase = NA) {
+                                          self$name &lt;- name
+                                          self$phrase &lt;- phrase
+                                          self$greet()},
+                  
+                    greet = function() {
+                            cat(paste0("Hello, my name is ", self$name, ". ",self$phrase,".\n"))
+                      }
+                )
+  
+  )
+```
+---
+# Creating a new object: object of "Toy class"
+&lt;img src="img/woody.jpeg" width="10%" width="10%"&gt;
+--
+
+```r
+woody &lt;- Toy$new(name = "Woody",
+                 phrase = "There's a snake in my boot")
+```
+
+```
+## Hello, my name is Woody. There's a snake in my boot.
+```
+--
+&lt;img src="img/buzz.jpeg" width="10%" width="10%"&gt;
+--
+
+```r
+buzz &lt;- Toy$new(name = "Buzz lightyear",
+                 phrase = "To infinity…and beyond!")
+```
+
+```
+## Hello, my name is Buzz lightyear. To infinity…and beyond!.
+```
+
+---
+# Reference semantics
+
+```r
+woody$name &lt;- "Sheriff Woody Pride" 
+```
+--
+
+```r
+woody$name
+```
+
+```
+## [1] "Sheriff Woody Pride"
+```
+--
+Let’s create woody2 by assignment from woody:
+
+```r
+woody2 &lt;- woody
+```
+--
+Check their memory locations
+
+```r
+c(pryr::address(woody), pryr::address(woody2))
+```
+
+```
+## [1] "0x7f97c28954d0" "0x7f97c28954d0"
+```
+
+---
+What is the current name of woody?
+
+```r
+woody$name
+```
+
+```
+## [1] "Sheriff Woody Pride"
+```
+--
+Let's modify the woody2's name
+
+```r
+woody2$name&lt;-"Woody, the second"
+woody2$name
+```
+
+```
+## [1] "Woody, the second"
+```
+--
+What is the current name of woody?
+
+```r
+woody$name
+```
+
+```
+## [1] "Woody, the second"
+```
+---
+# Cloning : now let's create woody 3 by cloning woody2
+
+
+```r
+woody3 &lt;- woody2$clone()
+```
+--
+Check their memory locations
+
+```r
+c(pryr::address(woody2),pryr::address(woody3))
+```
+
+```
+## [1] "0x7f97c28954d0" "0x7f97c2897888"
+```
+--
+Modify the woody3's name
+
+```r
+woody3$name&lt;-"Woody, the third"
+woody3$name
+```
+
+```
+## [1] "Woody, the third"
+```
+--
+What is the current name of woody2?
+
+```r
+woody2$name
+```
+
+```
+## [1] "Woody, the second"
+```
+---
+# Inheritance
+The toy fabric wants to launch a new Toy version that sings!!
+
+```r
+NewToy &lt;- R6Class("NewToy",
+                  inherit = Toy,
+                  public = list(
+                                #Add a new attribute
+                                song = NA,
+                                
+                                #Modify method
+                                initialize = function(name = NA, phrase = NA, song= NA) {
+                                                      self$name &lt;- name
+                                                      self$phrase &lt;- phrase
+                                                      self$song &lt;- song
+                                                      self$greet()},
+                                #Modify method
+                                greet = function() {
+                                         cat(paste0("Hello, my name is ", self$name, ". ",
+                                                    self$phrase,
+                                                    " and ", self$song, ".\n"))}
+                    ))
+```
+---
+
+```r
+NewToy
+```
+
+```
+## &lt;NewToy&gt; object generator
+##   Inherits from: &lt;Toy&gt;
+##   Public:
+##     song: NA
+##     initialize: function (name = NA, phrase = NA, song = NA) 
+##     greet: function () 
+##     clone: function (deep = FALSE) 
+##   Parent env: &lt;environment: R_GlobalEnv&gt;
+##   Locked objects: TRUE
+##   Locked class: FALSE
+##   Portable: TRUE
+```
+--
+&lt;img src="img/parent-child.png" width="30%" width="30%"&gt;
+
+
+---
+# Keeps the toy class features but with a new song!!
+&lt;img src="img/trex.jpeg" width="10%" width="10%"&gt;
+
+```r
+trex &lt;- NewToy$new(name = "T-rex",
+                 phrase = "I don't like confrontations!",
+                 song = "You've got a friend in me!!!")
+```
+
+```
+## Hello, my name is T-rex. I don't like confrontations! and You've got a friend in me!!!.
+```
+--
+
+### For internal access to parents functions:
+super$greed()
+
+### For external access, create a super_ function:
+super_ = function() 
+          super
+trex$super_()$greed()          
+---
+# Adding attributes or methods after creating a generator
+
+The toy fabric wants to add a new attribute "additions" 
+--
+
+```r
+NewToy$set("public", "addition",0)
+```
+--
+and also a new function that updates the "additions" attribute
+--
+
+```r
+NewToy$set("public", "update_addition", function(x=0) {
+  self$addition &lt;- self$addition + x 
+  invisible(self)
+}) 
+```
+!!!Side-effect R6 methods should always return self invisibly!!!.
+This returns the “current” object and makes it possible to chain together multiple method calls.
+--
+
+```
+## &lt;NewToy&gt; object generator
+##   Inherits from: &lt;Toy&gt;
+##   Public:
+##     song: NA
+##     addition: 0
+##     initialize: function (name = NA, phrase = NA, song = NA) 
+##     greet: function () 
+##     clone: function (deep = FALSE) 
+##     update_addition: function (x = 0) 
+##   Parent env: &lt;environment: R_GlobalEnv&gt;
+##   Locked objects: TRUE
+##   Locked class: FALSE
+##   Portable: TRUE
+```
+---
+&lt;img src="img/potato0.jpeg" width="10%" width="10%"&gt;
+
+```r
+MrPotato &lt;- NewToy$new(name = "Mr. Potato Head",
+                 phrase = "Where's my ear? Who's seen my ear?",
+                 song = "You've got a friend in me!!!")
+```
+
+```
+## Hello, my name is Mr. Potato Head. Where's my ear? Who's seen my ear? and You've got a friend in me!!!.
+```
+--
+
+```r
+MrPotato$addition
+```
+
+```
+## [1] 0
+```
+--
+
+```r
+trex$addition
+```
+
+```
+## NULL
+```
+---
+#Method chaining : like pipelines!!
+&lt;img src="img/potato.jpeg" width="40%" width="40%"&gt;
+
+--
+
+Add two angry eyes
+--
+
+```r
+MrPotato$update_addition(2)$addition
+```
+
+```
+## [1] 2
+```
+Add one mustache, add 10 monkeys and remove 2 monkeys that ran away.
+--
+
+```r
+MrPotato$update_addition(1)$update_addition(10)$update_addition(-2)$addition
+```
+
+```
+## [1] 11
+```
+
+---
+# Controlling access
+
+&lt;img src="img/control.png" width="60%" width="60%"&gt;
+---
+### 1. Private: attributes and methods available only within the class
+
+Date of fabrication and a default status.
+
+```r
+NewToy$set("private", "date",Sys.time())
+NewToy$set("private", "IsOn",FALSE)
+```
+--
+Methods can have access to the private attributes as:
+
+```r
+NewToy$set("public", "TurnOn", function() {
+  private$IsOn &lt;-TRUE 
+}) 
+```
+--
+
+```r
+Jessie &lt;- NewToy$new(name="Jessie",phrase="Yee-haw!",song="Yee-haw!")
+```
+
+```
+## Hello, my name is Jessie. Yee-haw! and Yee-haw!.
+```
+--
+
+```r
+Jessie$date
+```
+
+```
+## NULL
+```
+---
+### 2. Active fields: provide access to any of the private attributes.
+These are functions that behave like variables.
+
+```r
+NewToy$set("active","date_fabric_access",function() {
+      private$date})
+```
+--
+Lets create a Hamm toy
+
+```r
+Hamm &lt;- NewToy$new(name="Hamm",phrase="I am also Evil Dr. Porkchop!",song="You've got a friend in me!!")
+```
+
+```
+## Hello, my name is Hamm. I am also Evil Dr. Porkchop! and You've got a friend in me!!.
+```
+--
+Can we directly access the date?
+--
+
+```r
+Hamm$date 
+```
+
+```
+## NULL
+```
+--
+But the toy fabric can do it..
+--
+
+```r
+Hamm$date_fabric_access   # not a_thing$date_fabric_access()
+```
+
+```
+## [1] "2020-09-14 10:03:26 CEST"
+```
+---
+These functions can also be used to set values to private arguments but with additional checks.
+
+```r
+# Create the private attribute
+NewToy$set("private", "ReferenceNumber",NA) 
+# Create a function to access the private reference value
+NewToy$set("active","ReferenceNumber_access",function() {
+  private$ReferenceNumber})
+# Create a function to set the private reference value
+NewToy$set("active", "set_ReferenceNumber_fabric", function(val=NA) {
+  if (is.na(val)|!is.numeric(val)) {
+    private$ReferenceNumber
+  }else{
+    private$ReferenceNumber &lt;- val}})
+```
+--
+
+```r
+Forky &lt;- NewToy$new(name="Forky",phrase="I am not a toy,I am trash!",song="You've got a friend in me!!")
+```
+
+```
+## Hello, my name is Forky. I am not a toy,I am trash! and You've got a friend in me!!.
+```
+--
+
+```r
+Forky$set_ReferenceNumber_fabric="AF44646"
+Forky$ReferenceNumber_access
+```
+
+```
+## [1] NA
+```
+--
+
+```r
+Forky$set_ReferenceNumber_fabric=1234
+Forky$ReferenceNumber_access
+```
+
+```
+## [1] 1234
+```
+---
+# Additional functions
+
+### Print: overrides the print behaviour
+
+
+```r
+ print = function(...) {
+    cat("Toy: \n")
+    cat("  Name: ", self$name, "\n", sep = "")
+    cat("  Phrase:  ", self$age, "\n", sep = "")
+    invisible(self)
+  }
+```
+
+### Finalize :
+
+
+```r
+ finalize = function() {
+    message("Cleaning up ", self$name)
+    unlink(self$name)
+  }
+```
+
+---
+# Exercises
+
+## Q1: Create a bank account R6 class that stores a balance and allows you to deposit and withdraw money.
+
+--
+
+
+```r
+BankAccount &lt;- R6Class(
+  classname = "BankAccount",
+  public = list( #Attributes
+                 balance = 0,
+                 #Methods
+                 deposit = function(dep = 0) {
+                           self$balance = self$balance + dep
+                           invisible(self)},
+                withdraw = function(draw) {
+                           self$balance = self$balance - draw
+                           invisible(self)}
+  ))
+```
+
+--
+
+
+```r
+my_account &lt;- BankAccount$new()
+my_account$balance
+```
+
+```
+## [1] 0
+```
+
+--
+
+
+```r
+my_account$deposit(5)$withdraw(15)$balance
+```
+
+```
+## [1] -10
+```
+
+---
+## Now create a subclass that throws an error if you go into overdraft.
+--
+
+```r
+BankAccountStrict &lt;- R6Class(
+  classname = "BankAccount",
+  inherit = BankAccount,
+  public = list(
+    withdraw = function(draw = 0) {
+      if (self$balance - draw &lt; 0) {
+        stop("Your `withdraw` must be smaller ",
+             "than your `balance`.", call. = FALSE)
+      }
+      super$withdraw(draw = draw)
+    }))
+```
+--
+
+```r
+my_strict_account &lt;- BankAccountStrict$new()
+my_strict_account$balance
+```
+
+```
+## [1] 0
+```
+--
+
+```r
+my_strict_account$deposit(5)$withdraw(15)
+```
+
+```
+## Error: Your `withdraw` must be smaller than your `balance`.
+```
+--
+
+```r
+my_strict_account$balance
+```
+
+```
+## [1] 5
+```
+---
+
+## Q3 Why can not you model a bank account with an S3 class?
+
+--
+
+Because S3 classes obey the semantics of copy-on-modify. 
+Therefore every time you make a transaction, you would get a new copy of the object.
+
+---
+
+## Q5: Create an R6 class that manages the current working directory.
+
+--
+
+
+```r
+WorkingDirectory &lt;- R6Class(
+  classname = "WorkingDirectory", 
+  public = list(
+    get = function() {
+      getwd()
+    },
+    set = function(value) {
+      setwd(value)
+    }
+  ))
+```
+
+--
+
+
+```r
+my_wd&lt;- WorkingDirectory$new()
+my_wd$get()  
+```
+
+```
+## [1] "/Users/johannamunoz/Documents/GitHub/Rladies/Untitled"
+```
+
+--
+
+
+```r
+my_wd$set("/Users/johannamunoz/Documents/GitHub/")
+my_wd$get() 
+```
+
+```
+## [1] "/Users/johannamunoz/Documents/GitHub"
+```
+
+---
+
+## Q6 Why can not you model the current working directory with an S3 class?
+
+--
+
+Because S3 classes are not suitable for modelling state that changes over time.
+S3 methods should (almost) always return the same result when called with the same inputs.
+
+---
+
+## Q4: Can subclasses access private fields/methods from their parent?
+--
+
+```r
+ClassA &lt;- R6Class(
+  classname = "ClassA",
+  private = list(
+    attribute = "data",
+    method = function() {
+      "function output"
+    }))
+
+ClassB &lt;- R6Class(
+  classname = "ClassB",
+  inherit = ClassA,
+  public = list(
+    test = function() {
+      cat("Attribute:  ", super$attribute, "\n", sep = "")
+      cat("Method: ", super$method(), "\n", sep = "")
+    }
+  )
+)
+
+ClassB$new()$test()
+```
+
+```
+## Attribute:  
+## Method: function output
+```
+--
+
+Subclasses can access private methods from their superclasses, but not private attributes.  
+
+---
+# References
+Chang, Winston. 2019. R6: Encapsulated Classes with Reference Semantics. https://CRAN.R-project.org/package=R6.
+
+R6 online documentation at https://r6.r-lib.org.
+
+Great explanation:
+https://r6.r-lib.org/articles/Introduction.html
+
+Great examples: https://homerhanumat.github.io/r-notes/oo.html
+
+Solutions to book exercises: https://advanced-r-solutions.rbind.io/r6.html
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
