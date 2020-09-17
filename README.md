@@ -677,8 +677,7 @@ Rotterdam
 
 <td style="text-align:left;">
 
-[Meet-up
-link](https://www.meetup.com/rladies-rotterdam/events/273109375/)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp14/R6.html#1)
 
 </td>
 
