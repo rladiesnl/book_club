@@ -688,70 +688,25 @@ link](https://www.meetup.com/rladies-rotterdam/events/273109375/)
 
 <td style="text-align:left;">
 
-15
+15 and 16
 
 </td>
 
 <td style="text-align:left;">
 
-S4
+S4 and Trade-offs
 
 </td>
 
 <td style="text-align:left;">
 
-S4 provides a formal approach to functional OOP. The underlying ideas
-are similar to S3 (the topic of Chapter 13), but implementation is much
-stricter and makes use of specialised functions for creating classes
-(setClass()), generics (setGeneric()), and methods (setMethod()).
-Additionally, S4 provides both multiple inheritance (i.e. a class can
-have multiple parents) and multiple dispatch (i.e. method dispatch can
-use the class of multiple arguments).
-
-</td>
-
-<td style="text-align:left;">
-
-Sign up\!
-
-</td>
-
-<td style="text-align:left;">
-
-NA
-
-</td>
-
-<td style="text-align:left;">
-
-Den Bosch
-
-</td>
-
-<td style="text-align:left;">
-
-NA
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-16
-
-</td>
-
-<td style="text-align:left;">
-
-Trade-offs
-
-</td>
-
-<td style="text-align:left;">
-
+15: S4 provides a formal approach to functional OOP. The underlying
+ideas are similar to S3 (the topic of Chapter 13), but implementation is
+much stricter and makes use of specialised functions for creating
+classes (setClass()), generics (setGeneric()), and methods
+(setMethod()). Additionally, S4 provides both multiple inheritance
+(i.e. a class can have multiple parents) and multiple dispatch
+(i.e. method dispatch can use the class of multiple arguments). 116:
 Now that we know about the different types of classes, how to pick one?
 This chapter discusses.
 
@@ -759,19 +714,19 @@ This chapter discusses.
 
 <td style="text-align:left;">
 
-Sign up\!
+Martine Jansen
 
 </td>
 
 <td style="text-align:left;">
 
-NA
+2020-09-29
 
 </td>
 
 <td style="text-align:left;">
 
-Amsterdam
+Den Bosch
 
 </td>
 
@@ -812,13 +767,13 @@ Sign up\!
 
 <td style="text-align:left;">
 
-NA
+2020-10-13
 
 </td>
 
 <td style="text-align:left;">
 
-Utrecht
+Amsterdam
 
 </td>
 
@@ -861,13 +816,302 @@ Sign up\!
 
 <td style="text-align:left;">
 
+2020-10-27
+
+</td>
+
+<td style="text-align:left;">
+
+Utrecht
+
+</td>
+
+<td style="text-align:left;">
+
 NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+19
+
+</td>
+
+<td style="text-align:left;">
+
+Quasiquotation
+
+</td>
+
+<td style="text-align:left;">
+
+Presents tools from rlang that you can use to capture (quote)
+unevaluated function arguments. You’ll also learn about quasiquotation,
+which provides a set of techniques to unquote input to make it possible
+to easily generate new trees from code fragments.
+
+</td>
+
+<td style="text-align:left;">
+
+Paloma Rojas
+
+</td>
+
+<td style="text-align:left;">
+
+2020-11-10
 
 </td>
 
 <td style="text-align:left;">
 
 Rotterdam
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+20
+
+</td>
+
+<td style="text-align:left;">
+
+Evaluation
+
+</td>
+
+<td style="text-align:left;">
+
+Moves on to evaluating captured code. Here you’ll learn about an
+important data structure, the quosure, which ensures correct evaluation
+by capturing both the code to evaluate, and the environment in which to
+evaluate it. This chapter will show you how to put all the pieces
+together to understand how NSE works in base R, and how to write
+functions that work like subset().
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+2020-11-24
+
+</td>
+
+<td style="text-align:left;">
+
+Den Bosch
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+21
+
+</td>
+
+<td style="text-align:left;">
+
+Translating R code
+
+</td>
+
+<td style="text-align:left;">
+
+Finishes up by combining first-class environments, lexical scoping, and
+metaprogramming to translate R code into other languages, namely HTML
+and LaTeX.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+2020-12-08
+
+</td>
+
+<td style="text-align:left;">
+
+Amsterdam
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+22
+
+</td>
+
+<td style="text-align:left;">
+
+Debugging
+
+</td>
+
+<td style="text-align:left;">
+
+Talks about debugging, because finding the root cause of error can be
+extremely frustrating. Fortunately R has some great tools for debugging,
+and when they’re coupled with a solid strategy, you should be able to
+find the root cause for most problems rapidly and relatively painlessly.
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+2020-12-22
+
+</td>
+
+<td style="text-align:left;">
+
+Utrecht
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+23 and 24
+
+</td>
+
+<td style="text-align:left;">
+
+Measuring and Improving performance
+
+</td>
+
+<td style="text-align:left;">
+
+Focuses on measuring and how to improve performance
+
+</td>
+
+<td style="text-align:left;">
+
+Semiramis Castro
+
+</td>
+
+<td style="text-align:left;">
+
+2021-01-05
+
+</td>
+
+<td style="text-align:left;">
+
+Rotterdam
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+25
+
+</td>
+
+<td style="text-align:left;">
+
+Rewriting R code in C++
+
+</td>
+
+<td style="text-align:left;">
+
+NA
+
+</td>
+
+<td style="text-align:left;">
+
+Sign up\!
+
+</td>
+
+<td style="text-align:left;">
+
+2021-01-19
+
+</td>
+
+<td style="text-align:left;">
+
+Den Bosch
 
 </td>
 
