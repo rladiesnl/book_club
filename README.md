@@ -731,7 +731,8 @@ Den Bosch
 
 <td style="text-align:left;">
 
-NA
+[Meetup
+link](https://www.meetup.com/nl-NL/rladies-den-bosch/events/273340630/)
 
 </td>
 
