@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R - Hadley Wickham   Ch 15 S4, Chp 16 Trade-offs</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Martine Jansen (@nnie_nl), September 29, 2020" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="libs/tile-view/tile-view.js"></script>
+    <script src="libs/xaringanExtra-logo/logo.js"></script>
+    <link href="libs/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-webcam/webcam.js"></script>
+    <script id="xaringanExtra-webcam-options" type="application/json">{"width":"200","height":"200","margin":"1em"}</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R - Hadley Wickham <br> Ch 15 S4, Chp 16 Trade-offs
+## R Ladies Netherlands Boookclub
+### Martine Jansen (<span class="citation">@nnie_nl</span>), September 29, 2020
+
+---
+
+
+
+
+
+<style type="text/css">
+.xaringan-extra-logo {
+  width: 50px;
+  height: 128px;
+  z-index: 0;
+  background-image: url('R-LadiesGlobal.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  top:1em;right:1em;
+}
+</style>
+
+
+
+# Welcome!
+
+- This is joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht 
+--
+
+- We meet every 2 weeks to go through a chapter 
+--
+
+- Use the HackMD to present yourself, ask questions and see your breakout room 
+--
+
+- There are still possibilities to present a chapter :) Sign up at https://rladiesnl.github.io/book_club/  
+--
+
+- https://advanced-r-solutions.rbind.io/ has some anwers and we could PR the ones missing  
+--
+
+- The R4DS book club repo has a Q&amp;A section.https://github.com/r4ds/bookclub-Advanced_R 
+
+--
+
+
+&lt;img src="tenor.gif" height="90%" /&gt;
+
+---
+
+# Thanks to:
+
+- Hadley Wickham for writing [AdvancedR](https://adv-r.hadley.nz/)
+- R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+  Vienna, Austria. URL https://www.R-project.org/.  
+- Yihui Xie (2020). xaringan: Presentation Ninja. R package version 0.16. https://CRAN.R-project.org/package=xaringan 
+- Garrick Aden-Buie (2020). xaringanExtra: Extras And Extensions for Xaringan Slides. R package version 0.0.17.  https://github.com/gadenbuie/xaringanExtra  
+
+- Alan Agresti for writing "An Introduction to categorical Data Analysis, 3rd edition"
+- https://stackoverflow.com/questions/4713968/r-what-are-slots , for pointing out `slotNames()`
+
+and all the authors of R packages used in this presentation 
+
+
+---
+
+class: center, inverse, middle
+background-image: url("images/cool.png")
+
+# Chp 15  
+# S4
+
+---
+
+# Alligator Example  
+
+(adapted from Agresti, p 161) 
+&lt;img src="Ch15_Xaringan_files/figure-html/unnamed-chunk-2-1.png" width="504" /&gt;
+
+F = fish, I = Invertebrates, O = other  
+
+--
+
+Can you predict the type of food an aligator mainly eats, with help of its length? 
+
+--
+
+This is where multiniminal models come in:   
+
+---
+
+We build a multinominal model with VGAM::vglm: 
+
+--
+
+
+
+```r
+fit &lt;- vglm(food ~length,
+                  family = "multinomial",
+                  data = dAlligators)
+```
+
+--
+
+With the help of this model, we can make predictions for all types of food, per length: 
+
+
+
+&lt;img src="Ch15_Xaringan_files/figure-html/unnamed-chunk-5-1.png" width="504" /&gt;
+
+--
+
+let us take a look at the object `fit`, with the function `str()`:  
+
+
+```r
+str(fit)
+```
+
+
+---
+
+
+```
+Formal class 'vglm' [package "VGAM"] with 37 slots
+  ..@ extra           :List of 3
+  .. ..$ y.integer   : logi TRUE
+  .. ..$ use.refLevel: num 3
+  .. ..$ colnames.y  : chr [1:3] "F" "I" "O"
+  ..@ family          :Formal class 'vglmff' [package "VGAM"] with 22 slots
+  .. .. ..@ blurb             : chr [1:5] "Multinomial logit model\n\n" "Links:    " "log(mu[,j]/mu[,M+1]), j=1:M,\n" "Variance: " ...
+  .. .. ..@ constraints       :  expression({  constraints &lt;- cm.VGAM(matrix(1, M, 1), x = x, bool = FALSE, apply.int = TRUE,  constraints = const| __truncated__
+  .. .. ..@ deviance          :function (mu, y, w, residuals = FALSE, eta, extra = NULL, summation = TRUE)  
+  .. .. ..@ fini              :  expression({ })
+  .. .. ..@ first             :  expression({ })
+  .. .. ..@ infos             :function (...)  
+  .. .. ..@ initialize        :  expression({  if (is.factor(y) &amp;&amp; is.ordered(y))  warning("response should be nominal, not ordinal")  delete.zero| __truncated__
+  .. .. ..@ last              :  expression({  misc$link &lt;- "multilogitlink"  misc$earg &lt;- list(multilogitlink = list(M = M, refLevel = use.refLev| __truncated__
+  .. .. ..@ linkfun           :function (mu, extra = NULL)  
+  .. .. ..@ linkinv           :function (eta, extra = NULL)  
+  .. .. ..@ loglikelihood     :function (mu, y, w, residuals = FALSE, eta, extra = NULL, summation = TRUE)  
+  .. .. ..@ middle            :  expression({ })
+  .. .. ..@ middle2           :  expression({ })
+  .. .. ..@ summary.dispersion: logi(0) 
+  .. .. ..@ vfamily           : chr [1:2] "multinomial" "VGAMcategorical"
+  .. .. ..@ validparams       :function (eta, y, extra = NULL)  
+  .. .. ..@ validfitted       :function ()  
+  .. .. ..@ simslot           :function ()  
+  .. .. ..@ hadof             :function (eta, extra = list(), linpred.index = 1, w = 1, dim.wz = c(NROW(eta), 
+    NCOL(eta) * (NCOL(eta) + 1)/2), deriv = 1, ...)  
+  .. .. ..@ charfun           :function ()  
+  .. .. ..@ deriv             :  expression({  use.refLevel &lt;- extra$use.refLevel  c(w) * (y[, -use.refLevel] - mu[, -use.refLevel]) })
+  .. .. ..@ weight            :  expression({  mytiny &lt;- (mu &lt; sqrt(.Machine$double.eps)) | (mu &gt; 1 - sqrt(.Machine$double.eps))  if (M == 1) {  w| __truncated__
+  ..@ iter            : num 5
+  ..@ predictors      : num [1:59, 1:2] 1.48 1.47 1.47 1.47 1.47 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:59] "1" "2" "3" "4" ...
+  .. .. ..$ : chr [1:2] "log(mu[,1]/mu[,3])" "log(mu[,2]/mu[,3])"
+  ..@ assign          :List of 2
+  .. ..$ (Intercept): int 1
+  .. ..$ length     : int 2
+  ..@ callXm2         : language `&lt;undef&gt;`()
+  ..@ contrasts       : list()
+  ..@ df.residual     : int 114
+  ..@ df.total        : int 118
+  ..@ dispersion      : num 1
+  ..@ effects         : Named num [1:118] -1.971 -2.808 1.194 -2.741 -0.431 ...
+  .. ..- attr(*, "names")= chr [1:118] "(Intercept):1" "(Intercept):2" "length:1" "length:2" ...
+  ..@ offset          : num [1, 1] 0
+  ..@ qr              :List of 5
+  .. ..$ qr   : num [1:118, 1:4] -3.583 0 0.121 0 0.121 ...
+  .. .. ..- attr(*, "dimnames")=List of 2
+  .. .. .. ..$ : chr [1:118] "1:1" "1:2" "2:1" "2:2" ...
+  .. .. .. ..$ : chr [1:4] "(Intercept):1" "(Intercept):2" "length:1" "length:2"
+  .. ..$ qraux: num [1:4] 1.12 1.1 1.11 1.12
+  .. ..$ pivot: int [1:4] 1 2 3 4
+  .. ..$ tol  : num 1e-07
+  .. ..$ rank : int 4
+  ..@ R               : num [1:4, 1:4] -3.58 0 0 0 2.25 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:4] "(Intercept):1" "(Intercept):2" "length:1" "length:2"
+  .. .. ..$ : chr [1:4] "(Intercept):1" "(Intercept):2" "length:1" "length:2"
+  .. ..- attr(*, "rank")= int 4
+  ..@ rank            : int 4
+  ..@ ResSS           : num 114
+  ..@ smart.prediction: list()
+  ..@ terms           :List of 1
+  .. ..$ terms:Classes 'terms', 'formula'  language food ~ length
+  .. .. .. ..- attr(*, "variables")= language list(food, length)
+  .. .. .. ..- attr(*, "factors")= int [1:2, 1] 0 1
+  .. .. .. .. ..- attr(*, "dimnames")=List of 2
+  .. .. .. .. .. ..$ : chr [1:2] "food" "length"
+  .. .. .. .. .. ..$ : chr "length"
+  .. .. .. ..- attr(*, "term.labels")= chr "length"
+  .. .. .. ..- attr(*, "order")= int 1
+  .. .. .. ..- attr(*, "intercept")= int 1
+  .. .. .. ..- attr(*, "response")= int 1
+  .. .. .. ..- attr(*, ".Environment")=&lt;environment: R_GlobalEnv&gt; 
+  .. .. .. ..- attr(*, "predvars")= language list(food, length)
+  .. .. .. ..- attr(*, "dataClasses")= Named chr [1:2] "character" "numeric"
+  .. .. .. .. ..- attr(*, "names")= chr [1:2] "food" "length"
+  ..@ Xm2             : num[0 , 0 ] 
+  ..@ Ym2             : num[0 , 0 ] 
+  ..@ xlevels         : list()
+  ..@ call            : language vglm(formula = food ~ length, family = "multinomial", data = dAlligators)
+  ..@ coefficients    : Named num [1:4] 1.62 5.7 -0.11 -2.47
+  .. ..- attr(*, "names")= chr [1:4] "(Intercept):1" "(Intercept):2" "length:1" "length:2"
+  ..@ constraints     :List of 2
+  .. ..$ (Intercept): num [1:2, 1:2] 1 0 0 1
+  .. ..$ length     : num [1:2, 1:2] 1 0 0 1
+  ..@ control         :List of 16
+  .. ..$ checkwz        : logi TRUE
+  .. ..$ Check.rank     : logi TRUE
+  .. ..$ Check.cm.rank  : logi TRUE
+  .. ..$ convergence    :  expression({  switch(criterion, coefficients = if (iter == 1) iter &lt; maxit else (iter &lt;  maxit &amp;&amp; max(abs(new.cri| __truncated__
+  .. ..$ criterion      : chr "deviance"
+  .. ..$ epsilon        : num 1e-07
+  .. ..$ half.stepsizing: logi TRUE
+  .. ..$ maxit          : num 21
+  .. ..$ noWarning      : logi FALSE
+  .. ..$ min.criterion  : Named logi TRUE
+  .. .. ..- attr(*, "names")= chr "deviance"
+  .. ..$ save.weights   : logi FALSE
+  .. ..$ stepsize       : num 1
+  .. ..$ trace          : logi FALSE
+  .. ..$ wzepsilon      : num 1.82e-12
+  .. ..$ xij            : NULL
+  .. ..$ panic          : logi FALSE
+  ..@ criterion       :List of 2
+  .. ..$ deviance     : num 98.3
+  .. ..$ loglikelihood: num -49.2
+  ..@ fitted.values   : num [1:59, 1:3] 0.227 0.25 0.25 0.258 0.258 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:59] "1" "2" "3" "4" ...
+  .. .. ..$ : chr [1:3] "F" "I" "O"
+  ..@ misc            :List of 21
+  .. ..$ colnames.x      : chr [1:2] "(Intercept)" "length"
+  .. ..$ colnames.X.vlm  : chr [1:4] "(Intercept):1" "(Intercept):2" "length:1" "length:2"
+  .. ..$ criterion       : chr "deviance"
+  .. ..$ function.name   : chr "vglm"
+  .. ..$ intercept.only  : logi FALSE
+  .. ..$ predictors.names: chr [1:2] "log(mu[,1]/mu[,3])" "log(mu[,2]/mu[,3])"
+  .. ..$ M               : int 2
+  .. ..$ n               : int 59
+  .. ..$ nonparametric   : logi FALSE
+  .. ..$ nrow.X.vlm      : int 118
+  .. ..$ orig.assign     :List of 2
+  .. .. ..$ (Intercept): int 1
+  .. .. ..$ length     : int 2
+  .. ..$ p               : int 2
+  .. ..$ ncol.X.vlm      : int 4
+  .. ..$ ynames          : chr [1:3] "F" "I" "O"
+  .. ..$ link            : chr "multilogitlink"
+  .. ..$ earg            :List of 1
+  .. .. ..$ multilogitlink:List of 2
+  .. .. .. ..$ M       : int 2
+  .. .. .. ..$ refLevel: num 3
+  .. ..$ parallel        : logi FALSE
+  .. ..$ refLevel        : num 3
+  .. ..$ refLevel.orig   : num -1
+  .. ..$ dataname        : chr "dAlligators"
+  .. ..$ formula         :Class 'formula'  language food ~ length
+  .. .. .. ..- attr(*, ".Environment")=&lt;environment: R_GlobalEnv&gt; 
+  ..@ model           :'data.frame':	0 obs. of  0 variables
+  ..@ na.action       : list()
+  ..@ post            : list()
+  ..@ preplot         : list()
+  ..@ prior.weights   : num[0 , 0 ] 
+  ..@ residuals       : num [1:59, 1:2] -4.64e-06 -4.43e-06 -4.43e-06 3.87 3.87 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:59] "1" "2" "3" "4" ...
+  .. .. ..$ : chr [1:2] "log(mu[,1]/mu[,3])" "log(mu[,2]/mu[,3])"
+  ..@ weights         : num[0 , 0 ] 
+  ..@ x               : num [1:59, 1:2] 1 1 1 1 1 1 1 1 1 1 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:59] "1" "2" "3" "4" ...
+  .. .. ..$ : chr [1:2] "(Intercept)" "length"
+  .. ..- attr(*, "assign")=List of 2
+  .. .. ..$ (Intercept): int 1
+  .. .. ..$ length     : int 2
+  .. ..- attr(*, "orig.assign.lm")= int [1:2] 0 1
+  ..@ y               : num [1:59, 1:3] 0 0 0 1 1 1 0 1 0 0 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:59] "1" "2" "3" "4" ...
+  .. .. ..$ : chr [1:3] "F" "I" "O"
+```
+
+---
+
+# Slots
+
+So object `fit` has a lot of slots.  
+
+--
+
+Slots are named parts of the object, they have a name and a class.  
+
+--
+
+
+Let us take a look at which slots this object `fit` has:  
+
+--
+
+
+
+```r
+# this function is not in the book
+slotNames(fit)
+```
+
+--
+
+
+```
+ [1] "extra"            "family"           "iter"             "predictors"      
+ [5] "assign"           "callXm2"          "contrasts"        "df.residual"     
+ [9] "df.total"         "dispersion"       "effects"          "offset"          
+[13] "qr"               "R"                "rank"             "ResSS"           
+[17] "smart.prediction" "terms"            "Xm2"              "Ym2"             
+[21] "xlevels"          "call"             "coefficients"     "constraints"     
+[25] "control"          "criterion"        "fitted.values"    "misc"            
+[29] "model"            "na.action"        "post"             "preplot"         
+[33] "prior.weights"    "residuals"        "weights"          "x"               
+[37] "y"               
+```
+
+---
+
+
+Zoom in at the first slot:  
+
+--
+
+
+```r
+# first the object, then a string with the slot name
+slot(fit, "extra")
+```
+
+--
+
+
+```
+$y.integer
+[1] TRUE
+
+$use.refLevel
+[1] 3
+
+$colnames.y
+[1] "F" "I" "O"
+```
+
+
+
+--
+
+This looks like a list, and this is indeed the case:  
+
+
+```
+[1] "list"
+```
+
+--
+
+.pull-left[
+
+There is another way to get to a slot.  
+Warning:  
+It is advised to use this other way ONLY  
+when you are working on the methods (when you are creating own S4 object classes).  
+But it IS possible :).  
+it is with use of the   
+@
+
+]
+
+--
+
+.pull_right[
+
+
+```r
+fit@extra
+```
+
+```
+$y.integer
+[1] TRUE
+
+$use.refLevel
+[1] 3
+
+$colnames.y
+[1] "F" "I" "O"
+```
+
+]
+
+
+---
+
+# Basics  
+
+Let us define our own S4 class: 
+
+
+```r
+setClass("OnlineMeet", 
+  slots = c(name = "character", 
+            max_participants = "numeric",
+            url = "character"))
+```
+
+--
+
+Make a new object from this class:
+
+
+```r
+Chitchat &lt;- new("OnlineMeet",
+                name = "Chit chat",
+                max_participants = 20,
+                url = "to be determined")
+```
+--
+
+.pull-left[ 
+
+Take a look at the class with `is()`
+
+
+```r
+is(Chitchat)
+```
+
+```
+[1] "OnlineMeet"
+```
+
+]
+--
+
+
+.pull-right[
+
+Check a slot:
+
+```r
+slot(Chitchat, "url")
+```
+
+```
+[1] "to be determined"
+```
+]
+
+---
+
+## Refresher on Generics (generic functions) 
+
+A *generic* is a user interface for functions with the same name that are defined on different classes.  
+
+--
+
+From the Help: `summary` is a generic function used to produce result summaries of the results of various model fitting functions. The function invokes particular methods which depend on the class of the first argument.  
+
+--
+
+
+```r
+summary(factor(dAlligators$food)) # --&gt; summary.factor
+```
+
+```
+ F  I  O 
+31 20  8 
+```
+--
+
+
+```r
+summary(dAlligators) # --&gt; summary.data.frame
+```
+
+```
+     length          food          
+ Min.   :1.240   Length:59         
+ 1st Qu.:1.575   Class :character  
+ Median :1.850   Mode  :character  
+ Mean   :2.130                     
+ 3rd Qu.:2.450                     
+ Max.   :3.890                     
+```
+
+---
+
+
+## Accessor functions, for getting and setting 
+
+Accessor functions are S4 generics:   
+
+--
+
+Like this for getting the max_participants of Chitchat:  
+
+
+```r
+max_participants(Chitchat)
+```
+--
+
+
+```
+Error in max_participants(Chitchat): could not find function "max_participants"
+```
+
+--
+
+So we have to define this function. 
+We have to define two layers actually:  
+
+*  Define the **generic** `max_participants`
+--
+
+*  Define the **class specific method** for this generic
+
+--
+
+First set the generic:  
+
+
+```r
+setGeneric("max_participants", function(x) standardGeneric("max_participants"))
+```
+
+--
+
+
+```
+[1] "max_participants"
+```
+
+--
+
+The help on SetGeneric mentions:  
+*The setGeneric function exists for its side effect: saving the generic function to allow methods to be specified later. It returns name.*
+
+---
+
+So what happens if we run this now:  
+
+
+```r
+max_participants(Chitchat)
+```
+--
+
+
+```
+Error in (function (classes, fdef, mtable) : unable to find an inherited method for function 'max_participants' for signature '"OnlineMeet"'
+```
+
+--
+
+The complete error message: 
+
+`Error in (function (classes, fdef, mtable) : unable to find an inherited method for function ‘max_participants’ for signature ‘"OnlineMeet"’` 
+
+--
+
+This of course means we still have to define `max_participants.OnlineMeet`
+
+--
+
+
+```r
+setMethod(f = "max_participants",
+          signature = "OnlineMeet",
+          definition = function(x) x@max_participants)
+```
+
+--
+
+When we run this, no side effects
+
+--
+
+.pull-left[
+
+Now run again:
+
+
+```r
+max_participants(Chitchat)
+```
+
+
+
+
+```
+[1] 20
+```
+
+]
+
+--
+
+.pull-right[
+
+&lt;img src="itsworking.gif" height="60%" /&gt;
+
+]
+
+
+---
+
+## And now the setter  
+
+
+```r
+max_participants(Chitchat) &lt;- 25
+```
+--
+
+
+```
+Error in max_participants(Chitchat) &lt;- 25: could not find function "max_participants&lt;-"
+```
+
+--
+
+So define the generic for `max_participants&lt;-`: 
+
+
+
+```r
+setGeneric("max_participants&lt;-", function(x, value) standardGeneric("max_participants&lt;-"))
+```
+
+--
+
+
+```
+[1] "max_participants&lt;-"
+```
+
+
+Now try again:
+
+
+```r
+max_participants(Chitchat) &lt;- 25
+```
+--
+
+
+```
+Error in (function (classes, fdef, mtable) : unable to find an inherited method for function 'max_participants&lt;-' for signature '"OnlineMeet"'
+```
+
+--
+
+So we have to define the class specific method:  
+
+---
+
+So we have to define the class specific method:  
+
+
+```r
+setMethod(f = "max_participants&lt;-",
+          signature = "OnlineMeet",
+          definition = function(x, value){
+            x@max_participants &lt;- value
+            x
+          })
+```
+
+--
+
+Now try again:
+
+
+```r
+max_participants(Chitchat) &lt;- 25
+```
+--
+
+
+
+No feedback, so let us use the getter to check:  
+
+
+```r
+max_participants(Chitchat)
+```
+
+--
+
+
+```
+[1] 25
+```
+
+--
+
+
+.pull-left[
+
+&lt;img src="dontyou.gif" height="60%" /&gt;
+
+]
+
+--
+
+
+.pull-right[
+
+`setMethod()` will automatically call `setGeneric()` if the first argument isn’t already a generic
+
+]
+
+---
+
+# Classes  
+
+To define an S4 class, call setClass with three mas o menos required arguments:  
+
+
+
+```r
+setClass("OnlineMeet",                      # a name, S4 convention UpperCamelCase
+  slots = c(name = "character",            # named char vector for the slots  
+            max_participants = "numeric",
+            url = "character"),
+  prototype = list(name = NA_character_,   # default values for the slots
+                   max_participants = NA_real_,
+                   url = NA_character_))
+```
+
+--
+
+
+```r
+another_meet &lt;- new("OnlineMeet", name = "Another one")
+str(another_meet)
+```
+
+--
+
+
+```
+Formal class 'OnlineMeet' [package ".GlobalEnv"] with 3 slots
+  ..@ name            : chr "Another one"
+  ..@ max_participants: num NA
+  ..@ url             : chr NA
+```
+
+--
+
+Not in the book: The **formal class** indicates it is an S4 object, as does
+
+--
+
+
+```r
+isS4(another_meet)
+```
+
+```
+[1] TRUE
+```
+
+
+
+---
+
+## Inheritance  
+
+Make use of slots and behaviours from other classes with `**contains**`:
+
+--
+
+
+```r
+setClass("OnlineBookclub",                  # a name, S4 convention UpperCamelCase
+  contains = "OnlineMeet",                  # the classes to inherit from
+  slots = c(book = "character"),            # the extra slots
+  prototype = list(book = NA_character_))   # default values for the extra slots
+```
+
+--
+
+Make a new `OnlineBookclub` object: 
+
+
+```r
+bookclub_advancedR &lt;- new("OnlineBookclub",
+                          name = "Boookclub AdvancedR",
+                          book = "Advanced R")
+```
+
+--
+
+Have a look at the object:  
+
+--
+
+
+```
+Formal class 'OnlineBookclub' [package ".GlobalEnv"] with 4 slots
+  ..@ book            : chr "Advanced R"
+  ..@ name            : chr "Boookclub AdvancedR"
+  ..@ max_participants: num NA
+  ..@ url             : chr NA
+```
+
+---
+
+## Introspection  
+
+Want to know from what classes n object inherits from? Use `is()`:
+
+
+```r
+is(bookclub_advancedR)
+```
+
+--
+
+
+```
+[1] "OnlineBookclub" "OnlineMeet"    
+```
+
+Want to have a `TRUE` of `FALSE` with regard to a certain inheritance?  
+Use `(is)` with the second argument:  
+
+--
+
+
+
+```r
+is(bookclub_advancedR, "OnlineMeet")
+```
+
+--
+
+
+```
+[1] TRUE
+```
+
+---
+
+## Redefinition  
+
+Be careful with re-defining a class after already having made ojects from it.  
+
+
+```r
+setClass("A", slots = c(x = "numeric"))
+a &lt;- new("A", x = 10)
+a
+```
+
+--
+
+
+```
+An object of class "A"
+Slot "x":
+[1] 10
+```
+
+--
+
+Now let us alter the definition of class `A`:  
+
+--
+
+
+```r
+setClass("A", slots = c(a_different_slot = "numeric"))
+```
+
+--
+
+And have a look at object `a` again:  
+
+--
+
+
+```r
+a
+```
+
+```
+An object of class "A"
+Slot "a_different_slot":
+```
+
+```
+Error in slot(object, what): no slot of name "a_different_slot" for this object of class "A"
+```
+
+---
+
+## Helper  
+
+Making objects from classes? Only use `new()` if you are the developer.  
+--
+
+Make a helper function for the users:  
+
+
+```r
+OnlineMeet &lt;- function(                           # same name as the class
+  name, max_participants = NA_real_, url = NA_character_) {    
+  max_participants &lt;- as.double(max_participants) # optional tweaking of inputs
+  
+  new("OnlineMeet", name = name,                  # call to new()
+      max_participants = max_participants,
+      url = url)
+}
+```
+
+--
+
+The helper used by the user:    
+
+--
+
+
+```r
+OnlineMeet("Talktalk")
+```
+
+--
+
+
+
+```
+An object of class "OnlineMeet"
+Slot "name":
+[1] "Talktalk"
+
+Slot "max_participants":
+[1] NA
+
+Slot "url":
+[1] NA
+```
+
+---
+
+## Validator  `setValidity()`
+
+A function that checks inputs for (combined) correctness, to prevent invalid objects. 
+
+
+```r
+setValidity("&lt;class&gt;", function(object) {
+  if (&lt;something that is not ok&gt;) {
+    "an informative message explaining the problem"
+  } else {
+    TRUE
+  }
+})
+```
+
+--
+
+Example:  
+
+--
+
+
+```r
+setValidity("OnlineMeet", function(object) {
+  if (object@max_participants &lt;= 0) {
+    "It is not a meet without participants, please let @max_participants &gt; 0"
+  } else {
+    TRUE
+  }
+})
+```
+
+```
+Class "OnlineMeet" [in ".GlobalEnv"]
+
+Slots:
+                                                         
+Name:              name max_participants              url
+Class:        character          numeric        character
+
+Known Subclasses: "OnlineBookclub"
+```
+
+---
+
+setValidity is called automatically when using the new() function,  
+so also with the userfriendly wrapper: 
+
+--
+
+
+```r
+OnlineMeet("Sound of Silence", max_participants =  -2)
+```
+
+--
+
+
+```
+Error in validObject(.Object): invalid class "OnlineMeet" object: It is not a meet without participants, please let @max_participants &gt; 0
+```
+--
+
+`Error in validObject(.Object) : invalid class “OnlineMeet” object: It is not a meet without participants, please let @max_participants &gt; 0`
+
+--
+
+But you do want to make an invalid object?  
+Modify an existing one:  
+
+--
+
+
+```r
+max_participants(another_meet) &lt;- -100
+another_meet
+```
+
+```
+An object of class "OnlineMeet"
+Slot "name":
+[1] "Another one"
+
+Slot "max_participants":
+[1] -100
+
+Slot "url":
+[1] NA
+```
+
+---
+
+# Generics and methods (a bit more detailed then in "Basics")  
+
+Convention is, use names for generics that are `lowerCamelCase`
+Write the definition on 1 line, without { } used with writing morel ines in a function.  
+
+--
+
+
+```r
+setGeneric("myGeneric", function(x) standardGeneric("myGeneric"))
+```
+
+--
+
+## Signature  
+
+`signature` is an argument to `setGeneric`. From the help:
+
+
+```r
+setGeneric(name, def= , group=list(), valueClass=character(),
+           where= , package= , signature= , useAsDefault= ,
+           genericFunction= , simpleInheritanceOnly = )
+```
+
+--
+
+With signature you can control the arguments to be used for method dispatch.  
+It can be useful to exclude some arguments from the method. If not specified, it will use **all**, except for ... .
+
+---
+
+## Methods  
+
+Besides the generic, you also need methods for function specific behaviour. Make them with `setMethod()`:  
+
+
+```r
+setMethod("myGeneric", "&lt;class name&gt; ", function(x) {
+  # method implementation
+})
+```
+
+--
+
+Want to see al the methods for a class? 
+--
+
+
+```r
+methods(class = "OnlineMeet")
+```
+
+```
+[1] max_participants   max_participants&lt;-
+see '?methods' for accessing help and source code
+```
+--
+
+Want to see al the methods for a generic?  
+--
+
+
+
+```r
+methods("show")
+```
+
+```
+ [1] show,AnsiConnection-method            show,ANY-method                      
+ [3] show,C++Class-method                  show,C++Function-method              
+ [5] show,C++Object-method                 show,classGeneratorFunction-method   
+ [7] show,classRepresentation-method       show,Coef.qrrvglm-method             
+ [9] show,Coef.rrvgam-method               show,Coef.rrvglm-method              
+[11] show,color-method                     show,DBIConnection-method            
+[13] show,DBIConnector-method              show,DBIDriver-method                
+[15] show,DBIResult-method                 show,Duration-method                 
+[17] show,envRefClass-method               show,externalRefMethod-method        
+[19] show,genericFunction-method           show,genericFunctionWithTrace-method 
+[21] show,Id-method                        show,Interval-method                 
+[23] show,MethodDefinition-method          show,MethodDefinitionWithTrace-method
+[25] show,MethodSelectionReport-method     show,MethodWithNext-method           
+[27] show,MethodWithNextWithTrace-method   show,mle-method                      
+[29] show,Module-method                    show,namedList-method                
+[31] show,ObjectsWithPackage-method        show,oldClass-method                 
+[33] show,Period-method                    show,pvgam-method                    
+[35] show,qrrvglm-method                   show,refClassRepresentation-method   
+[37] show,refMethodDef-method              show,refObjectGenerator-method       
+[39] show,rrvgam-method                    show,rrvglm-method                   
+[41] show,signature-method                 show,sourceEnvironment-method        
+[43] show,SQL-method                       show,summary.mle-method              
+[45] show,summary.pvgam-method             show,summary.qrrvglm-method          
+[47] show,summary.rrvgam-method            show,summary.rrvglm-method           
+[49] show,summary.vgam-method              show,summary.vglm-method             
+[51] show,summary.vlm-method               show,SurvS4-method                   
+[53] show,traceable-method                 show,vgam-method                     
+[55] show,VGAManova-method                 show,vglm-method                     
+[57] show,vglmff-method                    show,vlm-method                      
+[59] show,vsmooth.spline-method            show.Coef.qrrvglm                    
+[61] show.Coef.rrvgam                      show.Coef.rrvglm                     
+[63] show.pvgam                            show.rrvglm                          
+[65] show.summary.pvgam                    show.summary.qrrvglm                 
+[67] show.summary.rrvgam                   show.summary.rrvglm                  
+[69] show.summary.vgam                     show.summary.vglm                    
+[71] show.summary.vlm                      show.SurvS4                          
+[73] show.vanova                           show.vgam                            
+[75] show.vglm                             show.vglmff                          
+[77] show.vlm                              show.vsmooth.spline                  
+see '?methods' for accessing help and source code
+```
+
+---
+
+## Make a `show` method for the generic `show`  
+
+First look at the arguments that are needed: 
+
+
+```r
+args(getGeneric("show"))
+```
+
+--
+
+
+```
+function (object) 
+NULL
+```
+
+--
+
+So we need an **object** for our new method `show`
+
+--
+
+
+```r
+setMethod("show", "OnlineMeet", function(object) {
+  cat(is(object)[[1]], "\n",
+      "  The name of this OnLineMeet: ", object@name, "\n",
+      "  there is room for :  ", object@max_participants, "\n",
+      "  and will be hosted at:   ", object@url,
+      sep = "" ) })
+```
+
+--
+
+Use it on our object Chitchat:
+
+--
+
+
+```r
+show(Chitchat)
+```
+
+--
+
+
+
+```
+OnlineMeet
+  The name of this OnLineMeet: Chit chat
+  there is room for :  25
+  and will be hosted at:   to be determined
+```
+
+
+---
+
+## Accessors - `validObject()` in setter
+
+Always include `validObject()` in the setter method:
+
+
+```r
+setMethod(f = "max_participants&lt;-",
+          signature = "OnlineMeet",
+          definition = function(x, value){
+            x@max_participants &lt;- value
+            validObject(x)    #&lt;-- new line     
+            x
+          })
+```
+
+--
+
+Try it:
+
+
+```r
+max_participants(Chitchat) &lt;- -200
+```
+
+--
+
+
+```
+Error in validObject(x): invalid class "OnlineMeet" object: It is not a meet without participants, please let @max_participants &gt; 0
+```
+
+--
+
+`ValidObject()` can also be used on its own:  
+
+--
+
+
+```r
+validObject(another_meet)
+```
+
+```
+Error in validObject(another_meet): invalid class "OnlineMeet" object: It is not a meet without participants, please let @max_participants &gt; 0
+```
+
+---
+
+# Method dispatch  
+
+## Single class, single parent
+
+&lt;img src="Chp15_5_1.png" width="256" /&gt;
+
+--
+
+
+Top part: a generic with one argument, that has a class hierarchy that is three levels deep.  
+
+--
+
+Bottom: method graph, displays all the possible methods that could be defined. Methods that do exist, have a grey background  
+
+--
+
+To find the method that actually gets called when calling with 😜:  
+
+Start in the box with the 😜,  
+when box is white, follow the arrow to next box 😉 ,a more general class,  
+continu moving in the graph until encounter with grey box, here for 😶 class. Eureka!  
+
+--
+
+If no method is found, method dispatch has failed and an error is thrown.   
+So alway define methods for the terminal nodes.  
+
+---
+
+## Pseudo-classes  
+
+
+&lt;img src="Chp15_5_2.png" width="293" /&gt;
+
+--
+
+Not a real class, but you can define methods for it.  
+It is kind of greatest grandest parents. 
+The distance to it, is larger then the distance between other classes.  
+
+---
+
+## Multiple inheritance  
+
+
+&lt;img src="Chp15_5_3.png" width="208" /&gt;
+
+Which method to pick now?  
+
+--
+
+The closest one: with the least steps needed.  
+
+--
+
+But what if it is a tie?  
+
+--
+
+This is called **ambiguous**,   
+
+--
+
+and best resolved by defining a method for a class that is closer to the class you called from.
+
+
+--
+
+Meanwhile, try to monimize the number of defined methods
+
+---
+
+## Multiple dispatch  
+
+
+More then one object as args in the generic:  
+--
+
+&lt;img src="Chp15_5_4.png" width="337" /&gt;
+
+--
+
+Again, choose the **closest** one, and in case of **ambiguity**, try to resolve it.  
+
+
+---
+
+## Multiple dispatch and multiple inheritance  
+
+--
+
+
+&lt;img src="Chp15_5_5.png" width="214" /&gt;
+
+--
+
+Ask yourself if it is really needed to have this complexity.  
+maybe you are better of with a simpler design.  
+
+---
+
+# S4 and S3  
+
+In a class definition, you can use S3/S4 objects in slots and in contains.  
+
+--
+
+But you have to translate the S3 class to a formally defined class with `setOldClass()`.  
+
+--
+
+
+```r
+# already provided with base R
+setOldClass("data.frame")
+setOldClass(c("ordered", "factor"))
+```
+
+--
+
+It is regarded better to combine it with the class definition: 
+
+--
+
+
+```r
+setClass("factor",
+  contains = "integer",
+  slots = c(
+    levels = "character"
+  ),
+  prototype = structure(   # Why structure and not list?
+    integer(),
+    levels = character()
+  )
+)
+setOldClass("factor", S4Class = "factor")
+```
+
+--
+
+If building on S3 from packages, ask package maintainer to add this to package.
+
+---
+
+If an S4 object inherits from an S3 class or a base type,  
+it will have a special virtual slot called .Data.  
+This contains the underlying base type or S3 object:  
+
+--
+
+
+```r
+RangedNumeric &lt;- setClass(
+  "RangedNumeric",
+  contains = "numeric",
+  slots = c(min = "numeric", max = "numeric"),
+  prototype = structure(numeric(), min = NA_real_, max = NA_real_)
+)
+
+rn &lt;- RangedNumeric(1:10, min = 1, max = 10)
+```
+
+--
+
+
+```r
+slotNames(rn)
+```
+
+--
+
+
+```
+[1] ".Data" "min"   "max"  
+```
+
+--
+
+
+```r
+rn@.Data
+```
+
+```
+ [1]  1  2  3  4  5  6  7  8  9 10
+```
+
+
+---
+
+
+It is possible to convert an existing S3 generic to an S4 generic. 
+ 
+--
+
+
+
+```r
+methods("mean")  # see all the methods of mean
+```
+
+```
+[1] mean.Date        mean.default     mean.difftime    mean.POSIXct    
+[5] mean.POSIXlt     mean.quosure*    mean.vctrs_vctr*
+see '?methods' for accessing help and source code
+```
+
+--
+
+.pull-left[
+
+
+```r
+sloop::ftype(mean)
+```
+
+```
+[1] "S3"      "generic"
+```
+
+
+
+```r
+sloop::ftype(mean.Date)
+```
+
+```
+[1] "S3"     "method"
+```
+
+
+]
+
+--
+
+.pull-right[
+
+
+```r
+sloop::is_s3_generic("mean")
+```
+
+```
+[1] TRUE
+```
+
+]
+
+--
+
+Now convert `mean` to S4 generic: 
+--
+
+```r
+setGeneric("mean")
+```
+
+```
+[1] "mean"
+```
+
+
+---
+
+See the difference:  
+
+--
+
+
+```r
+methods("mean")
+```
+
+```
+[1] mean,ANY-method  mean.Date        mean.default     mean.difftime   
+[5] mean.POSIXct     mean.POSIXlt     mean.quosure*    mean.vctrs_vctr*
+see '?methods' for accessing help and source code
+```
+
+--
+
+.pull-left[
+
+
+```r
+sloop::ftype(mean)
+```
+
+```
+[1] "S4"      "generic"
+```
+
+
+
+```r
+sloop::ftype(mean.Date)
+```
+
+```
+[1] "function"
+```
+
+]
+
+--
+
+.pull-right[
+
+
+```r
+sloop::is_s3_generic("mean")
+```
+
+```
+[1] FALSE
+```
+
+]
+
+---
+
+
+class: center, inverse, middle
+background-image: url("images/cool.png")
+
+# Chp 16  
+# Trade-offs
+
+---
+
+# S4 vs. S3  
+
+S3 is simpler and more widely used.  
+
+--
+S4 requires more  upfront planning --&gt; pays of at larger projects.  
+
+--
+S4 is more formal --&gt; less training required for new contributors
+
+--
+
+S4 widely used at Bioconductor (https://www.bioconductor.org/).  
+
+--
+Bioconductor now has 1903 packages (CRAN 16390).  
+--
+
+At one time 609 out of 1211 packages defined S4 classes.  
+(https://bioconductor.org/packages/release/bioc/vignettes/S4Vectors/inst/doc/S4QuickOverview.pdf)
+
+--
+
+S4 is also a good fit for complex systems of interrelated objects (minimise code duplication through careful implementation of methods).  
+--
+Example: Matrix package (Bates and Maechler 2018).   
+--
+
+Its purpose: efficiently store and compute with many different types of sparse and dense matrices.  
+--
+
+Content version 1.2.18: 102 classes, 21 generic functions, and 1998 methods.  
+
+---
+
+# R6 vs. S3  
+
+## Name spacing
+
+S3:  Generic functions are global: all packages share the same namespace.  
+
+*  use the same verbs for working with different types of objects
+*  strong naming conventions
+*  it forces you to think more deeply about naming
+*  S3 generics must have the same core arguments, which means they generally have non-specific names like x or .data  
+--
+
+R6:  Encapsulated methods are local: methods are bound to a single object.  
+
+*  R6 methods can vary more widely and use more specific and evocative argument names
+
+---
+
+## Threading state  
+
+--
+
+![](confused.gif)&lt;!-- --&gt;
+
+---
+
+## Threading state 
+
+S3 copies on modify  
+R6 modifies on demand  
+
+--
+
+## Method chaining in R6  
+
+
+```r
+s &lt;- Stack$new()
+s$
+  push(10)$
+  push(20)$
+  pop()
+```
+
+--
+
+Commonly used in other programming languages, like Python and JavaScript.  
+--
+
+Is made possible with one convention: any R6 method that is primarily called for its side-effects (usually modifying the object) should return invisible(self).  
+--
+
+The primary advantage of method chaining:   useful autocomplete.  
+--
+
+The primary disadvantage: only the creator of the class can add new methods (and there’s no way to use multiple dispatch).
+
+
+---
+
+# Exercises  
+
+.panelset[
+.panel[.panel-name[Exercise 15.2.1.1]
+
+`lubridate::period()` returns an S4 class.  
+
+
+What slots does it have? 
+
+
+What class is each slot?  
+
+
+What accessors does it provide?
+
+]
+
+.panel[.panel-name[Solution]
+
+
+```r
+BoookclubPeriod &lt;- lubridate::period(c(1, 30), c("hour", "minute"))
+
+str(BoookclubPeriod)
+```
+
+```
+Formal class 'Period' [package "lubridate"] with 6 slots
+  ..@ .Data : num 0
+  ..@ year  : num 0
+  ..@ month : num 0
+  ..@ day   : num 0
+  ..@ hour  : num 1
+  ..@ minute: num 30
+```
+
+All the time parts getters work as expected. To get the Data part is different:
+
+
+```r
+lubridate::minute(BoookclubPeriod)
+```
+
+```
+[1] 30
+```
+
+```r
+getDataPart(BoookclubPeriod)  
+```
+
+```
+[1] 0
+```
+
+
+]
+]
+
+
+---
+
+# Exercises  
+
+.panelset[
+.panel[.panel-name[Exercise 15.4.5.1]
+
+Add age() accessors for the Person class.
+
+
+]
+
+.panel[.panel-name[Solution]
+
+
+```r
+# first add a generic for the getter
+setGeneric("age", function(x) standardGeneric("age"))
+
+# and then make a method for the class Person
+setMethod("age", "Person", function(x) x@age)
+
+# and repeat for the setter
+setGeneric("age&lt;-", function(x, value) standardGeneric("age&lt;-"))
+
+setMethod("age&lt;-", "Person", function(x, value) {
+  x@age &lt;- value
+  validObject(x)
+  x
+})
+```
+
+]
+]
+
+
+
+---
+
+background-image: url("solong.png")
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
