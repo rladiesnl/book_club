@@ -731,8 +731,7 @@ Den Bosch
 
 <td style="text-align:left;">
 
-[Meetup
-link](https://www.meetup.com/nl-NL/rladies-den-bosch/events/273340630/)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp15_16/Ch15_Xaringan.html#1)
 
 </td>
 
@@ -761,7 +760,7 @@ each system you can appreciate when to use one or the othe
 
 <td style="text-align:left;">
 
-Sign up\!
+Janine Khuc
 
 </td>
 
