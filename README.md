@@ -760,7 +760,7 @@ each system you can appreciate when to use one or the othe
 
 <td style="text-align:left;">
 
-Sign up\!
+Janine Khuc
 
 </td>
 
