@@ -681,8 +681,6 @@ and all the authors of R packages used in this presentation
 
 --- 
 
-class: center, inverse, middle
-background-image: url("images/cool.png")
 
 # Thank you and see you in two weeks!
 --
