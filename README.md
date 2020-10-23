@@ -778,7 +778,7 @@ Amsterdam
 
 <td style="text-align:left;">
 
-NA
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp17/Ch17_Xaringan.html)
 
 </td>
 
@@ -827,7 +827,7 @@ Utrecht
 
 <td style="text-align:left;">
 
-NA
+[Meetup link](https://www.meetup.com/rladies-utrecht/events/273984727/)
 
 </td>
 
