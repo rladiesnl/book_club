@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R - Hadley Wickham   Chapter 18   Metaprogramming: Expressions</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alejandra Hernandez" />
+    <link href="Presentation_Ch18_Expressions_files/remark-css/default.css" rel="stylesheet" />
+    <link href="Presentation_Ch18_Expressions_files/remark-css/rladies.css" rel="stylesheet" />
+    <link href="Presentation_Ch18_Expressions_files/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <link href="Presentation_Ch18_Expressions_files/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="Presentation_Ch18_Expressions_files/tile-view/tile-view.js"></script>
+    <link href="Presentation_Ch18_Expressions_files/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <script src="Presentation_Ch18_Expressions_files/xaringanExtra-webcam/webcam.js"></script>
+    <script id="xaringanExtra-webcam-options" type="application/json">{"width":"200","height":"200","margin":"1em"}</script>
+    <link href="Presentation_Ch18_Expressions_files/panelset/panelset.css" rel="stylesheet" />
+    <script src="Presentation_Ch18_Expressions_files/panelset/panelset.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R - Hadley Wickham <br> Chapter 18 <br> Metaprogramming: Expressions
+### Alejandra Hernandez
+### 27/10/2020
+
+---
+
+&lt;style&gt;
+  .col2 {
+    columns: 2 200px;         /* number of columns and width in pixels*/
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+  }
+&lt;/style&gt;
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 50px;
+height: 128px;
+z-index: 0;
+background-image: url(R-LadiesGlobal.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div>
+# Welcome!
+
+&amp;nbsp;
+
+- This book club is a joint effort between RLadies Nijmegen, Rotterdam,
+'s-Hertogenbosch (Den Bosch), Amsterdam and Utrecht  
+&amp;nbsp;
+
+- We meet every 2 weeks to go through a chapter  
+&amp;nbsp;
+
+- Use the [HackMD](https://hackmd.io/RTwJmhNKRPas0JUrHjAGqw) to present yourself, ask questions and see your breakout room  
+&amp;nbsp;
+
+- There are still possibilities to present a chapter :) Sign up at [rladiesnl.github.io/book_club](https://rladiesnl.github.io/book_club/)
+
+
+---
+class: middle, inverse
+
+# .fancy[Let's start!]
+
+&lt;img src="Begin.gif" style="display: block; margin: auto;" /&gt;
+
+---
+# Metaprogramming
+  
+&amp;nbsp;
+
+- Code is data  
+&amp;nbsp;
+  
+&amp;nbsp;
+  
+- Code is a tree  
+&amp;nbsp;
+  
+&amp;nbsp;
+  
+- Code can generate code  
+
+---
+
+# Expressions
+
+&gt; "Expressions, an object that captures the structure of the code without evaluating it (i.e. running it)"
+
+--
+
+Here is some code:
+
+
+```r
+y &lt;- x * 10
+```
+
+```
+Error in eval(expr, envir, enclos): object 'x' not found
+```
+--
+
+Here is some expression: 
+
+```r
+z &lt;- rlang::expr(y &lt;- x * 10)
+z
+```
+
+```
+y &lt;- x * 10
+```
+
+--
+
+Here is how to evaluate an expression:
+
+
+```r
+x &lt;- 4
+eval(z)
+y
+```
+
+```
+[1] 40
+```
+---
+# Objectives  
+  
+&amp;nbsp;
+  
+- Understand expressions!  
+&amp;nbsp;
+ 
+- Learn how to inspect and modify captured code  
+&amp;nbsp;
+  
+- Eventually be able to generate code with code  
+  
+  
+--
+  
+&amp;nbsp;
+
+We will use two packages for that:
+
+
+```r
+library(rlang)
+
+library("lobstr")
+```
+
+---
+# Abstract Syntax Trees (AST)
+
+- Useful to inspect and modify expressions
+    + Let's us see the "hierarchy" of the code
+
+--
+
+
+
+```r
+lobstr::ast(f(x, "y", 1))
+```
+
+```
+o-f 
++-x 
++-"y" 
+\-1 
+```
+&lt;div class="col2"&gt;
+
+&lt;img src="fig1_1.png" style="display: block; margin: auto;" /&gt;
+
+&lt;img src="fig1.png" width="80%" style="display: block; margin: auto;" /&gt;
+&lt;/div&gt;
+
+---
+# Understanding the tree
+
+- Leaves: symbols or constants (comments not included)
+- Branches: call objects (function calls)
+    + The first child (f) is the function that gets called
+    + The second and subsequent children (x, "y", and 1) are the arguments to that function
+
+.panelset[
+.panel[.panel-name[lobstr AST]
+
+
+```r
+lobstr::ast(f(g(1, 2), h(3, 4, i())))
+```
+
+```
+o-f 
++-o-g 
+| +-1 
+| \-2 
+\-o-h 
+  +-3 
+  +-4 
+  \-o-i 
+```
+]
+
+.panel[.panel-name[Graphical AST]
+
+&lt;img src="fig2.png" width="50%" style="display: block; margin: auto;" /&gt;
+]
+] 
+
+---
+# Infix calls
+
+These two are the same:
+
+```r
+y &lt;- x * 10
+`&lt;-`(y, `*`(x, 10))
+```
+--
+
+
+```r
+expr(`&lt;-`(y, `*`(x, 10)))
+```
+
+```
+y &lt;- x * 10
+```
+--
+
+.panelset[
+.panel[.panel-name[lobstr AST]
+
+
+```r
+lobstr::ast(y &lt;- x * 10)
+```
+
+```
+o-`&lt;-` 
++-y 
+\-o-`*` 
+  +-x 
+  \-10 
+```
+
+]
+
+.panel[.panel-name[Graphical AST]
+
+&lt;img src="fig3.png" width="30%" style="display: block; margin: auto;" /&gt;
+
+]
+]
+
+---
+# Expressions  
+  
+- Constant  
+- Symbol  
+- Call  
+  
+
+| Expression type |         Content         |    Creation     |       Testing function        |
+|:---------------:|:-----------------------:|:---------------:|:-----------------------------:|
+|    Constant     | NULL or length-1 vector |  self-quoting   | rlang::is_syntactic_literal() |
+|     Symbol      |    Name of an object    | expr() or sym() |          is.symbol()          |
+|      Call       | Captured function call  |     expr()      |           is.call()           |
+
+---
+# Expressions - Examples
+
+**Constant**
+
+```r
+x &lt;- "y"
+x
+```
+
+```
+[1] "y"
+```
+
+```r
+rlang::is_syntactic_literal(2L)
+```
+
+```
+[1] TRUE
+```
+
+**Symbol**
+
+```r
+#Symbol
+x &lt;- sym("y")
+x
+```
+
+```
+y
+```
+
+```r
+is.symbol(x)
+```
+
+```
+[1] TRUE
+```
+
+---
+**Call**
+
+
+```r
+lobstr::ast(read.table("important.csv", row.names = FALSE))
+```
+
+```
+o-read.table 
++-"important.csv" 
+\-row.names = FALSE 
+```
+
+```r
+x &lt;- expr(read.table("important.csv", row.names = FALSE))
+x
+```
+
+```
+read.table("important.csv", row.names = FALSE)
+```
+
+```r
+is.call(x)
+```
+
+```
+[1] TRUE
+```
+---
+# Subsetting calls  
+
+- Calls behave like lists
+    + First element is the function being called
+    + The other elements are the arguments
+    
+
+```r
+x[[1]]
+```
+
+```
+read.table
+```
+
+```r
+is.symbol(x[[1]])
+```
+
+```
+[1] TRUE
+```
+
+```r
+as.list(x[-1])
+```
+
+```
+[[1]]
+[1] "important.csv"
+
+$row.names
+[1] FALSE
+```
+
+```r
+x$row.names ### Note this only works if the arguments are named in your call!!  
+```
+
+```
+[1] FALSE
+```
+
+---
+
+- What if you forgot to name your arguments? How to find in which position it is inside the call?
+--
+ANSWER: You don't need to!
+  
+
+```r
+x &lt;- rlang::call_standardise(x)
+as.list(x[-1])
+```
+
+```
+$file
+[1] "important.csv"
+
+$row.names
+[1] FALSE
+```
+
+```r
+x$file
+```
+
+```
+[1] "important.csv"
+```
+
+--
+  
+- Still, `rlang::call_standardise()` will have problems with the `...` arguments  
+--
+  
+&amp;nbsp;
+
+&amp;nbsp;
+
+- Do you start seeing applications?  
+
+---
+# Example from a friend
+
+Note of caution! There are other ways (probably better) to do this! But my friend had reasons to want to do it this way:  
+
+
+```r
+# VERY simplified version of her data:
+
+df_1 &lt;- matrix(1:12, ncol = 3)
+df_2 &lt;- matrix(letters, ncol = 2)
+df_3 &lt;- matrix(20:200, ncol = 10)
+
+all_my_matrices &lt;- c("df_1", "df_2", "df_3")
+
+for(mx in all_my_matrices){
+  
+  # Whatever changes she wanted to make
+  
+  write.csv(eval(as.name(mx)), paste0(mx, ".csv"))
+  
+}
+```
+
+---
+# Function position
+
+- First position in the call object 
+
+```r
+lobstr::ast(foo())
+```
+
+```
+o-foo 
+```
+
+- What about functions that do not exist in the current environment?
+
+.panelset[
+.panel[.panel-name[lobstr AST]
+
+
+```r
+lobstr::ast(pkg::foo(1)) ## Function belongs to a different package
+```
+
+```
+o-o-`::` 
+| +-pkg 
+| \-foo 
+\-1 
+```
+
+```r
+lobstr::ast(obj$foo(1)) ## Function is a method of an R6 object
+```
+
+```
+o-o-`$` 
+| +-obj 
+| \-foo 
+\-1 
+```
+
+]
+
+.panel[.panel-name[Graphical AST]
+
+&lt;img src="fig4.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+]
+]
+
+
+
+---
+# Constructing calls
+
+- Create a call from its components using `rlang::call2()`
+
+
+```r
+# Note the use of "" or expr() when calling existing objects
+call2("mean", x = expr(x), na.rm = TRUE) 
+```
+
+```
+mean(x = x, na.rm = TRUE)
+```
+
+```r
+call2(expr(base::mean), x = expr(x), na.rm = TRUE)
+```
+
+```
+base::mean(x = x, na.rm = TRUE)
+```
+
+--
+
+&amp;nbsp;
+
+&amp;nbsp;
+
+- And now... do you see the application?
+
+---
+# Parsing
+
+Some definitions:
+&gt; **Parsing:** process by which a computer language takes a string and constructs an expression  
+&gt; **Grammar:** rules that govern parsing  
+
+--
+
+Important to consider:  
+- *Operator precedence:* In the expression `1 + 2 * 3`, which function would be evaluated first? (`+` or `*`)  
+    + What about the function `!`? 
+
+--
+  
+- *Associativity:* In the expression `1 + 2 + 3`, which function would be evaluated first? (the first `+` or the second `+`)  
+    + And when you have two `^` like in `2^3^2`?  
+    + And when you have two `&lt;-` like in `x &lt;- y &lt;- 3`?  
+    
+---
+# Parsing
+
+- Sometimes you have code stored in a string, and you want to parse it yourself 
+    + `rlang::parse_expr()`  or  (`rlang::parse_exprs()`  when you have multiple expressions separated by "\n" or ";")
+
+
+```r
+x1 &lt;- "y &lt;- x + 10"
+x1
+```
+
+```
+[1] "y &lt;- x + 10"
+```
+
+```r
+is.call(x1)
+```
+
+```
+[1] FALSE
+```
+
+```r
+x2 &lt;- rlang::parse_expr(x1)
+x2
+```
+
+```
+y &lt;- x + 10
+```
+
+```r
+is.call(x2)
+```
+
+```
+[1] TRUE
+```
+
+---
+# Deparsing
+
+- Given an expression, you want the string that would generate it
+
+
+```r
+z &lt;- expr(y &lt;- x + 10)
+expr_text(z)
+```
+
+```
+[1] "y &lt;- x + 10"
+```
+  
+  
+--
+  
+&amp;nbsp;
+
+&amp;nbsp;
+
+- Do you see the use of parsing/deparsing?
+
+---
+# An example from Twitter 
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="Twitter_example.jpg" alt="Taken from a post from Garrick Aden-Buie (@grrrck, 18-10-2020)" width="78%" /&gt;
+&lt;p class="caption"&gt;Taken from a post from Garrick Aden-Buie (@grrrck, 18-10-2020)&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# A real life example (mine)
+
+**My problem:**   I have many S4 objects that need to be merged using a special function from a package (`pkg::merge_S4()`). However, every time I have a different number of S4_objects and the `pkg::merge_S4()` does not accept lists or strings! :( 
+
+```r
+# Make a list of my S4 objects (I actually use functions to create those S4 objects and then get the list of their names with `ls()`)
+my_list_of_S4s &lt;- c("my_S4_1", "your_S4_2", "your_S4_3")
+
+#Build my call
+my_call_in_text &lt;- paste("pkg::merge_S4(", paste(my_list_of_S4s, collapse = ","), ")")
+my_call_in_text
+```
+
+```
+[1] "pkg::merge_S4( my_S4_1,your_S4_2,your_S4_3 )"
+```
+
+```r
+my_call_ready &lt;- parse_expr(my_call_in_text)
+my_call_ready
+```
+
+```
+pkg::merge_S4(my_S4_1, your_S4_2, your_S4_3)
+```
+
+```r
+# Actually call it (not run now because my fake function does not exist)
+#eval(my_call_ready)
+```
+
+---
+# Disclaimers  
+
+&amp;nbsp;
+
+- I did not cover the last two sections of the chapter 18!  
+&amp;nbsp;
+
+&amp;nbsp;
+  
+- There are other ways to do metaprogramming (follow chapter 19 about quasiquotation!) or other ways to solve the examples I put here
+&amp;nbsp;
+
+&amp;nbsp;
+  
+- Although I hope you learnt something today, this is by no means a deep dive into metaprogramming... this is just the beginning!
+
+---
+class: middle, inverse
+
+# .fancy[Time for exercises!]
+
+&lt;img src="practice.gif" width="90%" style="display: block; margin: auto;" /&gt;
+
+---
+# Exercise 1 
+
+.panelset[
+.panel[.panel-name[Question]
+
+Reconstruct the function corresponding to these AST
+
+
+```
+o-f 
+\-o-g 
+  \-o-h 
+```
+
+```
+o-`+` 
++-o-`+` 
+| +-1 
+| \-2 
+\-3 
+```
+
+```
+o-`*` 
++-o-`(` 
+| \-o-`+` 
+|   +-x 
+|   \-y 
+\-z 
+```
+]
+
+.panel[.panel-name[Answer]
+
+
+```r
+lobstr::ast(f(g(h())))
+```
+
+```
+o-f 
+\-o-g 
+  \-o-h 
+```
+
+
+```r
+ast(1 + 2 + 3)
+```
+
+```
+o-`+` 
++-o-`+` 
+| +-1 
+| \-2 
+\-3 
+```
+
+
+```r
+ast((x + y) * z)
+```
+
+```
+o-`*` 
++-o-`(` 
+| \-o-`+` 
+|   +-x 
+|   \-y 
+\-z 
+```
+]
+]
+
+---
+# Exercise 2
+
+.panelset[
+.panel[.panel-name[Question]
+
+What’s happening with the ASTs below? (Hint: carefully read ?"^")
+
+
+```r
+ast(x ** y)
+```
+
+```
+o-`^` 
++-x 
+\-y 
+```
+
+```r
+ast(1 -&gt; x)
+```
+
+```
+o-`&lt;-` 
++-x 
+\-1 
+```
+
+]
+
+.panel[.panel-name[Answer]
+
+1. ** is translated by R’s parser into ^. 
+
+2. The expression is flipped when R parses it:
+
+
+```r
+str(expr(a -&gt; b))
+```
+
+```
+ language b &lt;- a
+```
+
+]
+]
+
+---
+# Exercise 3
+
+.panelset[
+.panel[.panel-name[Question]
+
+What does the call tree of an if statement with multiple else if conditions look like? Why?
+
+]
+
+.panel[.panel-name[Answer_curly]
+
+In the "else" part of the AST just another expression is being evaluated, which happens to be an if statement.
+
+
+```r
+ast(
+  if (FALSE) {
+    1
+  } else if (TRUE) {
+    2
+  }
+)
+```
+
+```
+o-`if` 
++-FALSE 
++-o-`{` 
+| \-1 
+\-o-`if` 
+  +-TRUE 
+  \-o-`{` 
+    \-2 
+```
+]
+
+.panel[.panel-name[Answer_no_curly]
+
+Without curly brackets:
+
+```r
+ast(
+  if (FALSE) 1 
+  else if (TRUE) 2 
+)
+```
+
+```
+o-`if` 
++-FALSE 
++-1 
+\-o-`if` 
+  +-TRUE 
+  \-2 
+```
+]
+]
+
+---
+# Exercise 4 
+
+.panelset[
+.panel[.panel-name[Question]
+
+What happens when you subset a call object to remove the first element, e.g. `expr(read.csv("foo.csv", header = TRUE))[-1]` Why?
+
+]
+
+.panel[.panel-name[Answer]
+
+When the first element of a call object is removed, the second element moves to the first position, which is the function to call. Therefore, we get `"foo.csv"(header = TRUE)`
+
+]
+]
+
+---
+# Exercise 5
+
+.panelset[
+.panel[.panel-name[Question]
+
+What happens when you subset a call object to remove the first element? e.g. `expr(read.csv("foo.csv", header = TRUE))[-1]`. Why?
+
+]
+.panel[.panel-name[Answer]
+
+When the first element of a call object is removed, the second element moves to the first position, which is the function to call. Therefore, we get `"foo.csv"(header = TRUE)`
+
+]
+]
+
+---
+# Exercise 6
+
+.panelset[
+.panel[.panel-name[Question]
+
+Why does this code not make sense?
+
+
+```r
+x &lt;- expr(foo(x = 1))
+names(x) &lt;- c("x", "")
+```
+
+]
+.panel[.panel-name[Answer]
+
+We know that the first element of a call is always the function that gets called.
+
+Let’s see what happens when we run the code:
+
+
+```r
+x &lt;- rlang::expr(foo(x = 1))
+x
+```
+
+```
+foo(x = 1)
+```
+
+```r
+names(x) &lt;- c("x", "")
+x
+```
+
+```
+foo(1)
+```
+
+```r
+names(x) &lt;- c("", "x")
+x
+```
+
+```
+foo(x = 1)
+```
+
+
+So giving the first element a name just adds metadata that R ignores.
+
+]
+]
+
+---
+# Exercise 7
+
+.panelset[
+.panel[.panel-name[Question]
+
+Construct the expression `if(x &gt; 1) "a" else "b"` using multiple calls to `call2()`. How does the structure code reflect the structure of the AST?
+
+]
+.panel[.panel-name[Answer]
+
+Similar to the prefix version we get
+
+
+```r
+call2("if", call2("&gt;", sym("x"), 1), "a", "b")
+```
+
+```
+if (x &gt; 1) "a" else "b"
+```
+
+When we read the AST from left to right, we get the same structure: Function to evaluate, expression, which is another function and is evaluated first, and two constants which will be evaluated next.
+
+
+```r
+ast(`if`(x &gt; 1, "a", "b"))
+```
+
+```
+o-`if` 
++-o-`&gt;` 
+| +-x 
+| \-1 
++-"a" 
+\-"b" 
+```
+
+]
+]
+
+---
+class: middle, inverse
+
+# .fancy[We are done!]
+
+&lt;img src="done.gif" width="130%" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle, inverse
+
+# .fancy[Thank you!]
+&lt;img src="thanks.gif" width="40%" style="display: block; margin: auto;" /&gt;
+
+## Do you want to present next?
+### Or just follow the book club until the end!!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
