@@ -809,7 +809,7 @@ functions to work with code trees.
 
 <td style="text-align:left;">
 
-Sign up\!
+Alejandra Hernandez
 
 </td>
 
@@ -828,6 +828,7 @@ Utrecht
 <td style="text-align:left;">
 
 [Meetup link](https://www.meetup.com/rladies-utrecht/events/273984727/)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp18/Presentation_Ch18_Expressions.html#1)
 
 </td>
 
