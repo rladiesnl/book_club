@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Quasiquotations</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Paloma Rojas-Saunero" />
+    <meta name="date" content="2020-11-10" />
+    <link href="chap19_files/remark-css/default.css" rel="stylesheet" />
+    <link href="chap19_files/remark-css/rladies.css" rel="stylesheet" />
+    <link href="chap19_files/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <link href="chap19_files/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="chap19_files/tile-view/tile-view.js"></script>
+    <link href="chap19_files/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <link href="chap19_files/font-awesome/css/fontawesome-all.min.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+background-image: url(./figs/rladieslogo.png)
+background-position: 95% 5%
+background-size: 20%
+class: center, middle
+
+# Quasiquotations
+
+
+
+
+&lt;br&gt; &lt;br&gt;
+
+.right[
+
+### L. Paloma-Rojas Saunero
+#### <i class="fab  fa-twitter "></i> &lt;a href="http://twitter.com/palolili23"&gt; &lt;/i&gt;&amp;nbsp; @palolili23&lt;/a&gt;&lt;br&gt;
+
+#### <i class="fab  fa-github "></i> &lt;a href="https://github.com/palolili23"&gt; &lt;/i&gt;&amp;nbsp; @palolili23&lt;/a&gt;&lt;br&gt;
+
+]
+
+---
+
+# Welcome!
+
+&amp;nbsp;
+
+- This meetup is part of a joint effort between RLadies Nijmegen, Rotterdam, 's-Hertogenbosch (Den Bosch), Amsterdam and Utrecht  
+
+--
+
+- We meet every 2 weeks to go through a chapter of the book "Advanced R" by Hadley Wickham  
+
+--
+
+- If you are interested in presenting: **Translating R Code (Chp. 21)** or **Debugging (Chp. 22) **, reach out!
+
+--
+
+- We use a HackMD page for sharing resources, questions and feedback
+
+--
+
+- Slides from previous sessions are available: https://github.com/rladiesnl/book_club
+
+---
+class: middle, inverse
+
+# Let's start!
+
+
+
+---
+## Some vocabulary
+
+- **Expression** are objects which contain parsed (quoted code) but not evaluated R statements.
+   + **Calls**: capture function calls
+
+--
+
+- **Parsing** is what converts a textual representation of R code into an _internal form_ which may then be passed to the R evaluator which causes the specified instructions to be carried out.
+
+--
+
+- **Evaluate**: To execute a piece of code
+
+---
+
+## Example: capture a expression and execute
+
+
+```r
+y &lt;- x * 10 
+```
+
+```
+Error in eval(expr, envir, enclos): object 'x' not found
+```
+
+
+```r
+z &lt;- rlang::expr(y &lt;- x * 10) ## save as a parsed expression/a call
+
+z
+```
+
+```
+y &lt;- x * 10
+```
+
+```r
+str(z) ## special type of object
+```
+
+```
+ language y &lt;- x * 10
+```
+
+```r
+x &lt;- 4
+
+eval(z) ## execute
+
+y
+```
+
+```
+[1] 40
+```
+
+---
+
+## Example: parse a string into an expression and execute
+
+
+```r
+x1 &lt;- "y &lt;- a + 10" ## string
+
+str(x1)
+```
+
+```
+ chr "y &lt;- a + 10"
+```
+
+```r
+x2 &lt;- parse_expr(x1) ## parsed expression
+
+str(x2)
+```
+
+```
+ language y &lt;- a + 10
+```
+
+```r
+a &lt;- 5
+
+eval(x2) ## evaluate (execute)
+
+y
+```
+
+```
+[1] 15
+```
+
+---
+class: middle
+
+&lt;img src=./figs/parse_eval.png /&gt;
+
+
+---
+
+
+## Quasiquotation (quasi-quoi? )
+
+- **Quoting some parts** of an expression while **evaluating** _and_ then inserting the results 
+**of others** (unquoting others).
+
+--
+
+- Makes it easy to create functions that combine code written by the function’s author with code written by the function’s user.
+
+--
+
+- 1 of the 3 pillars of **tidy evaluation** (join RLadies Den Bosch in 2 weeks to learn the two!)
+
+.footnote[
+- [Brodie Gaslam, "On Quosures" (Aug,2020)](https://www.brodieg.com/2020/08/11/quosures/)
+
+
+]
+
+---
+
+## Motivation
+
+
+
+```r
+paste("Good", "morning", "Hadley")
+```
+
+```
+[1] "Good morning Hadley"
+```
+
+```r
+cement &lt;- function(...) {
+  args &lt;- ensyms(...)
+  paste(purrr::map(args, as_string), collapse = " ")
+}
+
+cement(Good, morning, Hadley)
+```
+
+```
+[1] "Good morning Hadley"
+```
+
+
+
+```r
+name &lt;- "Hadley"
+
+time &lt;- "morning"
+
+paste("Good", time, name)
+```
+
+```
+[1] "Good morning Hadley"
+```
+
+---
+
+
+```r
+cement(Good, time, name)
+```
+
+```
+[1] "Good time name"
+```
+
+```r
+cement(Good, !!time, !!name) ## quasiquotation
+```
+
+```
+[1] "Good morning Hadley"
+```
+
+**Glue**
+
+
+```r
+glue::glue("Good {time} {name}")
+```
+
+```
+Good morning Hadley
+```
+
+- `paste()` evaluates its arguments, so we must quote where needed
+
+- `cement()` quotes its arguments, so we must unquote where needed
+
+- `glue()` embeds R expressions in curly braces which are then evaluated and inserted into the argument string.
+
+---
+
+class: inverse, middle
+
+# Quotation
+
+---
+
+### Quotation
+
+- **Quotation**: Act of capturing an unevaluated expression.
+
+- **Quoting** is to store an expression without evaluation.
+
+.pull-left[
+
+```r
+z &lt;- expr(y &lt;- x * 10)
+
+z
+```
+
+```
+y &lt;- x * 10
+```
+
+```r
+a &lt;- expr(b &lt;- 2 * 10)
+
+a
+```
+
+```
+b &lt;- 2 * 10
+```
+]
+
+--
+
+.pull-right[
+
+```r
+z &lt;- quote(y &lt;- x * 10)
+
+z
+```
+
+```
+y &lt;- x * 10
+```
+
+```r
+a &lt;- quote(b &lt;- 2 * 10)
+
+a
+```
+
+```
+b &lt;- 2 * 10
+```
+]
+
+.footnote[
+
+- `quote()` is the base equivalent to `expr()`
+
+]
+
+---
+
+If you don't know if an argument is quoted or not, try it!
+
+
+```r
+library(MASS)
+
+MASS
+```
+
+```
+Error in eval(expr, envir, enclos): object 'MASS' not found
+```
+
+---
+
+### Quoting: Capturing expressions
+
+- `expr()` captures what you, the developer, typed.
+
+- `expr()` is not so good inside functions
+
+
+```r
+f1 &lt;- function(x) expr(x)
+f1(a + b + c)
+```
+
+```
+x
+```
+
+--
+
+We need `enexpr()`: captures what the caller supplied to the function
+
+
+```r
+f2 &lt;- function(x) enexpr(x)
+
+f2(a + b + c)
+```
+
+```
+a + b + c
+```
+
+.footnote[
+- The base function closest to `enexpr()` is `substitute()`
+]
+
+---
+
+To capture all arguments in `...`, use `enexprs()`
+
+
+```r
+f &lt;- function(...) enexprs(...)
+
+f(x = 1, y = 10 * z)
+```
+
+```
+$x
+[1] 1
+
+$y
+10 * z
+```
+
+```r
+lobstr::ast(f(x = 1, y = 10 * z))
+```
+
+```
+o-f 
++-x = 1 
+\-y = o-`*` 
+      +-10 
+      \-z 
+```
+
+---
+
+`exprs()` to make a list of expressions
+
+
+```r
+exprs(x = x ^ 2, y = y ^ 3, z = z ^ 4)
+```
+
+```
+$x
+x^2
+
+$y
+y^3
+
+$z
+z^4
+```
+
+```r
+lobstr::ast(exprs(x = x ^ 2, y = y ^ 3, z = z ^ 4))
+```
+
+```
+o-exprs 
++-x = o-`^` 
+|     +-x 
+|     \-2 
++-y = o-`^` 
+|     +-y 
+|     \-3 
+\-z = o-`^` 
+      +-z 
+      \-4 
+```
+
+.footnote[
+- The base equivalent to `exprs()` is `alist()`
+- The equivalent to `enexprs()` is an undocumented feature of `substitute()`
+]
+
+---
+class:middle
+
+- **expr()** and **exprs** to capture expressions that _you_ supply
+
+`expr(expresion)`
+
+
+
+--
+
+- **enexpr()** and **enexprs()** to capture expressions supplied as arguments _by the user_.
+
+`enexpr(x)` where `x` is an `expression` provided in an argument
+
+---
+
+### Quoting: Capturing symbols
+
+**Symbols**: Names of a value or object stored in R
+
+`ensym()` or `ensyms()`
+
+   - variants of `enexpr()` and `enexprs()`
+
+   - Check the captured expression is either a symbol or a string
+   
+
+```r
+f &lt;- function(...) ensyms(...)
+
+f(x)
+```
+
+```
+[[1]]
+x
+```
+
+```r
+f("x")
+```
+
+```
+[[1]]
+x
+```
+
+```r
+f(mtcars)
+```
+
+```
+[[1]]
+mtcars
+```
+
+---
+
+### Substitution
+
+
+```r
+f4 &lt;- function(x) substitute(x * 2)
+
+f4(a + b + c)
+```
+
+```
+(a + b + c) * 2
+```
+
+
+```r
+substitute(x * y * z, 
+           list(
+             x = 10, 
+             y = quote(a + b)))
+```
+
+```
+10 * (a + b) * z
+```
+
+---
+
+### Summary on Quoting 
+
+When quoting (i.e. capturing/storing code), there are two important distinctions:
+
+- Is it supplied by the **developer** of the code or the **user** of the code? In other words, is it fixed (supplied in the body of the function) or varying (supplied via an argument)?
+
+- Do you want to capture a **single expression** or **multiple expressions**?
+
+---
+class: middle, inverse
+
+# Unquoting
+
+---
+class: center, middle
+
+![](https://media1.tenor.com/images/571ceef567ac4e980840b9d2d0fed434/tenor.gif?itemid=8025379)
+
+---
+
+### Unquoting
+
+Allows you to selectively evaluate parts of the expression that would otherwise be quoted
+
+Unquoting is one inverse of quoting
+
+
+```r
+x &lt;- expr(-1)
+
+str(x)
+```
+
+```
+ language -1
+```
+
+```r
+expr(f(x, y)) 
+```
+
+```
+f(x, y)
+```
+
+```r
+expr(f(!!x, y)) ## takes expression, evaluates and inlines in the tree
+```
+
+```
+f(-1, y)
+```
+
+---
+
+.pull-left[
+
+```r
+ast(expr(f(!!x, y)))
+```
+
+```
+o-expr 
+\-o-f 
+  +-o-`-` 
+  | \-1 
+  \-y 
+```
+
+]
+
+
+.pull-right[
+
+&lt;img src= https://d33wubrfki0l68.cloudfront.net/6460470e66f39052d794dd365141a7cc0cb02e56/08719/diagrams/quotation/bang-bang.png width="260" /&gt; 
+
+]
+
+---
+
+### Bang-bang `!!` also works with symbols
+
+.pull-left[
+
+```r
+a &lt;- sym("y")
+b &lt;- 1
+expr(f(!!a, !!b))
+```
+
+```
+f(y, 1)
+```
+]
+
+.pull-right[
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/a4d49ceb36f81bbe3516a6fead7a9116cc80eaae/873ca/diagrams/quotation/simple.png" width="226"&gt;
+
+]
+
+---
+
+Bang-bang `!!` preserves operator precedence because it works with expressions
+
+.pull-left[
+
+```r
+x1 &lt;- expr(x + 1)
+x2 &lt;- expr(x + 2)
+
+expr(!!x1 / !!x2)
+```
+
+```
+(x + 1)/(x + 2)
+```
+
+```r
+ast(expr(!!x1 / !!x2))
+```
+
+```
+o-expr 
+\-o-`/` 
+  +-o-`+` 
+  | +-x 
+  | \-1 
+  \-o-`+` 
+    +-x 
+    \-2 
+```
+]
+
+.pull-right[
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/321539c223c071eb51ce7ebb0dcad1b5a17961ff/5434b/diagrams/quotation/infix.png" width="430"&gt;
+
+]
+
+---
+
+If we simply pasted the text of the expressions together, we’d end up with x + 1 / x + 2, which has a very different AST
+
+.pull-left[
+
+```r
+expr((x + 1)/(x + 2))
+```
+
+```
+(x + 1)/(x + 2)
+```
+
+```r
+ast(expr((x + 1)/(x + 2)))
+```
+
+```
+o-expr 
+\-o-`/` 
+  +-o-`(` 
+  | \-o-`+` 
+  |   +-x 
+  |   \-1 
+  \-o-`(` 
+    \-o-`+` 
+      +-x 
+      \-2 
+```
+]
+
+.pull-right[
+
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/a4781343679b3a1c54cfbea85a8f030adf674660/54aec/diagrams/quotation/infix-bad.png" width="283"&gt;
+
+]
+
+---
+
+### Unquoting a function or a call
+
+
+```r
+f &lt;- expr(foo)
+expr((!!f)(x, y))
+```
+
+```
+foo(x, y)
+```
+
+--
+
+
+```r
+f &lt;- expr(pkg::foo)
+
+expr((!!f)(x, y))
+```
+
+```
+pkg::foo(x, y)
+```
+
+--
+
+Because of the large number of parentheses involved, it can be clearer to use `rlang::call2()`
+
+
+```r
+f &lt;- expr(pkg::foo)
+call2(f, expr(x), expr(y))
+```
+
+```
+pkg::foo(x, y)
+```
+
+---
+
+### Unquoting in special forms
+
+
+```r
+expr(df$!!x)
+```
+
+```
+Error: &lt;text&gt;:1:9: unexpected '!'
+1: expr(df$!
+            ^
+```
+
+To make unquoting work, you’ll need to use the prefix form
+
+
+```r
+x &lt;- expr(x)
+
+expr(`$`(df, !!x))
+```
+
+```
+df$x
+```
+
+---
+
+### Unquoting many arguments
+
+
+```r
+xs &lt;- exprs(1, a, -b)
+
+xs
+```
+
+```
+[[1]]
+[1] 1
+
+[[2]]
+a
+
+[[3]]
+-b
+```
+
+```r
+expr(f(!!!xs, y))
+```
+
+```
+f(1, a, -b, y)
+```
+
+---
+
+Or with names
+
+.pull-left[
+
+```r
+ys &lt;- set_names(xs, c("a", "b", "c"))
+
+ys
+```
+
+```
+$a
+[1] 1
+
+$b
+a
+
+$c
+-b
+```
+
+```r
+ast(expr(f(!!!ys, d = 4)))
+```
+
+```
+o-expr 
+\-o-f 
+  +-a = 1 
+  +-b = a 
+  +-c = o-`-` 
+  |     \-b 
+  \-d = 4 
+```
+]
+
+.pull-right[
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/9e60ab46ad3c470bc27437b05fcd53fef781039d/17433/diagrams/quotation/bang-bang-bang.png" width="373"&gt;
+
+]
+
+---
+
+### Non-quoting
+
+_"Base R approaches selectively turn quoting off, rather than using unquoting, so I call them non-quoting techniques. - Hadley Wickham"_
+
+Base R has one function that implements quasiquotation: `bquote()`
+
+It uses `.()` for unquoting
+
+--
+
+.pull-left[
+
+```r
+xyz &lt;- bquote((x + y + z))
+
+bquote(-.(xyz) / 2)
+```
+
+```
+-(x + y + z)/2
+```
+]
+
+--
+
+.pull-right[
+
+```r
+abc &lt;- expr((a + b + c))
+
+expr(-!!abc/2)
+```
+
+```
+-(a + b + c)/2
+```
+]
+
+---
+
+### R Base quoting 
+
+- A pair of quoting and non-quoting functions. For example, `$` has two arguments, and the second argument is quoted. 
+
+This is easier to see if you write in prefix form: `mtcars$cyl` is equivalent to `$(mtcars, cyl)`
+
+
+```r
+x &lt;- list(var = 1, y = 2)
+var &lt;- "y"
+
+x$var
+```
+
+```
+[1] 1
+```
+
+```r
+x[[var]]
+```
+
+```
+[1] 2
+```
+
+---
+class: center, middle
+
+![](https://media1.tenor.com/images/46525233abf4a86c0190c1399b3aec48/tenor.gif?itemid=16812165)
+
+
+---
+
+### Some history...
+
+- Quasiquotation comes from philosophy
+
+--
+
+- It helps when we need to distinguish the object and the word we use to refer to that object.
+
+--
+
+- In R, many functions quote one or more input, which is ambiguous
+
+--
+
+- `{lazyeval}` package was supposed to solve this problems.
+
+--
+
+- Lionel Henry started working with Hadley and that's when they developed the "tidy evaluation" framework
+
+--
+
+- Lionel has being the master behind `rlang` package and is changing many things around it. 
+
+---
+class: center, middle
+
+![](https://media1.tenor.com/images/a40a3d8f98e61273bf9a86b246931467/tenor.gif?itemid=14190563)
+
+---
+
+### Exercise 1
+
+
+```r
+library(dplyr)
+
+var &lt;- sym("height")
+
+var
+```
+
+```
+height
+```
+
+```r
+starwars %&gt;%
+  summarise(avg = mean(!!var, na.rm = TRUE))
+```
+
+```
+# A tibble: 1 x 1
+    avg
+  &lt;dbl&gt;
+1  174.
+```
+
+- Substitute an environment-variable (created with &lt;-) with a data-variable (inside a data frame).
+
+---
+Sometimes we may want to use the same expression in different ways, within the same code
+
+.pull-left[
+
+```r
+var &lt;- sym("sex")
+
+starwars %&gt;%
+  count(!!var) %&gt;%
+  ggplot(
+    aes(x = fct_reorder(!!var, n), 
+        y = n)) +
+  geom_col() +
+  labs(
+    title = 
+      paste("Distribution of:", 
+            var))
+```
+]
+
+.pull-right[
+&lt;img src="chap19_files/figure-html/unnamed-chunk-36-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+
+The big-bang operator `!!!` forces-splice a list of objects. The elements of the list are spliced in place, meaning that they each become one single argument.
+
+
+```r
+vars &lt;- syms(c("sex", "homeworld"))
+
+starwars %&gt;% 
+  group_by(!!!vars) %&gt;% 
+  summarise(avg = mean(height)) %&gt;% 
+  top_n(3)
+```
+
+```
+# A tibble: 11 x 3
+# Groups:   sex [5]
+   sex            homeworld   avg
+   &lt;chr&gt;          &lt;chr&gt;     &lt;dbl&gt;
+ 1 female         Kamino      213
+ 2 female         Ryloth      178
+ 3 female         Shili       178
+ 4 hermaphroditic Nal Hutta   175
+ 5 male           Kalee       216
+ 6 male           Kashyyyk    231
+ 7 male           Quermia     264
+ 8 none           Naboo        96
+ 9 none           Tatooine    132
+10 &lt;NA&gt;           Naboo       183
+11 &lt;NA&gt;           Umbara      178
+```
+
+---
+class: inverse, middle
+
+# Curly-curly {{}}
+
+### _When you’ve written the same code 3 times, write a function_
+---
+
+Let's say we need to **group by** and get the **max** value for each category...
+
+
+```r
+max_by &lt;- function(data, var, by) {
+  data %&gt;%
+    group_by(by) %&gt;%
+    summarise(maximum = max(var, na.rm = TRUE))
+}
+
+starwars %&gt;% 
+  max_by(height, sex)
+```
+
+```
+Error: Must group by variables found in `.data`.
+* Column `by` is not found.
+```
+
+```r
+starwars %&gt;% 
+  max_by("height", "sex")
+```
+
+```
+Error: Must group by variables found in `.data`.
+* Column `by` is not found.
+```
+
+---
+
+`enquo()` quotes the expression, `!!` evaluates it
+
+
+```r
+max_by &lt;- function(data, var, by) {
+  data %&gt;%
+    group_by(!!enquo(by)) %&gt;%
+    summarise(maximum = max(!!enquo(var), na.rm = TRUE))
+}
+
+starwars %&gt;% 
+  max_by(height, sex)
+```
+
+```
+# A tibble: 5 x 2
+  sex            maximum
+  &lt;chr&gt;            &lt;int&gt;
+1 female             213
+2 hermaphroditic     175
+3 male               264
+4 none               200
+5 &lt;NA&gt;               183
+```
+
+---
+
+The **curly-curly** alternative, takes the **quote-and-unquote** into a single **interpolation** step
+
+
+```r
+max_by &lt;- function(data, var, by) {
+  data %&gt;%
+    group_by({{by}}) %&gt;%
+    summarise(maximum = max({{var}}, na.rm = TRUE))
+}
+
+starwars %&gt;% 
+  max_by(height, sex)
+```
+
+```
+# A tibble: 5 x 2
+  sex            maximum
+  &lt;chr&gt;            &lt;int&gt;
+1 female             213
+2 hermaphroditic     175
+3 male               264
+4 none               200
+5 &lt;NA&gt;               183
+```
+
+---
+
+
+```r
+library(gapminder)
+
+plot_gm &lt;- function(data, cont, xvar, yvar){
+data %&gt;% 
+  filter(continent == cont) %&gt;% 
+  ggplot(aes({{xvar}}, {{yvar}})) +
+  geom_point(show.legend = FALSE)
+}
+
+gapminder %&gt;% 
+  plot_gm("Europe", year, lifeExp)
+```
+
+&lt;img src="chap19_files/figure-html/unnamed-chunk-41-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+
+
+```r
+plot_gm &lt;- function(data, cont, xvar, yvar){
+  a &lt;- as_name(enquo(xvar))
+  
+  b &lt;- as_name(enquo(yvar))
+  
+data %&gt;% 
+  filter(continent == cont) %&gt;% 
+  ggplot(aes({{xvar}}, {{yvar}})) +
+  geom_point(show.legend = FALSE) +
+  geom_smooth() +
+    labs(title = glue::glue(
+        "{cont}: relationship between {a} and {b}"))}
+
+gapminder %&gt;% 
+  plot_gm("Europe", year, lifeExp)
+```
+
+&lt;img src="chap19_files/figure-html/unnamed-chunk-42-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+
+
+```r
+mean_by &lt;- function(data, by, var) {
+  data %&gt;%
+    group_by({{ by }}) %&gt;%
+    summarise("{{ var }}" := mean({{ var }}, na.rm = TRUE))
+}
+
+gapminder %&gt;% 
+  mean_by(country, gdpPercap) %&gt;% 
+  arrange(gdpPercap) %&gt;% 
+  top_n(10)
+```
+
+```
+# A tibble: 10 x 2
+   country       gdpPercap
+   &lt;fct&gt;             &lt;dbl&gt;
+ 1 Austria          20412.
+ 2 Iceland          20531.
+ 3 Germany          20557.
+ 4 Denmark          21672.
+ 5 Netherlands      21749.
+ 6 Canada           22411.
+ 7 United States    26261.
+ 8 Norway           26747.
+ 9 Switzerland      27074.
+10 Kuwait           65333.
+```
+
+---
+
+
+```r
+mean_by &lt;- function(data, by, var, prefix = "avg") {
+  data %&gt;%
+    group_by({{ by }}) %&gt;%
+    summarise("{prefix}_{{ var }}" := mean({{ var }}, na.rm = TRUE))
+}
+
+gapminder %&gt;% 
+  mean_by(continent, gdpPercap, prefix = "avg")
+```
+
+```
+# A tibble: 5 x 2
+  continent avg_gdpPercap
+  &lt;fct&gt;             &lt;dbl&gt;
+1 Africa            2194.
+2 Americas          7136.
+3 Asia              7902.
+4 Europe           14469.
+5 Oceania          18622.
+```
+
+---
+class: inverse, middle, center
+
+![](https://media.giphy.com/media/3ohs7JG6cq7EWesFcQ/giphy.gif)
+
+---
+class: middle
+
+## What was left to cover:
+
+- Parts of Non-quoting
+
+- `...` (dot-dot-dot)
+
+- Case Studies
+
+---
+
+## Read the following blogposts:
+
+- [Tidyverse blog: rlang 0.4.0](https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/)
+
+- [Tidy eval now supports glue strings](Tidy eval now supports glue strings)
+
+- [Force parts of an expression](https://rlang.r-lib.org/reference/quasiquotation.html)
+
+- [Slides: Interactivity and Programming in the tidyverse](https://speakerdeck.com/lionelhenry/interactivity-and-programming-in-the-tidyverse?slide=27)
+
+- [On quosures](https://www.brodieg.com/2020/08/11/quosures/)
+
+- [How do I make my own dplyr-style functions](https://thisisnic.github.io/2018/04/16/how-do-i-make-my-own-dplyr-style-functions/)
+
+- [RLang: language definitions](https://cran.r-project.org/doc/manuals/r-release/R-lang.html)
+
+---
+
+&lt;img src=./figs/rlang_cheet.png /&gt;
+
+---
+
+&lt;img src=./figs/rlang_cheet2.png /&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
