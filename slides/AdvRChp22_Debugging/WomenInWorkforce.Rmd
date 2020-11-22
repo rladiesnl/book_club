@@ -1,0 +1,63 @@
+---
+title: "AdvancedR chapter 22: Debugging"
+output: html_notebook
+---
+
+```{r, echo = FALSE}
+
+knitr::opts_chunk$set(fig.pos = "center")
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+```
+
+# Women in the Workforce (TidyTuesday 4-Mar-2019)
+
+Data from the Bureau of Labor Statistics and the Census Bureau about women in the workforce. 
+
+According to the AAUW - "The gender pay gap is the gap between what men and women are paid. Most commonly, it refers to the median annual pay of all women who work full time and year-round, compared to the pay of a similar cohort of men." 
+
+The data is provided as is, and you recognize the limitations and issues in defining gender as binary.
+
+```{r, message=FALSE, warning=FALSE}
+
+jobs_gender <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-05/jobs_gender.csv")
+head(jobs_gender)
+
+```
+
+```{r, out.width="140%", message=FALSE, warning=FALSE}
+
+# Get mean_major category
+mean_major_category <- jobs_gender %>% 
+  group_by(major_category) %>%
+  summarise(mean = mean(wage_percent_of_male/100, na.rm = T) )
+
+# Get palette 
+n_cols <- jobs_gender$minor_category %>% unique() %>% length()
+color_array <- colorRampPalette(RColorBrewer::brewer.pal(8, "Set2"))(n_cols)
+
+# Plot
+jobs_gender %>%
+  ggplot(aes(x = minor_category, y = wage_percent_of_male/100, color = minor_category)) +
+  geom_boxplot(alpha = 0.3, show.legend = FALSE) +
+  geom_point(position = position_jitter(width = 0.3)) +
+  geom_hline(data = mean_major_category, aes(yintercept = mean), linetype = 2, color = "darkgray") +
+  facet_wrap(~major_category, scales = "free_x") +
+  scale_color_manual(values = color_array) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(title = "Wage of women in proportion to men in the same job category", y = "")+
+  theme_light() +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+
+
+
+```
+
+
