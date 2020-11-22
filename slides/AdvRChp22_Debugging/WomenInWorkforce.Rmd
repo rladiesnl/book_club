@@ -1,6 +1,8 @@
 ---
-title: "AdvancedR chapter 22: Debugging"
-output: html_notebook
+title: 'AdvancedR chapter 22: Debugging'
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r, echo = FALSE}
@@ -57,7 +59,117 @@ jobs_gender %>%
         axis.title.x = element_blank())
 
 
+mean <- mean_major_category$mean
+
 
 ```
 
+
+## Debugging a for loop
+
+Trying to store the average wage of women in proportion to men.
+
+```{r, eval = FALSE}
+# store the average wage percentage of males 
+for(i in mean_major_category$major_category){
+  prop <- jobs_gender[jobs_gender$major_category == i, "wage_percent_of_male"]
+  proportions[i] <- mean(prop)
+}
+proportions
+```
+
+### Step 1: declaring a variable
+
+```{r, eval = FALSE}
+### debugging step by step
+
+# problem 1: because 'changes' wasn't declared before the loop, it now refers to
+# a dplyr function
+proportions <- rep(NA, 8)
+
+for(i in mean_major_category$major_category){
+  prop <- jobs_gender[jobs_gender$major_category == i, "wage_percent_of_male"]
+  proportions[i] <- mean(prop)
+}
+
+proportions
+```
+
+### Step 2: using a character variable for indexing
+
+```{r, eval = FALSE}
+proportions <- rep(NA, 8)
+# problem 2: i is a character variable and cannot be used for indexing as is
+# possible solution: assign names to changes
+names(changes) <- mean_major_category$major_category
+for(i in mean_major_category$major_category){
+  prop <- jobs_gender[jobs_gender$major_category == i, "wage_percent_of_male"]
+  # problem 1: changes wasn't declared before the loop
+  proportions[i] <- mean(prop)
+}
+
+proportions
+```
+### Step 3: trying to use a tibble as a vector
+
+```{r, eval = FALSE}
+proportions <- rep(NA, 8)
+names(proportions) <- mean_major_category$major_category
+
+for(i in mean_major_category$major_category){
+  prop <- jobs_gender[jobs_gender$major_category == i, "wage_percent_of_male"]
+  # problem 3: change is a tibble and not a numeric or logical vector.
+  proportions[i] <- mean(prop$wage_percent_of_male)
+}
+
+proportions
+```
+### Step 4: remove missing values in order to compute mean
+
+```{r}
+proportions <- rep(NA, 8)
+names(proportions) <- mean_major_category$major_category
+
+for(i in mean_major_category$major_category){
+  prop <- jobs_gender[jobs_gender$major_category == i, "wage_percent_of_male"]
+  # problem 4: missing values need to be removed in order to compute the mean. 
+  proportions[i] <- mean(prop$wage_percent_of_male, na.rm = TRUE)
+}
+
+proportions
+```
+
+This is nonsensical code of course..
+Maybe a good demonstration of how not to use a for loop! 
+Perhaps this is a more realistic application: (currently unfinished)
+
+```{r, eval = FALSE}
+# store the average yearly change of the wage gap per major category
+change <- jobs_gender %>%
+  group_by(year, major_category) %>%
+  summarise(mean_i <- mean(wage_percent_of_male, na.rm = TRUE))
+
+for(i in unique(jobs_gender$year)){
+  stopifnot(i < 2016)
+  
+  next_year <- i + 1 
+  changes[i] <- change %>%
+    group_by(major_category)
+  
+}
+```
+
+
+## Free ggplot2 exercise: how to plot group means?
+
+```{r}
+jobs_gender %>%
+  group_by(major_category) %>%
+  ggplot() + 
+  geom_point(aes(x = mean(percent_female), 
+                 y = mean(wage_percent_of_male), 
+                 color = major_category)) + 
+  theme_classic()
+
+```
 
