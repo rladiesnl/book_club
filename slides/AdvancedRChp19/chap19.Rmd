@@ -1,0 +1,902 @@
+---
+title: 'Quasiquotations'
+subtitle: "Learning about the bang bang and curly curly slang"
+author: "Paloma Rojas-Saunero"
+date: '`r Sys.Date()`'
+output: 
+  xaringan::moon_reader:
+    css: ["default", "rladies", "rladies-fonts"]
+    seal: false
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+library(xaringan)
+library(rlang)
+library(purrr)
+library(tidyverse)
+library(lobstr)
+options(htmltools.dir.version = FALSE)
+
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = "", cache = FALSE, echo = T, fig.retina = 3, fig.align = 'center')
+
+xaringanExtra::use_tile_view()
+
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         #<<
+  mute_unhighlighted_code = TRUE  #<<
+)
+```
+
+background-image: url(./figs/rladieslogo.png)
+background-position: 95% 5%
+background-size: 20%
+class: center, middle
+
+# Quasiquotations
+
+
+
+
+<br> <br>
+
+.right[
+
+### L. Paloma-Rojas Saunero
+#### `r icon:: fa("twitter")` <a href="http://twitter.com/palolili23"> </i>&nbsp; @palolili23</a><br>
+
+#### `r icon:: fa("github")` <a href="https://github.com/palolili23"> </i>&nbsp; @palolili23</a><br>
+
+]
+
+---
+
+# Welcome!
+
+&nbsp;
+
+- This meetup is part of a joint effort between RLadies Nijmegen, Rotterdam, 's-Hertogenbosch (Den Bosch), Amsterdam and Utrecht  
+
+--
+
+- We meet every 2 weeks to go through a chapter of the book "Advanced R" by Hadley Wickham  
+
+--
+
+- If you are interested in presenting: **Translating R Code (Chp. 21)** or **Debugging (Chp. 22) **, reach out!
+
+--
+
+- We use a HackMD page for sharing resources, questions and feedback
+
+--
+
+- Slides from previous sessions are available: https://github.com/rladiesnl/book_club
+
+---
+class: middle, inverse
+
+# Let's start!
+
+```{r echo = FALSE}
+
+```
+
+---
+## Some vocabulary
+
+- **Expression** are objects which contain parsed (quoted code) but not evaluated R statements.
+   + **Calls**: capture function calls
+
+--
+
+- **Parsing** is what converts a textual representation of R code into an _internal form_ which may then be passed to the R evaluator which causes the specified instructions to be carried out.
+
+--
+
+- **Evaluate**: To execute a piece of code
+
+---
+
+## Example: capture a expression and execute
+
+```{r, error=TRUE}
+y <- x * 10 
+```
+
+```{r}
+z <- rlang::expr(y <- x * 10) ## save as a parsed expression/a call
+
+z
+
+str(z) ## special type of object
+
+x <- 4
+
+eval(z) ## execute
+
+y
+```
+
+---
+
+## Example: parse a string into an expression and execute
+
+```{r}
+x1 <- "y <- a + 10" ## string
+
+str(x1)
+
+x2 <- parse_expr(x1) ## parsed expression
+
+str(x2)
+
+a <- 5
+
+eval(x2) ## evaluate (execute)
+
+y
+```
+
+---
+class: middle
+
+<img src=./figs/parse_eval.png />
+
+
+---
+
+
+## Quasiquotation (quasi-quoi? )
+
+- **Quoting some parts** of an expression while **evaluating** _and_ then inserting the results 
+**of others** (unquoting others).
+
+--
+
+- Makes it easy to create functions that combine code written by the function’s author with code written by the function’s user.
+
+--
+
+- 1 of the 3 pillars of **tidy evaluation** (join RLadies Den Bosch in 2 weeks to learn the two!)
+
+.footnote[
+- [Brodie Gaslam, "On Quosures" (Aug,2020)](https://www.brodieg.com/2020/08/11/quosures/)
+
+
+]
+
+---
+
+## Motivation
+
+
+```{r}
+paste("Good", "morning", "Hadley")
+
+cement <- function(...) {
+  args <- ensyms(...)
+  paste(purrr::map(args, as_string), collapse = " ")
+}
+
+cement(Good, morning, Hadley)
+
+```
+
+
+```{r}
+name <- "Hadley"
+
+time <- "morning"
+
+paste("Good", time, name)
+
+```
+
+---
+
+```{r}
+cement(Good, time, name)
+
+cement(Good, !!time, !!name) ## quasiquotation
+```
+
+**Glue**
+
+```{r}
+glue::glue("Good {time} {name}")
+
+```
+
+- `paste()` evaluates its arguments, so we must quote where needed
+
+- `cement()` quotes its arguments, so we must unquote where needed
+
+- `glue()` embeds R expressions in curly braces which are then evaluated and inserted into the argument string.
+
+---
+
+class: inverse, middle
+
+# Quotation
+
+---
+
+### Quotation
+
+- **Quotation**: Act of capturing an unevaluated expression.
+
+- **Quoting** is to store an expression without evaluation.
+
+.pull-left[
+```{r}
+z <- expr(y <- x * 10)
+
+z
+
+a <- expr(b <- 2 * 10)
+
+a
+```
+]
+
+--
+
+.pull-right[
+```{r}
+z <- quote(y <- x * 10)
+
+z
+
+a <- quote(b <- 2 * 10)
+
+a
+```
+]
+
+.footnote[
+
+- `quote()` is the base equivalent to `expr()`
+
+]
+
+---
+
+If you don't know if an argument is quoted or not, try it!
+
+```{r, error = TRUE}
+library(MASS)
+
+MASS
+
+```
+
+---
+
+### Quoting: Capturing expressions
+
+- `expr()` captures what you, the developer, typed.
+
+- `expr()` is not so good inside functions
+
+```{r}
+f1 <- function(x) expr(x)
+f1(a + b + c)
+
+```
+
+--
+
+We need `enexpr()`: captures what the caller supplied to the function
+
+```{r}
+f2 <- function(x) enexpr(x)
+
+f2(a + b + c)
+```
+
+.footnote[
+- The base function closest to `enexpr()` is `substitute()`
+]
+
+---
+
+To capture all arguments in `...`, use `enexprs()`
+
+```{r}
+f <- function(...) enexprs(...)
+
+f(x = 1, y = 10 * z)
+
+lobstr::ast(f(x = 1, y = 10 * z))
+```
+
+---
+
+`exprs()` to make a list of expressions
+
+```{r}
+exprs(x = x ^ 2, y = y ^ 3, z = z ^ 4)
+
+lobstr::ast(exprs(x = x ^ 2, y = y ^ 3, z = z ^ 4))
+```
+
+.footnote[
+- The base equivalent to `exprs()` is `alist()`
+- The equivalent to `enexprs()` is an undocumented feature of `substitute()`
+]
+
+---
+class:middle
+
+- **expr()** and **exprs** to capture expressions that _you_ supply
+
+`expr(expresion)`
+
+
+
+--
+
+- **enexpr()** and **enexprs()** to capture expressions supplied as arguments _by the user_.
+
+`enexpr(x)` where `x` is an `expression` provided in an argument
+
+---
+
+### Quoting: Capturing symbols
+
+**Symbols**: Names of a value or object stored in R
+
+`ensym()` or `ensyms()`
+
+   - variants of `enexpr()` and `enexprs()`
+
+   - Check the captured expression is either a symbol or a string
+   
+```{r}
+f <- function(...) ensyms(...)
+
+f(x)
+
+f("x")
+
+f(mtcars)
+```
+
+---
+
+### Substitution
+
+```{r}
+f4 <- function(x) substitute(x * 2)
+
+f4(a + b + c)
+```
+
+```{r}
+substitute(x * y * z, 
+           list(
+             x = 10, 
+             y = quote(a + b)))
+```
+
+---
+
+### Summary on Quoting 
+
+When quoting (i.e. capturing/storing code), there are two important distinctions:
+
+- Is it supplied by the **developer** of the code or the **user** of the code? In other words, is it fixed (supplied in the body of the function) or varying (supplied via an argument)?
+
+- Do you want to capture a **single expression** or **multiple expressions**?
+
+---
+class: middle, inverse
+
+# Unquoting
+
+---
+class: center, middle
+
+![](https://media1.tenor.com/images/571ceef567ac4e980840b9d2d0fed434/tenor.gif?itemid=8025379)
+
+---
+
+### Unquoting
+
+Allows you to selectively evaluate parts of the expression that would otherwise be quoted
+
+Unquoting is one inverse of quoting
+
+```{r}
+x <- expr(-1)
+
+str(x)
+
+expr(f(x, y)) 
+
+expr(f(!!x, y)) ## takes expression, evaluates and inlines in the tree
+
+```
+
+---
+
+.pull-left[
+```{r}
+ast(expr(f(!!x, y)))
+
+```
+
+]
+
+
+.pull-right[
+
+<img src= https://d33wubrfki0l68.cloudfront.net/6460470e66f39052d794dd365141a7cc0cb02e56/08719/diagrams/quotation/bang-bang.png width="260" /> 
+
+]
+
+---
+
+### Bang-bang `!!` also works with symbols
+
+.pull-left[
+```{r}
+a <- sym("y")
+b <- 1
+expr(f(!!a, !!b))
+
+```
+]
+
+.pull-right[
+<img src="https://d33wubrfki0l68.cloudfront.net/a4d49ceb36f81bbe3516a6fead7a9116cc80eaae/873ca/diagrams/quotation/simple.png" width="226">
+
+]
+
+---
+
+Bang-bang `!!` preserves operator precedence because it works with expressions
+
+.pull-left[
+```{r}
+x1 <- expr(x + 1)
+x2 <- expr(x + 2)
+
+expr(!!x1 / !!x2)
+
+ast(expr(!!x1 / !!x2))
+```
+]
+
+.pull-right[
+<img src="https://d33wubrfki0l68.cloudfront.net/321539c223c071eb51ce7ebb0dcad1b5a17961ff/5434b/diagrams/quotation/infix.png" width="430">
+
+]
+
+---
+
+If we simply pasted the text of the expressions together, we’d end up with x + 1 / x + 2, which has a very different AST
+
+.pull-left[
+```{r}
+expr((x + 1)/(x + 2))
+
+
+ast(expr((x + 1)/(x + 2)))
+```
+]
+
+.pull-right[
+
+<img src="https://d33wubrfki0l68.cloudfront.net/a4781343679b3a1c54cfbea85a8f030adf674660/54aec/diagrams/quotation/infix-bad.png" width="283">
+
+]
+
+---
+
+### Unquoting a function or a call
+
+```{r}
+f <- expr(foo)
+expr((!!f)(x, y))
+
+```
+
+--
+
+```{r}
+f <- expr(pkg::foo)
+
+expr((!!f)(x, y))
+```
+
+--
+
+Because of the large number of parentheses involved, it can be clearer to use `rlang::call2()`
+
+```{r}
+f <- expr(pkg::foo)
+call2(f, expr(x), expr(y))
+
+```
+
+---
+
+### Unquoting in special forms
+
+```{r, error=TRUE}
+expr(df$!!x)
+
+```
+
+To make unquoting work, you’ll need to use the prefix form
+
+```{r}
+x <- expr(x)
+
+expr(`$`(df, !!x))
+
+
+```
+
+---
+
+### Unquoting many arguments
+
+```{r}
+xs <- exprs(1, a, -b)
+
+xs
+
+expr(f(!!!xs, y))
+
+```
+
+---
+
+Or with names
+
+.pull-left[
+```{r}
+ys <- set_names(xs, c("a", "b", "c"))
+
+ys
+
+ast(expr(f(!!!ys, d = 4)))
+```
+]
+
+.pull-right[
+<img src="https://d33wubrfki0l68.cloudfront.net/9e60ab46ad3c470bc27437b05fcd53fef781039d/17433/diagrams/quotation/bang-bang-bang.png" width="373">
+
+]
+
+---
+
+### Non-quoting
+
+_"Base R approaches selectively turn quoting off, rather than using unquoting, so I call them non-quoting techniques. - Hadley Wickham"_
+
+Base R has one function that implements quasiquotation: `bquote()`
+
+It uses `.()` for unquoting
+
+--
+
+.pull-left[
+```{r}
+xyz <- bquote((x + y + z))
+
+bquote(-.(xyz) / 2)
+
+```
+]
+
+--
+
+.pull-right[
+```{r}
+
+abc <- expr((a + b + c))
+
+expr(-!!abc/2)
+
+```
+]
+
+---
+
+### R Base quoting 
+
+- A pair of quoting and non-quoting functions. For example, `$` has two arguments, and the second argument is quoted. 
+
+This is easier to see if you write in prefix form: `mtcars$cyl` is equivalent to `$(mtcars, cyl)`
+
+```{r}
+x <- list(var = 1, y = 2)
+var <- "y"
+
+x$var
+
+x[[var]]
+
+```
+
+---
+class: center, middle
+
+![](https://media1.tenor.com/images/46525233abf4a86c0190c1399b3aec48/tenor.gif?itemid=16812165)
+
+
+---
+
+### Some history...
+
+- Quasiquotation comes from philosophy
+
+--
+
+- It helps when we need to distinguish the object and the word we use to refer to that object.
+
+--
+
+- In R, many functions quote one or more input, which is ambiguous
+
+--
+
+- `{lazyeval}` package was supposed to solve this problems.
+
+--
+
+- Lionel Henry started working with Hadley and that's when they developed the "tidy evaluation" framework
+
+--
+
+- Lionel has being the master behind `rlang` package and is changing many things around it. 
+
+---
+class: center, middle
+
+![](https://media1.tenor.com/images/a40a3d8f98e61273bf9a86b246931467/tenor.gif?itemid=14190563)
+
+---
+
+### Exercise 1
+
+```{r}
+library(dplyr)
+
+var <- sym("height")
+
+var
+
+starwars %>%
+  summarise(avg = mean(!!var, na.rm = TRUE))
+
+```
+
+- Substitute an environment-variable (created with <-) with a data-variable (inside a data frame).
+
+---
+Sometimes we may want to use the same expression in different ways, within the same code
+
+.pull-left[
+```{r, eval = FALSE}
+var <- sym("sex")
+
+starwars %>%
+  count(!!var) %>%
+  ggplot(
+    aes(x = fct_reorder(!!var, n), 
+        y = n)) +
+  geom_col() +
+  labs(
+    title = 
+      paste("Distribution of:", 
+            var))
+
+```
+]
+
+.pull-right[
+```{r, echo = FALSE}
+var <- sym("sex")
+
+starwars %>%
+  count(!!var) %>%
+  ggplot(
+    aes(x = fct_reorder(!!var, n), 
+        y = n)) +
+  geom_col() +
+  labs(
+    title = 
+      paste("Distribution of:", 
+            var))
+
+```
+
+]
+
+---
+
+The big-bang operator `!!!` forces-splice a list of objects. The elements of the list are spliced in place, meaning that they each become one single argument.
+
+```{r}
+vars <- syms(c("sex", "homeworld"))
+
+starwars %>% 
+  group_by(!!!vars) %>% 
+  summarise(avg = mean(height)) %>% 
+  top_n(3)
+
+```
+
+---
+class: inverse, middle
+
+# Curly-curly {{}}
+
+### _When you’ve written the same code 3 times, write a function_
+---
+
+Let's say we need to **group by** and get the **max** value for each category...
+
+```{r, error = TRUE}
+max_by <- function(data, var, by) {
+  data %>%
+    group_by(by) %>%
+    summarise(maximum = max(var, na.rm = TRUE))
+}
+
+starwars %>% 
+  max_by(height, sex)
+
+starwars %>% 
+  max_by("height", "sex")
+```
+
+---
+
+`enquo()` quotes the expression, `!!` evaluates it
+
+```{r}
+max_by <- function(data, var, by) {
+  data %>%
+    group_by(!!enquo(by)) %>%
+    summarise(maximum = max(!!enquo(var), na.rm = TRUE))
+}
+
+starwars %>% 
+  max_by(height, sex)
+
+```
+
+---
+
+The **curly-curly** alternative, takes the **quote-and-unquote** into a single **interpolation** step
+
+```{r}
+max_by <- function(data, var, by) {
+  data %>%
+    group_by({{by}}) %>%
+    summarise(maximum = max({{var}}, na.rm = TRUE))
+}
+
+starwars %>% 
+  max_by(height, sex)
+
+```
+
+---
+
+```{r, fig.height=5}
+library(gapminder)
+
+plot_gm <- function(data, cont, xvar, yvar){
+data %>% 
+  filter(continent == cont) %>% 
+  ggplot(aes({{xvar}}, {{yvar}})) +
+  geom_point(show.legend = FALSE)
+}
+
+gapminder %>% 
+  plot_gm("Europe", year, lifeExp)
+
+```
+
+---
+
+```{r, fig.height = 4}
+plot_gm <- function(data, cont, xvar, yvar){
+  a <- as_name(enquo(xvar))
+  
+  b <- as_name(enquo(yvar))
+  
+data %>% 
+  filter(continent == cont) %>% 
+  ggplot(aes({{xvar}}, {{yvar}})) +
+  geom_point(show.legend = FALSE) +
+  geom_smooth() +
+    labs(title = glue::glue(
+        "{cont}: relationship between {a} and {b}"))}
+
+gapminder %>% 
+  plot_gm("Europe", year, lifeExp)
+
+```
+
+---
+
+```{r}
+mean_by <- function(data, by, var) {
+  data %>%
+    group_by({{ by }}) %>%
+    summarise("{{ var }}" := mean({{ var }}, na.rm = TRUE))
+}
+
+gapminder %>% 
+  mean_by(country, gdpPercap) %>% 
+  arrange(gdpPercap) %>% 
+  top_n(10)
+```
+
+---
+
+```{r}
+mean_by <- function(data, by, var, prefix = "avg") {
+  data %>%
+    group_by({{ by }}) %>%
+    summarise("{prefix}_{{ var }}" := mean({{ var }}, na.rm = TRUE))
+}
+
+gapminder %>% 
+  mean_by(continent, gdpPercap, prefix = "avg")
+
+```
+
+---
+class: inverse, middle, center
+
+![](https://media.giphy.com/media/3ohs7JG6cq7EWesFcQ/giphy.gif)
+
+---
+class: middle
+
+## What was left to cover:
+
+- Parts of Non-quoting
+
+- `...` (dot-dot-dot)
+
+- Case Studies
+
+---
+
+## Read the following blogposts:
+
+- [Tidyverse blog: rlang 0.4.0](https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/)
+
+- [Tidy eval now supports glue strings](Tidy eval now supports glue strings)
+
+- [Force parts of an expression](https://rlang.r-lib.org/reference/quasiquotation.html)
+
+- [Slides: Interactivity and Programming in the tidyverse](https://speakerdeck.com/lionelhenry/interactivity-and-programming-in-the-tidyverse?slide=27)
+
+- [On quosures](https://www.brodieg.com/2020/08/11/quosures/)
+
+- [How do I make my own dplyr-style functions](https://thisisnic.github.io/2018/04/16/how-do-i-make-my-own-dplyr-style-functions/)
+
+- [RLang: language definitions](https://cran.r-project.org/doc/manuals/r-release/R-lang.html)
+
+---
+
+<img src=./figs/rlang_cheet.png />
+
+---
+
+<img src=./figs/rlang_cheet2.png />
