@@ -1,0 +1,14 @@
+Loading required package: Rcpp
+Registered S3 methods overwritten by 'ggplot2':
+  method         from 
+  [.quosures     rlang
+  c.quosures     rlang
+  print.quosures rlang
+Warning message:
+package ‘Rcpp’ was built under R version 3.6.3 
+Warning message:
+package ‘purrr’ was built under R version 3.6.3 
+Error in data.frame(sequence = names(freqtbl$top), count = as.integer(freqtbl$top),  : 
+  arguments imply differing number of rows: 0, 1
+Calls: plotQualityProfile ... tryCatch -> tryCatchList -> tryCatchOne -> <Anonymous>
+Execution halted

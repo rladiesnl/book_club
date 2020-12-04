@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>AdvancedR chapter 22: Debugging</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alejandra Hernandez-Segura" />
+    <link href="WomenInWorkforce_files/remark-css/default.css" rel="stylesheet" />
+    <link href="WomenInWorkforce_files/remark-css/rladies.css" rel="stylesheet" />
+    <link href="WomenInWorkforce_files/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <script src="WomenInWorkforce_files/xaringanExtra-webcam/webcam.js"></script>
+    <script id="xaringanExtra-webcam-options" type="application/json">{"width":"200","height":"200","margin":"1em"}</script>
+    <link href="WomenInWorkforce_files/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# AdvancedR chapter 22: Debugging
+### Alejandra Hernandez-Segura
+### 8-December-2020
+
+---
+
+
+
+
+# Welcome!
+
+&amp;nbsp;
+
+- This meetup is part of a joint effort between RLadies Nijmegen, Rotterdam, 's-Hertogenbosch (Den Bosch), Amsterdam and Utrecht  
+&amp;nbsp;
+
+--
+
+- We meet every 2 weeks to go through a chapter of the book "Advanced R" by Hadley Wickham  
+&amp;nbsp;
+
+--
+
+- Slides from previous sessions are available: https://github.com/rladiesnl/book_club
+&amp;nbsp;
+
+---
+
+# Overall approach
+
+Strategy recommended by Hadley Wickham:
+
+1. Google
+    + Remove variable names or values
+    + Use specific packages for automation: `errorist107` or `searcher108`
+2. Make it repeatable
+    + MINIMAL reproducible example 
+    + Automated test case (if applicable)
+3. Figure out where it is
+    + Tools explained here
+    + Ask for help (using the reproducible example)
+4. Fix it and test it
+
+---
+
+# Women in the Workforce (TidyTuesday 4-Mar-2019)
+
+Data from the Bureau of Labor Statistics and the Census Bureau about women in the workforce. 
+
+According to the AAUW - "The gender pay gap is the gap between what men and women are paid. Most commonly, it refers to the median annual pay of all women who work full time and year-round, compared to the pay of a similar cohort of men." 
+
+The data is provided as is, and you recognize the limitations and issues in defining gender as binary.
+
+---
+
+# The dataset
+
+
+```
+tibble [2,088 x 12] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ year                 : num [1:2088] 2013 2013 2013 2013 2013 ...
+ $ occupation           : chr [1:2088] "Chief executives" "General and operations managers" "Legislators" "Advertising and promotions managers" ...
+ $ major_category       : chr [1:2088] "Management, Business, and Financial" "Management, Business, and Financial" "Management, Business, and Financial" "Management, Business, and Financial" ...
+ $ minor_category       : chr [1:2088] "Management" "Management" "Management" "Management" ...
+ $ total_workers        : num [1:2088] 1024259 977284 14815 43015 754514 ...
+ $ workers_male         : num [1:2088] 782400 681627 8375 17775 440078 ...
+ $ workers_female       : num [1:2088] 241859 295657 6440 25240 314436 ...
+ $ percent_female       : num [1:2088] 23.6 30.3 43.5 58.7 41.7 63.5 33.6 27.5 53.5 76.9 ...
+ $ total_earnings       : num [1:2088] 120254 73557 67155 61371 78455 ...
+ $ total_earnings_male  : num [1:2088] 126142 81041 71530 75190 91998 ...
+ $ total_earnings_female: num [1:2088] 95921 60759 65325 55860 65040 ...
+ $ wage_percent_of_male : num [1:2088] 76 75 91.3 74.3 70.7 ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   year = col_double(),
+  ..   occupation = col_character(),
+  ..   major_category = col_character(),
+  ..   minor_category = col_character(),
+  ..   total_workers = col_double(),
+  ..   workers_male = col_double(),
+  ..   workers_female = col_double(),
+  ..   percent_female = col_double(),
+  ..   total_earnings = col_double(),
+  ..   total_earnings_male = col_double(),
+  ..   total_earnings_female = col_double(),
+  ..   wage_percent_of_male = col_double()
+  .. )
+```
+
+
+---
+
+# Our goal
+
+&lt;img src="WomenInWorkforce_files/figure-html/unnamed-chunk-3-1.png" width="648" height="103%" style="display: block; margin: auto;" /&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
