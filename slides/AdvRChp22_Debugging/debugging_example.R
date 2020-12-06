@@ -56,3 +56,4 @@ categories <- jobs_gender$major_category %>% levels()
 
 map(categories, plot_one_category)
 
+plot_one_category(categories[[1]])

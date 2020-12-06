@@ -24,17 +24,17 @@ library(ggplot2)
 library(tidyr)
 library(stringr)
 library(magrittr)
-library(DT)
 
-xaringanExtra::use_xaringan_extra(c("tileview", "webcam"))
+xaringanExtra::use_tile_view()
 xaringanExtra::use_logo(
   image_url = "R-LadiesGlobal.png",
   width = "50px")
-
 xaringanExtra::use_extra_styles(
   hover_code_line = TRUE,         #<<
   mute_unhighlighted_code = TRUE  #<<
 )
+xaringanExtra::use_webcam()
+xaringanExtra::use_panelset()
 
 ```
 
@@ -57,20 +57,35 @@ xaringanExtra::use_extra_styles(
 
 ---
 
-# Overall approach
+# Overall approach for Debugging
 
 Strategy recommended by Hadley Wickham:
 
-1. Google
-    + Remove variable names or values
-    + Use specific packages for automation: `errorist107` or `searcher108`
-2. Make it repeatable
-    + MINIMAL reproducible example 
-    + Automated test case (if applicable)
-3. Figure out where it is
-    + Tools explained here
-    + Ask for help (using the reproducible example)
-4. Fix it and test it
+1. Google  
+
+    + Remove variable names or values  
+    
+    + Use specific packages for automation: `errorist107` or `searcher108`  
+    
+--
+
+2. Make it repeatable  
+
+    + MINIMAL reproducible example   
+    
+    + Automated test case (if applicable)  
+   
+--
+
+3. Figure out where it is  
+
+    + Tools explained here  
+    
+    + Ask for help (using the reproducible example)  
+    
+--
+
+4. Fix it and test it  
 
 ---
 
@@ -80,20 +95,24 @@ Strategy recommended by Hadley Wickham:
 
 - Traceback in RStudio or through the function `traceback()`  
 
+
 **Fixing the error:**  
 
-- Editor breakpoint  
+- Editor breakpoint   
+
 - Browser breakpoint `browser()`  
+
 - `options(error = browser)` (Opposite: `options(error = NULL)`)  
+
 - `debug()` and `debugonce()`  
 
 ---
 
 # Women in the Workforce (TidyTuesday 4-Mar-2019)
 
-Data from the Bureau of Labor Statistics and the Census Bureau about women in the workforce. 
+Data from the Bureau of Labor Statistics and the Census Bureau about women in the workforce.  
 
-According to the AAUW - "The gender pay gap is the gap between what men and women are paid. Most commonly, it refers to the median annual pay of all women who work full time and year-round, compared to the pay of a similar cohort of men." 
+According to the AAUW - "The gender pay gap is the gap between what men and women are paid. Most commonly, it refers to the median annual pay of all women who work full time and year-round, compared to the pay of a similar cohort of men."  
 
 The data is provided as is, and you recognize the limitations and issues in defining gender as binary.
 
@@ -153,10 +172,14 @@ ggplot(jobs_gender, aes(x = minor_category, y = wage_percent_of_male/100, color 
 
 # Non-interactive sessions
 
-- Steps are the same than before
-- Common problems:
-    + Different environment
-    + Different working directory
+- Steps are the same than before  
+
+- Common problems:  
+
+    + Different environment  
+    
+    + Different working directory  
+    
     + Different environment variables (like PATH or R_LIBS)
 
 ---
@@ -173,6 +196,7 @@ dump_and_quit <- function() {
   # Quit R with error status
   q(status = 1)
 }
+
 options(error = dump_and_quit)
 
 # In a later interactive session ----
@@ -186,22 +210,69 @@ If you work in bash...
 Rscript my_r_script.R &> log_file.txt
 ```
 
---- 
+---
 
-Print statements everywhere!!
+# My example
+
+```{r eval = FALSE}
+
+# Code to get input from user
+# Load libraries
+
+# Looking for files in input (run) directory
+list_R1_fastq <- list.files(run_dir, pattern = "R1_?\\d*.fastq$|R1_?\\d*.fastq.gz$", full.names = TRUE)
+list_R2_fastq <- list.files(run_dir, pattern = "R2_?\\d*.fastq$|R2_?\\d*.fastq.gz$", full.names = TRUE)
+
+# Get sample names
+sample_names <- list_R1_fastq %>%
+  str_extract("[:alnum:]{0,2}[0-9]{1,3}[_-][0-9]{3}")
+
+## Only keep files that are in the metadata
+list_R1_fastq <- list_R1_fastq[sample_names %in% metadata$assay_sample]
+list_R2_fastq <- list_R2_fastq[sample_names %in% metadata$assay_sample]
+
+# Only keep fastq files larger than 200kb
+
+## Plot Quality Profiles R1
+plotR1 <- plotQualityProfile(sample(list_R1_fastq, 50), aggregate = TRUE) +
+  labs(title = "Quality plot Forward Reads")
+ggsave(plot_R1_file, plot = plotR1,
+       width = 6.5, height = 5, units = 'in', dpi = 300)
+
+## Plot Quality Profiles R2
+
+# Filer and trim fastq files
+trimOut <- filterAndTrim(fwd = list_R1_fastq, rev = list_R2_fastq, 
+                         compress = TRUE, 
+                         maxN = maxN, # Does not allowed any Ns in the reads
+                         maxEE = maxEE, # Maximum expected errors
+                         truncLen = truncLen, # Truncating length (forward and reverse)
+                         rm.phix = TRUE, #Removes phix reads
+                         matchIDs = matchIDs, #Makes sure that both pairs are present
+                         multithread = TRUE, verbose = TRUE)
+
+colnames(trimOut) <- c("Initial Reads", "Trimmed reads")
+
+write.csv(trimOut, trimOut_file)
+
+```
+
+---
+
+# The good old print statements...
 
 .panelset[
 .panel[.panel-name[Undecipherable error]
 
-```{r, echo = FALSE}
+```{r, panelset = TRUE, echo = FALSE}
 read.delim(file = "files/undecipherable_error.txt", sep = "\t", header = FALSE)
 ```
 ]
 
 .panel[.panel-name[Slightly less undecipherable error]
 
-```{r, echo = FALSE}
-read.delim(file = "files/undecipherable_error.txt", sep = "\t", header = FALSE)
+```{r, panelset = TRUE, echo = FALSE}
+read.delim(file = "files/slightly_more_decipherable_error.log", sep = "\t", header = FALSE)
 ```
 
 ]
@@ -211,12 +282,17 @@ read.delim(file = "files/undecipherable_error.txt", sep = "\t", header = FALSE)
 
 # Other non-errors
 
-- For warnings use: `options(warn = 2)` to turn warnings into error and use the the call stack, like `doWithOneRestart()`, `withOneRestart()`
-- For messages use: `rlang::with_abort()` to turn these messages into errors
-- A function might never return. Sometimes terminating the function and looking at the `traceback()` is informative
-- R crashing completely. This indicates a bug in compiled (C or C++) code.
-- If the bug is in your compiled code, you’ll need to follow use an interactive C debugger (or insert many print statements)
-- If the bug is in a package or base R, you’ll need to contact the package maintainer. In either case, work on making the smallest possible reproducible example
+- For warnings use: `options(warn = 2)` to turn warnings into error and use the the call stack, like `doWithOneRestart()`, `withOneRestart()`  
+
+- For messages use: `rlang::with_abort()` to turn these messages into errors  
+
+- A function might never return. Sometimes terminating the function and looking at the `traceback()` is informative  
+
+- R crashing completely. This indicates a bug in compiled (C or C++) code  
+
+- If the bug is in your compiled code, you’ll need to follow use an interactive C debugger (or insert many print statements)  
+
+- If the bug is in a package or base R, you’ll need to contact the package maintainer. In either case, work on making the smallest possible reproducible example  
 
 ---
 class: middle, inverse
@@ -234,15 +310,6 @@ class: middle, inverse
 &nbsp;
 
 - What is the worst error message/debugging experience you have ever had?
-
----
-class: middle, inverse
-
-# .fancy[We are done!]
-
-```{r, echo=FALSE, out.width="130%"}
-knitr::include_graphics("done.gif")
-```
 
 ---
 class: middle, inverse
