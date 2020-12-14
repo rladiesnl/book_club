@@ -937,54 +937,6 @@ NA
 
 <td style="text-align:left;">
 
-21
-
-</td>
-
-<td style="text-align:left;">
-
-Translating R code
-
-</td>
-
-<td style="text-align:left;">
-
-Finishes up by combining first-class environments, lexical scoping, and
-metaprogramming to translate R code into other languages, namely HTML
-and LaTeX.
-
-</td>
-
-<td style="text-align:left;">
-
-Sign up\!
-
-</td>
-
-<td style="text-align:left;">
-
-2020-12-08
-
-</td>
-
-<td style="text-align:left;">
-
-Amsterdam
-
-</td>
-
-<td style="text-align:left;">
-
-NA
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
 22
 
 </td>
@@ -1006,13 +958,13 @@ find the root cause for most problems rapidly and relatively painlessly.
 
 <td style="text-align:left;">
 
-Sign up\!
+Alejandra Hernandez
 
 </td>
 
 <td style="text-align:left;">
 
-2020-12-22
+2020-12-08
 
 </td>
 
@@ -1024,7 +976,7 @@ Utrecht
 
 <td style="text-align:left;">
 
-NA
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvRChp22_Debugging/WomenInWorkforce.html#1)
 
 </td>
 
@@ -1058,7 +1010,7 @@ Semiramis Castro
 
 <td style="text-align:left;">
 
-2021-01-05
+2020-12-22
 
 </td>
 
@@ -1070,53 +1022,8 @@ Rotterdam
 
 <td style="text-align:left;">
 
-NA
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-25
-
-</td>
-
-<td style="text-align:left;">
-
-Rewriting R code in C++
-
-</td>
-
-<td style="text-align:left;">
-
-NA
-
-</td>
-
-<td style="text-align:left;">
-
-Sign up\!
-
-</td>
-
-<td style="text-align:left;">
-
-2021-01-19
-
-</td>
-
-<td style="text-align:left;">
-
-Den Bosch
-
-</td>
-
-<td style="text-align:left;">
-
-NA
+[Meetup
+link](https://www.meetup.com/rladies-rotterdam/events/275171538/)
 
 </td>
 
