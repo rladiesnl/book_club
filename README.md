@@ -1022,8 +1022,7 @@ Rotterdam
 
 <td style="text-align:left;">
 
-[Meetup
-link](https://www.meetup.com/rladies-rotterdam/events/275171538/)
+[Slides](https://rladiesnl.github.io/book_club/slides/AdvancedRChp23-24-main/performancePresentation.html#1)
 
 </td>
 
