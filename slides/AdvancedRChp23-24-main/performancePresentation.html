@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R-Ladies Advanced R Bookclub</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Semiramis Castro" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <script src="https://use.fontawesome.com/5235085b15.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R-Ladies Advanced R Bookclub
+## Chapters 23 &amp; 24: Measuring and Improving performance
+### Semiramis Castro
+
+---
+
+
+
+
+background-image: url("https://media.giphy.com/media/273P92MBOqLiU/giphy.gif")
+background-position: 50% 50%
+class: top, inverse
+
+
+# RLadies 
+&lt;a href="https://rladies.org/"&gt;&lt;i class="fa fa-link fa-fw"&gt;&lt;/i&gt;&amp;nbsp; rladies.org&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://rladies.org/code-of-conduct/"&gt;&lt;i class="fa fa-link fa-fw"&gt;&lt;/i&gt;&amp;nbsp; Code of conduct&lt;/a&gt;&lt;br&gt;
+
+&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;
+
+
+
+&lt;a href="http://twitter.com/semiramis_cj"&gt;&lt;i class="fa fa-twitter fa-fw"&gt;&lt;/i&gt;&amp;nbsp; @semiramis_cj&lt;/a&gt;&lt;br&gt;
+
+(Of course we would have cat gifs again!!)
+
+---
+
+# We can improve only the things we can measure
+Profiling tools can tell us:
+- How much time we spent on what portion of the code
+- How much memory are we using
+- Do we have short-lived variables? (lots of calls to the garbage collector, gc)
+- Between many options, which one is more performing?
+
+---
+
+# But... is the improvement worth the effort?
+- Don't spend too much time on code that will run only once and never ever will see the light again
+
+- Be realistic: How many times this code will run? Will there really be an impact?
+
+- How big might be the difference between approaches? 
+
+- Don't sacrifice maintainability for a few microseconds
+
+---
+
+background-image: url("https://media.giphy.com/media/H4DjXQXamtTiIuCcRU/giphy.gif")
+background-position: 50% 50%
+class: top, inverse
+
+Ok, it is worth the effort. So how do we start?
+
+---
+# Organize the code in a different way (but don't forget your unit tests!) or look for alternatives
+.pull-left[
+![](https://media.giphy.com/media/UotLuplZSzKRa/giphy.gif) 
+]
+
+.pull-right[
+- Use `testthat` to ensure that refactoring does not break your code, and if it does, make sure you catch it early!!!
+
+- Twitter, github, stackoverflow might be good sources to find solutions to similar problems
+]
+
+---
+
+# Vectorize your code
+
+Don't think of scalars (individual elements); think about vectors (entire arrays)
+
+- Avoid loops; better use `map` and friends from `purrr` or the `apply` family (they still have loops, but they are written in C instead of R)
+
+- Vectors are on your side:
+
+```r
+x[is.na(x)] &lt;- 0
+```
+is much faster than writing a for loop with an if statement.
+
+---
+
+# Use specific functions for specific object types
+
+```r
+x &lt;- matrix(rnorm(1e5), ncol = 100)
+bmres &lt;- bench::mark(
+  rowSums = rowSums(x),
+  apply = apply(x, 1, sum)
+)
+```
+
+---
+
+
+```r
+bmres[c("expression", "min", "median", "itr/sec", "n_gc")]
+```
+
+```
+## # A tibble: 2 x 4
+##   expression      min   median `itr/sec`
+##   &lt;bch:expr&gt; &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt;
+## 1 rowSums    177.96µs 181.48µs     5034.
+## 2 apply        1.74ms   1.91ms      473.
+```
+
+
+---
+
+```r
+plot(bmres)
+```
+
+```
+## Loading required namespace: tidyr
+```
+
+![](performancePresentation_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+
+---
+
+# Make your life easier passing more arguments
+
+Suppose we have a medium size data frame that has been written to a file. It has different types of columns
+
+```r
+x &lt;- data.frame(a = runif(1e5), 
+                b = sample(LETTERS, 1e5, replace = TRUE), 
+                c = sample(seq(1, 100), 1e5, replace =TRUE), 
+                d = sample(letters, 1e5, replace = TRUE),
+                e = sample(c(TRUE, FALSE), 1e5, replace = TRUE))
+write.csv(x, "outfile.csv", row.names = FALSE)
+```
+
+---
+
+We can speed-up read.csv if we tell R what data types are in the columns
+
+```r
+mbres &lt;- microbenchmark(
+  no_extra_args = read.csv("outfile.csv"),
+  with_extra_args = read.csv("outfile.csv", 
+            colClasses = c("numeric", "character", 
+                           "integer", "character", 
+                           "logical"))
+)
+```
+
+---
+
+
+```r
+mbres
+```
+
+```
+## Unit: milliseconds
+##             expr       min        lq      mean    median        uq      max
+##    no_extra_args 137.79188 146.34952 152.90975 149.95500 154.35527 230.9923
+##  with_extra_args  80.09808  81.84424  85.61108  84.31934  87.91515 103.9061
+##  neval
+##    100
+##    100
+```
+
+---
+
+```r
+boxplot(mbres)
+```
+
+![](performancePresentation_files/figure-html/unnamed-chunk-8-1.png)&lt;!-- --&gt;
+
+
+
+---
+
+# Use specific libraries for your specific problem
+
+- Big data.frames? Maybe data.table could help 
+https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html
+
+- Distributed data.frames? You can take a look at Sparkr 
+https://spark.apache.org/docs/latest/sparkr.html
+
+Do you have other needs? You can ask plenty of people!
+- Your local (or not) RLadies chapter!
+- Data science no judgment QA: https://twitter.com/BecomingDataSci/status/1338225972907286531?s=20
+- Other programming/tech/scientific communities
+
+---
+
+# Telling R the expected output makes it better for you.
+For example, if you know that you expect a vector, use directly `vapply` instead of the general wrapper `sapply` 
+
+
+```r
+i39 &lt;- sapply(3:9, seq)
+
+bmres &lt;- bench::mark(
+  check = FALSE,
+  sapply = sapply(i39, fivenum),
+  vapply = vapply(i39, fivenum,
+       c(Min. = 0, "1st Qu." = 0, Median = 0, "3rd Qu." = 0, Max. = 0))
+)
+```
+
+---
+
+
+```r
+bmres[c("expression", "min", "median", "itr/sec", "n_gc")]
+```
+
+```
+## # A tibble: 2 x 4
+##   expression      min   median `itr/sec`
+##   &lt;bch:expr&gt; &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt;
+## 1 sapply       59.3µs   63.6µs    13894.
+## 2 vapply       48.1µs     52µs    18180.
+```
+
+
+---
+
+```r
+plot(bmres)
+```
+
+![](performancePresentation_files/figure-html/unnamed-chunk-12-1.png)&lt;!-- --&gt;
+
+---
+
+# Avoid copies (beware copy on modify)
+
+.pull-left[
+![](https://media.giphy.com/media/Is0AJv4CEj9hm/giphy.gif) ]
+
+.pull-right[
+
+
+
+```r
+size &lt;- 100
+
+dontdothis &lt;- function(size){
+  res &lt;- c()
+  for (i in seq(size)) {
+    res &lt;- c(res, i)
+  }
+  return(res)
+}
+
+dothis&lt;-function(size){
+  res &lt;- vector(length = size)
+  for (i in seq(size)) {
+    res[i] &lt;- i
+  }
+  return(res)
+}
+
+bmres &lt;- bench::mark(
+  dontdothis = dontdothis(size),
+  dothis = dothis(size)
+)
+```
+
+]
+---
+
+
+```r
+bmres[c("expression", "min", "median", "itr/sec", "n_gc")]
+```
+
+```
+## # A tibble: 2 x 4
+##   expression      min   median `itr/sec`
+##   &lt;bch:expr&gt; &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt;
+## 1 dontdothis  30.43µs  32.39µs    27689.
+## 2 dothis       8.74µs   9.57µs    96685.
+```
+
+---
+
+
+```r
+plot(bmres)
+```
+
+![](performancePresentation_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
+
+---
+
+# And that's it!
+
+- Don't forget to ask other people!
+
+- You can also rewrite bottlenecks in C++ (using `Rcpp`)
+
+&lt;img src="https://media.giphy.com/media/5QIe8BuZoEBfi5gBIG/giphy.gif"&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

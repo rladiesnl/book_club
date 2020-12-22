@@ -1,0 +1,264 @@
+---
+title: "R-Ladies Advanced R Bookclub"
+subtitle: "Chapters 23 & 24: Measuring and Improving performance"
+author: "Semiramis Castro"
+output: 
+  xaringan::moon_reader:
+    css: ["default", "rladies", "rladies-fonts"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    includes:
+      in_header: header.html
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(profvis)
+library(bench)
+library(microbenchmark)
+library(ggplot2)
+```
+
+background-image: url("https://media.giphy.com/media/273P92MBOqLiU/giphy.gif")
+background-position: 50% 50%
+class: top, inverse
+
+
+# RLadies 
+<a href="https://rladies.org/"><i class="fa fa-link fa-fw"></i>&nbsp; rladies.org</a><br>
+<a href="https://rladies.org/code-of-conduct/"><i class="fa fa-link fa-fw"></i>&nbsp; Code of conduct</a><br>
+
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+
+
+<a href="http://twitter.com/semiramis_cj"><i class="fa fa-twitter fa-fw"></i>&nbsp; @semiramis_cj</a><br>
+
+(Of course we would have cat gifs again!!)
+
+---
+
+# We can improve only the things we can measure
+Profiling tools can tell us:
+- How much time we spent on what portion of the code
+- How much memory are we using
+- Do we have short-lived variables? (lots of calls to the garbage collector, gc)
+- Between many options, which one is more performing?
+
+---
+
+# But... is the improvement worth the effort?
+- Don't spend too much time on code that will run only once and never ever will see the light again
+
+- Be realistic: How many times this code will run? Will there really be an impact?
+
+- How big might be the difference between approaches? 
+
+- Don't sacrifice maintainability for a few microseconds
+
+---
+
+background-image: url("https://media.giphy.com/media/H4DjXQXamtTiIuCcRU/giphy.gif")
+background-position: 50% 50%
+class: top, inverse
+
+Ok, it is worth the effort. So how do we start?
+
+---
+# Organize the code in a different way (but don't forget your unit tests!) or look for alternatives
+.pull-left[
+![](https://media.giphy.com/media/UotLuplZSzKRa/giphy.gif) 
+]
+
+.pull-right[
+- Use `testthat` to ensure that refactoring does not break your code, and if it does, make sure you catch it early!!!
+
+- Twitter, github, stackoverflow might be good sources to find solutions to similar problems
+]
+
+---
+
+# Vectorize your code
+
+Don't think of scalars (individual elements); think about vectors (entire arrays)
+
+- Avoid loops; better use `map` and friends from `purrr` or the `apply` family (they still have loops, but they are written in C instead of R)
+
+- Vectors are on your side:
+```{r eval=FALSE}
+x[is.na(x)] <- 0
+```
+is much faster than writing a for loop with an if statement.
+
+---
+
+# Use specific functions for specific object types
+```{r}
+x <- matrix(rnorm(1e5), ncol = 100)
+bmres <- bench::mark(
+  rowSums = rowSums(x),
+  apply = apply(x, 1, sum)
+)
+```
+
+---
+
+```{r}
+bmres[c("expression", "min", "median", "itr/sec", "n_gc")]
+
+```
+
+
+---
+```{r}
+plot(bmres)
+```
+
+---
+
+# Make your life easier passing more arguments
+
+Suppose we have a medium size data frame that has been written to a file. It has different types of columns
+```{r}
+x <- data.frame(a = runif(1e5), 
+                b = sample(LETTERS, 1e5, replace = TRUE), 
+                c = sample(seq(1, 100), 1e5, replace =TRUE), 
+                d = sample(letters, 1e5, replace = TRUE),
+                e = sample(c(TRUE, FALSE), 1e5, replace = TRUE))
+write.csv(x, "outfile.csv", row.names = FALSE)
+```
+
+---
+
+We can speed-up read.csv if we tell R what data types are in the columns
+```{r}
+mbres <- microbenchmark(
+  no_extra_args = read.csv("outfile.csv"),
+  with_extra_args = read.csv("outfile.csv", 
+            colClasses = c("numeric", "character", 
+                           "integer", "character", 
+                           "logical"))
+)
+```
+
+---
+
+```{r}
+mbres
+```
+
+---
+```{r}
+boxplot(mbres)
+```
+
+```{r echo=FALSE}
+unlink("outfile.csv")
+```
+
+---
+
+# Use specific libraries for your specific problem
+
+- Big data.frames? Maybe data.table could help 
+https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html
+
+- Distributed data.frames? You can take a look at Sparkr 
+https://spark.apache.org/docs/latest/sparkr.html
+
+Do you have other needs? You can ask plenty of people!
+- Your local (or not) RLadies chapter!
+- Data science no judgment QA: https://twitter.com/BecomingDataSci/status/1338225972907286531?s=20
+- Other programming/tech/scientific communities
+
+---
+
+# Telling R the expected output makes it better for you.
+For example, if you know that you expect a vector, use directly `vapply` instead of the general wrapper `sapply` 
+
+```{r}
+
+i39 <- sapply(3:9, seq)
+
+bmres <- bench::mark(
+  check = FALSE,
+  sapply = sapply(i39, fivenum),
+  vapply = vapply(i39, fivenum,
+       c(Min. = 0, "1st Qu." = 0, Median = 0, "3rd Qu." = 0, Max. = 0))
+)
+```
+
+---
+
+```{r}
+bmres[c("expression", "min", "median", "itr/sec", "n_gc")]
+```
+
+
+---
+```{r}
+plot(bmres)
+```
+
+---
+
+# Avoid copies (beware copy on modify)
+
+.pull-left[
+![](https://media.giphy.com/media/Is0AJv4CEj9hm/giphy.gif) ]
+
+.pull-right[
+
+
+```{r}
+size <- 100
+
+dontdothis <- function(size){
+  res <- c()
+  for (i in seq(size)) {
+    res <- c(res, i)
+  }
+  return(res)
+}
+
+dothis<-function(size){
+  res <- vector(length = size)
+  for (i in seq(size)) {
+    res[i] <- i
+  }
+  return(res)
+}
+
+bmres <- bench::mark(
+  dontdothis = dontdothis(size),
+  dothis = dothis(size)
+)
+
+```
+
+]
+---
+
+```{r}
+bmres[c("expression", "min", "median", "itr/sec", "n_gc")]
+```
+
+---
+
+```{r}
+plot(bmres)
+```
+
+---
+
+# And that's it!
+
+- Don't forget to ask other people!
+
+- You can also rewrite bottlenecks in C++ (using `Rcpp`)
+
+<img src="https://media.giphy.com/media/5QIe8BuZoEBfi5gBIG/giphy.gif">
+
