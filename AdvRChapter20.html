@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Advanced R Chapter 20</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Pavitra Chakravarty" />
+    <meta name="date" content="2020-11-24" />
+    <script src="libs/header-attrs-2.3.2/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Advanced R Chapter 20
+## R-Ladies Den Bosch
+### Pavitra Chakravarty
+### <span class="citation">@genomixgmailcom</span>
+### 2020-11-24
+
+---
+
+
+
+
+
+## Evaluation: What is this chapter about?
+
+  * `eval()`:  implementation of `local()` and `source()`
+
+  * **quosure**:  combination of expression + environment
+  
+  * **data mask**:  mingle symbols in env with variables in df
+  
+  * **tidy evaluation in practise**:  pattern of quoting and unquoting
+  
+
+
+---
+## The Basics: `base::eval()`
+
+
+`eval`: evaluates an input expression in an input environment. 
+
+Arguments to `eval`:
+
+  * *expr*: symbol or expression; *envir*: environment. Use calling env or override
+  
+  
+
+```r
+x &lt;- 10
+eval(rlang::expr(x))
+```
+
+```
+## [1] 10
+```
+
+```r
+y &lt;- 2
+eval(expr(x + y), env(x = 1000))
+```
+
+```
+## [1] 1002
+```
+What if you do not quote the first expression if you override env?
+
+
+```r
+y &lt;- 2
+eval(x + y, env(x = 1000))
+```
+
+```
+## [1] 12
+```
+
+---
+### Application: `local()`
+
+`local()`: to avoid intermediate vars
+
+
+
+```r
+rm(x,y)
+foo &lt;- local({
+  x &lt;- 10
+  y &lt;- 200
+  x + y
+})
+
+foo
+```
+
+```
+## [1] 210
+```
+
+We can replicate `local`: 
+
+
+```r
+local2 &lt;- function(expr) {
+  env &lt;- env(caller_env())
+  eval(enexpr(expr), env)
+}
+
+foo &lt;- local2({
+  x &lt;- 10
+  y &lt;- 200
+  x + y
+})
+
+foo
+```
+
+```
+## [1] 210
+```
+
+```r
+x&lt;- 2
+y&lt;- 2
+local2(x+y)
+```
+
+```
+## [1] 4
+```
+
+---
+## Application: `source`
+
+
+```r
+source2 &lt;- function(file, env = caller_env()) {
+  exprs &lt;- parse_exprs(file)
+
+  res &lt;- NULL
+  for (i in seq_along(exprs)) {
+    res &lt;- eval(exprs[[i]], env)
+  }
+
+  #invisible(res)
+  res
+}
+x&lt;-111
+b &lt;- source2(x1&lt;-"y&lt;-x+10")
+
+b
+```
+
+```
+## [1] 121
+```
+---
+## Exercises 
+
+
+```r
+eval(expr(eval(expr(eval(expr(2 + 2))))))        # (1)
+eval(eval(expr(eval(expr(eval(expr(2 + 2)))))))  # (2)
+expr(eval(expr(eval(expr(eval(expr(2 + 2)))))))  # (3)
+```
+
+---
+## Quosures: what are they? 
+
+Encapsulation of:
+  * expression
+  
+  * environment
+  
+Coupling is so important that `rlang` provides a composite structure 
+  
+`rlang` provides 3 ways but the following is the best
+
+--
+
+* `enquo()` and `enquos()` 
+  
+---
+### Examples creating quosure and using eval_tidy
+
+
+```r
+quosure_create &lt;- function(x) enquo(x)
+quosure_create(a + b)
+```
+
+```
+## &lt;quosure&gt;
+## expr: ^a + b
+## env:  global
+```
+
+```r
+x&lt;- 100
+y&lt;- 100
+
+q1 &lt;- new_quosure(expr(x + y), env(x = 1, y = 10))
+
+class(q1)
+```
+
+```
+## [1] "quosure" "formula"
+```
+
+```r
+get_expr(q1)
+```
+
+```
+## x + y
+```
+
+```r
+get_env(q1) 
+```
+
+```
+## &lt;environment: 0x00000000144fd8c8&gt;
+```
+
+```r
+answer &lt;- eval_tidy(q1)
+```
+---
+## Nested quosures  
+  
+
+```r
+q1 &lt;- new_quosure(expr(x), env(x = 1))
+q2 &lt;- new_quosure(expr(x), env(x = 10))
+
+x &lt;- expr(q1+q2)
+y &lt;- expr(!!q1+!!q2)
+          
+eval_tidy(y)
+```
+
+```
+## [1] 11
+```
+---
+## Exercises 
+
+
+```r
+q1 &lt;- new_quosure(expr(x), env(x = 1))
+q2 &lt;- new_quosure(expr(x + !!q1), env(x = 10))
+q3 &lt;- new_quosure(expr(x + !!q2), env(x = 100))
+
+expr_print(q1)
+```
+
+```
+## ^x
+```
+
+```r
+expr_print(q2)
+```
+
+```
+## ^x + (^x)
+```
+
+```r
+expr_print(q3)
+```
+
+```
+## ^x + (^x + (^x))
+```
+
+```r
+eval_tidy(q1)
+```
+
+```
+## [1] 1
+```
+
+```r
+eval_tidy(q2)
+```
+
+```
+## [1] 11
+```
+
+```r
+eval_tidy(q3)
+```
+
+```
+## [1] 111
+```
+
+---
+## Data Masks
+
+Data frame where the evaluated code will look first for variable definitions
+
+
+```r
+q1 &lt;- new_quosure(expr(x * y), env(x = 100))
+df &lt;- data.frame(y = 1:10)
+eval_tidy(q1, df)
+```
+
+```
+##  [1]  100  200  300  400  500  600  700  800  900 1000
+```
+
+Lets create a wrapper to see what is going on
+
+
+```r
+with2 &lt;- function(data, expr) {
+  expr &lt;- enquo(expr)
+  eval_tidy(expr, data)
+}
+
+x&lt;- 100
+with2(df, x*y)
+```
+
+```
+##  [1]  100  200  300  400  500  600  700  800  900 1000
+```
+---
+### Using pronouns to avoid ambiguity
+
+The data mask provides two pronouns: .data and .env.
+
+  * .data$x always refers to x in the data mask
+  * .env$x always refers to x in the environment
+
+
+```r
+x &lt;- 1
+df &lt;- data.frame(x = 2)
+```
+
+
+
+```r
+with2(df, .data$x)
+```
+
+```
+## [1] 2
+```
+
+
+
+```r
+with2(df, .env$x)
+```
+
+```
+## [1] 1
+```
+---
+## Application: `subset`
+
+
+
+```r
+sample_df &lt;- data.frame(a = 1:5, b = 5:1, c = c(5, 3, 1, 4, 1))
+
+subset(sample_df, a &gt;= 4)
+```
+
+```
+##   a b c
+## 4 4 2 4
+## 5 5 1 1
+```
+
+```r
+subset(sample_df, b == c)
+```
+
+```
+##   a b c
+## 1 1 5 5
+## 5 5 1 1
+```
+
+```r
+subset2 &lt;- function(data, rows) {
+  rows &lt;- enquo(rows)
+  rows_val &lt;- eval_tidy(rows, data)
+  stopifnot(is.logical(rows_val))
+
+  data[rows_val, , drop = FALSE]
+}
+
+subset2(sample_df, b==c)
+```
+
+```
+##   a b c
+## 1 1 5 5
+## 5 5 1 1
+```
+---
+## When is tidy evaluation actually beneficial?
+
+Here is a function that resamples a dataset
+
+
+```r
+resample &lt;- function(df, n) {
+  idx &lt;- sample(nrow(df), n, replace = TRUE)
+  df[idx, , drop = FALSE]
+}
+```
+
+You want to create a new function that re-samples and subsets in a single step
+
+
+
+```r
+subsample &lt;- function(df, cond, n = nrow(df)) {
+  df &lt;- subset2(df, cond)
+  resample(df, n)
+}
+
+df &lt;- data.frame(x = c(1, 1, 1, 2, 2), y = 1:5)
+subsample(df, x == 1)
+```
+
+```
+##     x y
+## 3   1 3
+## 4   2 4
+## 3.1 1 3
+## 4.1 2 4
+## 1   1 1
+```
+
+`subsample()` doesn’t quote any arguments so cond is evaluated normally (not in a data mask), and we get an error when it tries to find a binding for x.
+
+---
+### Example continued 
+
+
+An approach that does work
+
+
+
+```r
+subsample &lt;- function(df, cond, n = nrow(df)) {
+  cond &lt;- enquo(cond)
+
+  df &lt;- subset2(df, !!cond)
+  resample(df, n)
+}
+
+subsample(df, x == 1)
+```
+
+```
+##     x y
+## 3   1 3
+## 2   1 2
+## 3.1 1 3
+```
+
+---
+## Tidy evaluation handles ambiguity well 
+
+Consider the function that is meant to find all the rows of df where *x* is at least some threshold value:
+
+
+```r
+threshold_x &lt;- function(df, val) {
+  subset2(df, x &gt;= val)
+}
+```
+
+How can this go wrong?
+
+  * if `val` is in `df`
+  
+  * if `x` is in the calling environment but not in `df`
+  
+---
+### A more robust implementation
+
+Here's a better implementation:
+
+
+```r
+threshold_x &lt;- function(df, val) {
+  subset2(df, .data$x &gt;= .env$val)
+}
+```
+
+
+Case 1: `x` is in the calling environment but not in `df`
+
+
+```r
+no_x &lt;- data.frame(y = 1:3)
+x &lt;- 10
+threshold_x(no_x, 2)
+```
+
+```
+## Error: Column `x` not found in `.data`
+```
+
+Case 2: If `val` is in `df`
+
+
+```r
+has_val &lt;- data.frame(x = 1:3, val = 9:11)
+threshold_x(has_val, 2)
+```
+
+```
+##   x val
+## 2 2  10
+## 3 3  11
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create();
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
